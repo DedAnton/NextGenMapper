@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -12,6 +13,13 @@ namespace NextGenMapper
     {
         public void Initialize(GeneratorInitializationContext context)
         {
+            #if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+            #endif
+
             context.RegisterForPostInitialization(i =>
             {
                 i.AddSource("MapToAttribute", Annotations.mapToAttributeText);
