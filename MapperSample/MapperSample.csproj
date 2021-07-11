@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NextGenMapper\NextGenMapper.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+      <PackageReference Include="NextGenMapper" Version="1.0.0" />
     </ItemGroup>
 
 </Project>

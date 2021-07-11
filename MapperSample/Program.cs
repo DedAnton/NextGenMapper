@@ -21,6 +21,8 @@ namespace MapperSample
             var model2r = Mapper.Map(entity2);
             Console.WriteLine($"{model2r.Id} - {model2r.Name} - {model2r.Upc}");
         }
+
+        record User(string Name, string Email, int Age) { }
     }
 
     public static class MyMapper
