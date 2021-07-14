@@ -6,55 +6,51 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace NextGenMapper
 {
-    /// <summary>
-    /// Created on demand before each generation pass
-    /// </summary>
-    class SyntaxReceiver : ISyntaxContextReceiver
+    partial class SyntaxReceiver : ISyntaxContextReceiver
     {
-        public List<Mapping> MappingList = new List<Mapping>();
+        public List<Mapping> MappingList = new();
 
-        /// <summary>
-        /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
-        /// </summary>
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
-            if (context.Node is ClassDeclarationSyntax node)
+            if (context.Node is InvocationExpressionSyntax node)
             {
-                var fromType = context.SemanticModel.GetDeclaredSymbol(node);
-                var attribute = fromType.GetAttributes().FirstOrDefault(x => x.AttributeClass.ToDisplayString() == Annotations.mapToAttributeName);
-                if (attribute != null)
+                var symbol = (IMethodSymbol)context.SemanticModel.GetSymbolInfo(node.Expression).Symbol;
+                if (symbol != null && symbol.Kind == SymbolKind.Method && symbol.ContainingType.ToDisplayString() == "NextGenMapper.Mapper" && symbol.MethodKind == MethodKind.ReducedExtension)
                 {
-                    if (attribute
-                        .ConstructorArguments
-                        .SingleOrDefault()
-                        .Value is INamedTypeSymbol toType)
-                    {
-                        var reverse = toType
-                            .GetAttributes()
-                            .Any(x => x.AttributeClass.ToDisplayString() == Annotations.mapReverseAttributeName);
-                        var targetNames = fromType
-                            .GetMembers()
-                            .Where(x => x.Kind == SymbolKind.Property)
-                            .Select(x => (x.Name, TargetName: x.GetAttributes().FirstOrDefault(x => x.AttributeClass.ToDisplayString() == Annotations.targetNameAttributeName)?.ConstructorArguments.SingleOrDefault().Value as string))
-                            .Where(x => x.TargetName != null);
-                        
-                        if (reverse)
-                        {
-                            var reverseTargetNames = targetNames
-                                .Select(x => (Name: x.TargetName, TargetName: x.Name));
-                            targetNames = targetNames.Concat(reverseTargetNames);
-                        }
+                    var member = (MemberAccessExpressionSyntax)node.Expression;
+                    var memberSymbol = (ILocalSymbol)context.SemanticModel.GetSymbolInfo(member.Expression).Symbol;
+                    var fromType = (INamedTypeSymbol)memberSymbol.Type;
+                    var toType = (INamedTypeSymbol)symbol.ReturnType;
 
-                        var mapping = new Mapping
-                        {
-                            From = fromType,
-                            To = toType,
-                            Reverse = reverse,
-                            TargetNames = targetNames.ToDictionary(x => x.Name, y => y.TargetName)
-                        };
-                        MappingList.Add(mapping);
+                    CreateMapping(fromType, toType);
+                }
+            }
+        }
+
+        private void CreateMapping(ITypeSymbol from, ITypeSymbol to)
+        {
+            var fromProps = from.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
+            var toProps = to.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
+
+            var mapping = new Mapping(from, to);
+            foreach(var fromProp in fromProps)
+            {
+                var toProp = toProps.FirstOrDefault(x => x.Name == fromProp.Name);
+                if (toProp != null)
+                {
+                    var mappingProp = new MappingProperty(fromProp, toProp);
+                    mapping.Properties.Add(mappingProp);
+
+                    if (!fromProp.Type.Equals(toProp.Type, SymbolEqualityComparer.IncludeNullability))
+                    {
+                        CreateMapping(fromProp.Type, toProp.Type);
                     }
                 }
+            }
+
+            if (!MappingList.Contains(mapping))
+            {
+                MappingList.Add(mapping);
             }
         }
     }

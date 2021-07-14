@@ -6,7 +6,7 @@ namespace NextGenMapper
 {
     public static class Annotations
     {
-        public const string mapToAttributeText = @"
+        public const string MapToAttributeText = @"
 using System;
 namespace NextGenMapper
 {
@@ -23,9 +23,9 @@ namespace NextGenMapper
 }
 ";
 
-        public const string mapToAttributeName = "NextGenMapper.MapToAttribute";
+        public const string MapToAttributeName = "NextGenMapper.MapToAttribute";
 
-        public const string mapReverseAttributeText = @"
+        public const string MapReverseAttributeText = @"
 using System;
 namespace NextGenMapper
 {
@@ -36,9 +36,9 @@ namespace NextGenMapper
     }
 }
 ";
-        public const string mapReverseAttributeName = "NextGenMapper.MapReverseAttribute";
+        public const string MapReverseAttributeName = "NextGenMapper.MapReverseAttribute";
 
-        public const string targetNameAttributeText = @"
+        public const string TargetNameAttributeText = @"
 using System;
 
 namespace NextGenMapper
@@ -52,6 +52,24 @@ namespace NextGenMapper
 }
 ";
 
-        public const string targetNameAttributeName = "NextGenMapper.TargetNameAttribute";
+        public const string TargetNameAttributeName = "NextGenMapper.TargetNameAttribute";
+
+        public const string MapperAttributeText = @"
+using System;
+
+namespace NextGenMapper
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    public class MapperAttribute : Attribute
+    {
+        public MapperAttribute()
+        {
+
+        }
+    }
+}
+";
+
+        public const string MapperAttributeName = "NextGenMapper.MapperAttribute";
     }
 }

@@ -1,9 +1,5 @@
-﻿using MapperSample.Entities;
-using NextGenMapper;
-
-namespace MapperSample.Models
+﻿namespace MapperSample.Models
 {
-    [MapTo(typeof(UserEntity))]
     public class UserModel
     {
         public string Name { get; set; }
