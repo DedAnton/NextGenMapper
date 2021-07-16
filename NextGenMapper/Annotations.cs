@@ -8,6 +8,7 @@ namespace NextGenMapper
     {
         public const string MapToAttributeText = @"
 using System;
+
 namespace NextGenMapper
 {
     [AttributeUsage(AttributeTargets.Class)]
@@ -27,6 +28,7 @@ namespace NextGenMapper
 
         public const string MapReverseAttributeText = @"
 using System;
+
 namespace NextGenMapper
 {
     [AttributeUsage(AttributeTargets.Class)]
@@ -71,5 +73,18 @@ namespace NextGenMapper
 ";
 
         public const string MapperAttributeName = "NextGenMapper.MapperAttribute";
+
+        public const string PartialAttributeText =
+@"using System;
+
+namespace NextGenMapper
+{
+    [AttributeUsage(AttributeTargets.Method)]
+    public class PartialAttribute : Attribute
+    {
+        public PartialAttribute() { }
+    }
+}";
+        public const string PartialAttributeName = "NextGenMapper.PartialAttribute";
     }
 }

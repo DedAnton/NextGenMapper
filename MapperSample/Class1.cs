@@ -1,18 +1,32 @@
 ﻿using MapperSample.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NextGenMapper;
+using MapperSample.Entities;
+using User = MapperSample.Entities.UserEntity;
+using System.Collections.Generic;
 
 namespace MapperSample
 {
+    [Mapper]
     class Class1
     {
-        public void Asd()
+        public string Map(DateTime source) => source.ToString("O");
+
+        [Partial]
+        private ProductEntity Asd(ProductModel src) => new ProductEntity { UpcString = src.Upc };
+        
+        [Partial]
+        private User ХуйБомжа(UserModel source)
         {
-            //var model2 = new ProductModel { Id = 1, Name = "Hamburger", Upc = "835420124123" };
-            //var asd = MyMapper.Map(model2);
+            var names = source.Name?.Split(' ');
+
+            return new User
+            {
+                FirstName = names.FirstOrDefault(),
+                SecondName = names.LastOrDefault()
+            };
         }
+        //private User Asd(UserModel source) => new User() { FirstName = source.Name, SecondName = source.Name};
     }
 }
