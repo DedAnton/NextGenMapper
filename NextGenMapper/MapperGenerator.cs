@@ -1,7 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text;
 
 namespace NextGenMapper
@@ -9,24 +11,38 @@ namespace NextGenMapper
     [Generator]
     public class MapperGenerator : ISourceGenerator
     {
-        private const int tab = 4;
-        public void Initialize(GeneratorInitializationContext context)
+        private const int TAB1 = 4;
+        private const int TAB2 = 8;
+
+        #region mapper text
+
+        private const string MAPPER_BEGIN =
+@"namespace NextGenMapper
+{
+    public static partial class Mapper
+    {
+";
+
+        private const string MAPPER_END =
+@"    }
+}";
+
+    #endregion
+
+    public void Initialize(GeneratorInitializationContext context)
         {
-//#if DEBUG
-//            if (!Debugger.IsAttached)
-//            {
-//                Debugger.Launch();
-//            }
-//#endif
+#if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif
 
             context.RegisterForPostInitialization(i =>
             {
-                i.AddSource("MapToAttribute", Annotations.MapToAttributeText);
-                i.AddSource("MapReverseAttribute", Annotations.MapReverseAttributeText);
-                i.AddSource("TargetNameAttribute", Annotations.TargetNameAttributeText);
                 i.AddSource("MapperAttribute", Annotations.MapperAttributeText);
                 i.AddSource("PartialAttribute", Annotations.PartialAttributeText);
-                i.AddSource("StartMapper", MappersText.StartMapper);
+                i.AddSource("StartMapper", StartMapperSource.StartMapper);
             });
 
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -37,55 +53,56 @@ namespace NextGenMapper
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
                 return;
 
-            var commonMapper = BuildCommonMapper(receiver);
-            var customMapper = BuildCustomMapper(receiver);
-
+            var commonMapper = GenerateCommonMapper(receiver);
             context.AddSource("CommonMapper", SourceText.From(commonMapper, Encoding.UTF8));
-            context.AddSource("CustomMapper", SourceText.From(customMapper, Encoding.UTF8));
-        }
 
-        private string BuildCommonMapper(SyntaxReceiver receiver)
-        {
-            StringBuilder sourceBuilder = new(MappersText.MapperBegin);
-            var mappings = receiver.Mappings.Where(x => x is not CustomMapping);
-            foreach (var mapping in mappings)
+            var customMappers = GenerateCustomMappers(receiver);
+            var mapperIndex = 1;
+            foreach(var mapper in customMappers)
             {
-                AddMapFunction(sourceBuilder, mapping);
+                context.AddSource($"{mapperIndex++}_CustomMapper", SourceText.From(mapper, Encoding.UTF8));
             }
-            sourceBuilder.Append(MappersText.MapperEnd);
-
-            return sourceBuilder.ToString();
         }
 
-        private string BuildCustomMapper(SyntaxReceiver receiver)
+        private IEnumerable<string> GenerateCustomMappers(SyntaxReceiver receiver)
+        {
+            foreach(var (Mappings, Usings) in receiver.CustomMappings)
+            {
+                var sourceBuilder = new StringBuilder();
+                sourceBuilder.Append(GenerateUsings(Usings));
+                sourceBuilder.Append(MAPPER_BEGIN);
+                foreach (var mapping in Mappings)
+                {
+                    var mapFunction = mapping switch
+                    {
+                        { Type: MappingType.Custom, MethodType: MethodType.Block } => GenerateCustomMapBlockFunction(mapping),
+                        { Type: MappingType.Custom, MethodType: MethodType.Expression } => GenerateCustomMapExpressionFunction(mapping),
+                        { Type: MappingType.Partial } => GeneratePartialMapFunction(mapping),
+                        _ => throw new ArgumentOutOfRangeException(nameof(mapping.Type))
+                    };
+                    sourceBuilder.Append(mapFunction.LeadingSpace(TAB2));
+                }
+                sourceBuilder.Append(MAPPER_END);
+
+                yield return sourceBuilder.ToString();
+            }
+        }
+
+        private string GenerateCommonMapper(SyntaxReceiver receiver)
         {
             var sourceBuilder = new StringBuilder();
-            foreach(var @using in receiver.CustomMappingsUsings)
-            {
-                sourceBuilder.AppendLine(@using.ToString());
-            }
-
-            sourceBuilder.Append(MappersText.MapperBegin);
-            var mappings = receiver.Mappings.Where(x => x is CustomMapping);
-            foreach (CustomMapping customMapping in mappings)
-            {
-                if (customMapping is PartialMapping partialMapping)
-                {
-                    sourceBuilder.Append(GeneratePartialMapFunction(partialMapping).LeadingSpace(tab * 2));
-                }
-                else
-                {
-                    AddCustomMapFunction(sourceBuilder, customMapping);
-                }
-            }
-            sourceBuilder.Append(MappersText.MapperEnd);
+            sourceBuilder.Append(MAPPER_BEGIN);
+            receiver.CommonMappings.ForEach(x => 
+                sourceBuilder.Append(GenerateCommonMapFunction(x).LeadingSpace(TAB2)));
+            sourceBuilder.Append(MAPPER_END);
 
             return sourceBuilder.ToString();
         }
 
-        private void AddMapFunction(StringBuilder sourceBuilder, Mapping mapping)
+        private string GenerateCommonMapFunction(TypeMapping mapping)
         {
-            sourceBuilder.Append($"        public static {mapping.TypeTo} Map<TTo>(this {mapping.TypeFrom} source) => new {mapping.TypeTo} {{ ");
+            var sourceBuilder = new StringBuilder();
+            sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType} {{ ");
             foreach (var property in mapping.Properties)
             {
                 if (property.IsSameTypes)
@@ -98,43 +115,58 @@ namespace NextGenMapper
                 }
             }
             sourceBuilder.AppendLine("};");
+
+            return sourceBuilder.ToString();
         }
 
-        private void AddCustomMapFunction(StringBuilder sourceBuilder, CustomMapping mapping)
-        {
-            var body = mapping.Body != null ? $"\r\n        {mapping.Body}\r\n" : $"{mapping.ExpressionBody};\r\n";
-            sourceBuilder.Append($"        public static {mapping.TypeTo} Map<TTo>(this {mapping.TypeFrom} {mapping.ParameterName}) {body}");
-        }
+        private string GenerateCustomMapBlockFunction(TypeMapping mapping)
+            => $"public static {mapping.To} Map<To>(this {mapping.From} {mapping.ParameterName})\r\n{mapping.Body.ToString().RemoveLeadingSpace(TAB2)}";
 
-        private string GeneratePartialMapFunction(PartialMapping mapping)
+        private string GenerateCustomMapExpressionFunction(TypeMapping mapping)
+            => $"public static {mapping.To} Map<To>(this {mapping.From} {mapping.ParameterName}) {mapping.ExpressionBody};\r\n";
+
+        private string GeneratePartialMapFunction(TypeMapping mapping)
         {
-            var userFunction = GenerateUserFunction(mapping).LeadingSpace(tab);
+            var userFunction = GenerateUserFunction(mapping).LeadingSpace(TAB1);
             var sourceBuilder = new StringBuilder();
 
-            sourceBuilder.Append($"public static {mapping.TypeTo} Map<TTo>(this {mapping.TypeFrom} _a__source)\r\n{{\r\n");
+            sourceBuilder.Append($"public static {mapping.To} Map<To>(this {mapping.From} _a__source)\r\n{{\r\n");
             sourceBuilder.Append(userFunction);
-            sourceBuilder.AppendLine("var result = UserFunction(_a__source);".LeadingSpace(tab));
+            sourceBuilder.AppendLine("var result = UserFunction(_a__source);".LeadingSpace(TAB1));
             foreach (var property in mapping.Properties)
             {
                 if (property.IsSameTypes)
                 {
-                    sourceBuilder.AppendLine($"result.{property.NameTo} = _a__source.{property.NameFrom};".LeadingSpace(tab));
+                    sourceBuilder.Append($"result.{property.NameTo} = _a__source.{property.NameFrom};".LeadingSpace(TAB1));
                 }
                 else
                 {
-                    sourceBuilder.AppendLine($"result.{property.NameTo} = _a__source.{property.NameFrom}.Map<{property.TypeTo}>();".LeadingSpace(tab));
+                    sourceBuilder.Append($"result.{property.NameTo} = _a__source.{property.NameFrom}.Map<{property.TypeTo}>();".LeadingSpace(TAB1));
                 }
             }
-            sourceBuilder.AppendLine("return result;".LeadingSpace(tab));
+            sourceBuilder.Append("return result;".LeadingSpace(TAB1));
             sourceBuilder.AppendLine("}");
 
             return sourceBuilder.ToString();
         }
 
-        private string GenerateUserFunction(PartialMapping mapping)
+        private string GenerateUserFunction(TypeMapping mapping)
         {
-            var body = mapping.Body != null ? $"\r\n{mapping.Body.ToString().LeadingSpace(tab * -2)}\r\n" : $"{mapping.ExpressionBody};\r\n";
-            return $"{mapping.TypeTo} UserFunction({mapping.TypeFrom} {mapping.ParameterName}) {body}";
+            var body = mapping.MethodType == MethodType.Block 
+                ? $"\r\n{mapping.Body.ToString().RemoveLeadingSpace(TAB2)}" 
+                : $"{mapping.ExpressionBody};\r\n";
+            return $"{mapping.To} UserFunction({mapping.From} {mapping.ParameterName}) {body}";
+        }
+
+        private string GenerateUsings(List<UsingDirectiveSyntax> usings)
+        {
+            var sourceBuilder = new StringBuilder();
+            foreach (var @using in usings)
+            {
+                sourceBuilder.AppendLine(@using.ToString());
+            }
+
+            return sourceBuilder.AppendLine().ToString();
         }
     }
 }

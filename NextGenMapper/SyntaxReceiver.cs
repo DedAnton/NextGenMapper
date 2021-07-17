@@ -1,177 +1,150 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper
 {
     partial class SyntaxReceiver : ISyntaxContextReceiver
     {
-        private List<(ITypeSymbol from, ITypeSymbol to)> typesWithoutDefaultConstructor = new();
-        
-        public List<Mapping> Mappings = new();
-        public List<UsingDirectiveSyntax> CustomMappingsUsings = new();
+        public List<TypeMapping> CommonMappings = new();
+        public List<(List<TypeMapping> Mappings, List<UsingDirectiveSyntax> Usings)> CustomMappings = new();
 
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
-            if (context.Node is InvocationExpressionSyntax node)
+            if (context.Node is ClassDeclarationSyntax classNode
+                && context.GetDeclaredSymbol(classNode).HasAttribute(Annotations.MapperAttributeName))
             {
-                if (context.GetSymbolInfo(node.Expression).Symbol is IMethodSymbol symbol
-                    && symbol.Kind == SymbolKind.Method 
-                    && symbol.ContainingType.ToDisplayString() == "NextGenMapper.Mapper" 
-                    && symbol.MethodKind == MethodKind.ReducedExtension)
-                {
-                    var member = (MemberAccessExpressionSyntax)node.Expression;
-                    var memberSymbol = context.GetSymbolInfo(member.Expression).Symbol as ILocalSymbol;
+                var mappings = HandleCustomMapperClass(context, classNode);
 
-                    CreateCommonMapping(memberSymbol.Type, symbol.ReturnType);
-                }
+                var currentCustom = CustomMappings.SelectMany(x => x.Mappings);
+                var custom = mappings.Where(x => x.Type is MappingType.Custom or MappingType.Partial).Distinct();
+                var newCustom = custom.Except(currentCustom.Intersect(custom)).ToList();
+                CustomMappings.Add((newCustom, classNode.GetUsings()));
+
+                var common = mappings.Where(x => x.Type == MappingType.Common);
+                var newCommonMappings = common.Except(common.Intersect(CommonMappings)).Except(currentCustom);
+                CommonMappings.AddRange(newCommonMappings);
             }
-            else if (context.Node is ClassDeclarationSyntax cNode)
+            else if (context.Node is InvocationExpressionSyntax invocationNode
+                && context.GetSymbol(invocationNode.Expression) is IMethodSymbol method
+                && method.MethodKind == MethodKind.ReducedExtension
+                && method.ReducedFrom.ToDisplayString() == StartMapperSource.FunctionFullName)
             {
-                if (context.GetSymbol(cNode).HasAttribute(Annotations.MapperAttributeName))
-                {
-                    var methodsDeclarations = cNode.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration);
-                    foreach (MethodDeclarationSyntax method in methodsDeclarations)
-                    {
-                        if (context.GetSymbol(method).HasAttribute(Annotations.PartialAttributeName))
-                        {
-                            CreatePartialCustomMapping(context, method);
-                        }
-                        else
-                        {
-                            CreateCustomMapping(context, method);
-                        }
-                    }
+                var mappings = HandleStartMapperInvocation(context, invocationNode, method);
 
-                    //class -> namespace -> comilation unit
-                    var usings = (cNode.Parent.Parent as CompilationUnitSyntax).Usings;
-                    var newUsings = usings.Except(usings.Intersect(CustomMappingsUsings));
-                    CustomMappingsUsings.AddRange(newUsings);
-                }
+                var currentCustom = CustomMappings.SelectMany(x => x.Mappings);
+                var newMappings = mappings.Except(mappings.Intersect(CommonMappings)).Except(currentCustom);
+                CommonMappings.AddRange(newMappings);
             }
         }
 
-        private void CreatePartialCustomMapping(GeneratorSyntaxContext context, MethodDeclarationSyntax method)
+        private List<TypeMapping> HandleStartMapperInvocation(
+            GeneratorSyntaxContext context, InvocationExpressionSyntax node, IMethodSymbol method)
         {
-            var singleParameter = method.ParameterList.Parameters.SingleOrDefault();
-            if (singleParameter != null)
-            {
-                var mappedProperties = new List<string>();
-                var arrowExp = method.ExpressionBody;
-                if (arrowExp != null)
-                {
-                    var objCreationExp = arrowExp.Expression as ObjectCreationExpressionSyntax;
-                    var initializers = objCreationExp.Initializer.Expressions;
-                    foreach(AssignmentExpressionSyntax assigment in initializers)
-                    {
-                        mappedProperties.Add((assigment.Left as IdentifierNameSyntax).Identifier.ValueText);
-                    }
-                }
-                else if (method.Body != null)
-                {
-                    var returnStatemant = method.Body.Statements.SingleOrDefault(x => x is ReturnStatementSyntax) as ReturnStatementSyntax;
-                    var objCreationExp = returnStatemant.Expression as ObjectCreationExpressionSyntax;
-                    var initializers = objCreationExp.Initializer.Expressions;
-                    foreach (AssignmentExpressionSyntax assigment in initializers)
-                    {
-                        mappedProperties.Add((assigment.Left as IdentifierNameSyntax).Identifier.ValueText);
-                    }
-                }
-                else
-                {
-                    return;
-                }
+            var member = (MemberAccessExpressionSyntax)node.Expression;
+            var memberSymbol = context.GetSymbol(member.Expression) as ILocalSymbol;
 
-                var from = context.SemanticModel.GetSymbolInfo(singleParameter.Type).Symbol as ITypeSymbol;
-                var to = context.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol as ITypeSymbol;
-                var fromProps = from.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
-                var toProps = to.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
-
-                var mapping = new PartialMapping(from, to, method);
-                foreach (var fromProp in fromProps)
-                {
-                    var toProp = toProps.FirstOrDefault(x => x.Name == fromProp.Name);
-                    if (toProp != null)
-                    {
-                        var mappingProp = new MappingProperty(fromProp, toProp);
-                        mapping.Properties.Add(mappingProp);
-
-                        if (!fromProp.Type.Equals(toProp.Type, SymbolEqualityComparer.IncludeNullability))
-                        {
-                            var hasDefaultConstructor = (toProp.Type as INamedTypeSymbol)
-                                .Constructors
-                                .Any(x => x.DeclaredAccessibility == Accessibility.Public && x.Parameters.Count() == 0);
-                            if (hasDefaultConstructor)
-                            {
-                                CreateCommonMapping(fromProp.Type, toProp.Type);
-                            }
-                            else
-                            {
-                                typesWithoutDefaultConstructor.Add((fromProp.Type, toProp.Type));
-                            }
-                        }
-                    }
-                }
-                mapping.Properties.RemoveAll(x => mappedProperties.Contains(x.NameFrom));
-
-                //remove same common mapping
-                Mappings.Remove(mapping);
-                Mappings.Add(mapping);
-            }
+            return CreateCommonMappings(memberSymbol.Type, method.ReturnType);
         }
 
-        private void CreateCustomMapping(GeneratorSyntaxContext context, MethodDeclarationSyntax method)
+        private List<TypeMapping> HandleCustomMapperClass(GeneratorSyntaxContext context, ClassDeclarationSyntax node)
         {
-            var singleParameter = method.ParameterList.Parameters.SingleOrDefault();
-            if (singleParameter != null)
+            var mappings = new List<TypeMapping>();
+            foreach (var method in node.GetMethodsDeclarations())
             {
-                var from = context.SemanticModel.GetSymbolInfo(singleParameter.Type).Symbol as ITypeSymbol;
-                var to = context.SemanticModel.GetSymbolInfo(method.ReturnType).Symbol as ITypeSymbol;
-                var mapping = new CustomMapping(from, to, method);
-
-                //remove same common mapping
-                Mappings.Remove(mapping);
-                Mappings.Add(mapping);
-            }
-        }
-
-        private void CreateCommonMapping(ITypeSymbol from, ITypeSymbol to)
-        {
-            var fromProps = from.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
-            var toProps = to.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol);
-
-            var mapping = new Mapping(from, to);
-            foreach(var fromProp in fromProps)
-            {
-                var toProp = toProps.FirstOrDefault(x => x.Name == fromProp.Name);
-                if (toProp != null)
+                if (method.HasOneParameter())
                 {
-                    var mappingProp = new MappingProperty(fromProp, toProp);
-                    mapping.Properties.Add(mappingProp);
-
-                    if (!fromProp.Type.Equals(toProp.Type, SymbolEqualityComparer.IncludeNullability))
+                    if (context.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName))
                     {
-                        var hasDefaultConstructor = (toProp.Type as INamedTypeSymbol)
-                            .Constructors
-                            .Any(x => x.DeclaredAccessibility == Accessibility.Public && x.Parameters.Count() == 0);
-                        if (hasDefaultConstructor)
-                        {
-                            CreateCommonMapping(fromProp.Type, toProp.Type);
-                        }
-                        else
-                        {
-                            typesWithoutDefaultConstructor.Add((fromProp.Type, toProp.Type));
-                        }
+                        mappings.AddRange(CreatePartialMappings(context, method));
+                    }
+                    else
+                    {
+                        mappings.Add(CreateCustomMapping(context, method));
                     }
                 }
             }
 
-            if (!Mappings.Contains(mapping))
+            return mappings;
+        }
+
+        private List<TypeMapping> CreateCommonMappings(ITypeSymbol from, ITypeSymbol to)
+        {
+            var propertiesMappings = CreatePropertiesMappings(from, to);
+            var mappings = CreateCommonMappingsForProperties(propertiesMappings);
+            mappings.Add(TypeMapping.CreateCommon(from, to, propertiesMappings));
+
+            return mappings;
+        }
+
+        private List<PropertyMapping> CreatePropertiesMappings(ITypeSymbol from, ITypeSymbol to)
+        {
+            var propertiesMappings = new List<PropertyMapping>();
+
+            foreach (var fromProperty in from.GetProperties())
             {
-                Mappings.Add(mapping);
+                var toProperty = to.GetProperties().FirstOrDefault(x => x.Name == fromProperty.Name);
+                if (toProperty != null)
+                {
+                    propertiesMappings.Add(new PropertyMapping(fromProperty, toProperty));
+                }
             }
+
+            return propertiesMappings;
+        }
+
+        private List<TypeMapping> CreateCommonMappingsForProperties(List<PropertyMapping> propertiesMappings)
+        {
+            var mappings = new List<TypeMapping>();
+            foreach (var propertyMapping in propertiesMappings)
+            {
+                if (!propertyMapping.IsSameTypes
+                    && propertyMapping.To.Type.HasDefaultConstructor())
+                {
+                    mappings.AddRange(CreateCommonMappings(propertyMapping.From.Type, propertyMapping.To.Type));
+                }
+            }
+
+            return mappings;
+        }
+
+        private TypeMapping CreateCustomMapping(GeneratorSyntaxContext context, MethodDeclarationSyntax method)
+        {
+            var parameter = method.GetSingleParameter();
+            var from = context.GetTypeSymbol(parameter.Type);
+            var to = context.GetTypeSymbol(method.ReturnType);
+            var mapping = TypeMapping.CreateCustom(from, to, method);
+
+            return mapping;
+        }
+
+        private List<TypeMapping> CreatePartialMappings(GeneratorSyntaxContext context, MethodDeclarationSyntax method)
+        {
+            //TODO: add validation and ability to return variable in block function
+            var mappedProperties = new List<string>();
+            var arrowExp = method.ExpressionBody;
+            if (arrowExp != null)
+            {
+                var objCreationExp = arrowExp.Expression as ObjectCreationExpressionSyntax;
+                mappedProperties.AddRange(objCreationExp.GetInitializersLeft());
+            }
+            else
+            {
+                var returnStatemant = method.Body.Statements.SingleOrDefault(x => x is ReturnStatementSyntax) as ReturnStatementSyntax;
+                var objCreationExp = returnStatemant.Expression as ObjectCreationExpressionSyntax;
+                mappedProperties.AddRange(objCreationExp.GetInitializersLeft());
+            }
+
+            var parameter = method.GetSingleParameter();
+            var from = context.GetTypeSymbol(parameter.Type);
+            var to = context.GetTypeSymbol(method.ReturnType);
+            var propertiesMappings = CreatePropertiesMappings(from, to);
+            propertiesMappings.RemoveAll(x => mappedProperties.Contains(x.NameFrom));
+            var mappings = CreateCommonMappingsForProperties(propertiesMappings);
+            mappings.Add(TypeMapping.CreatePartial(from, to, propertiesMappings, method));
+
+            return mappings;
         }
     }
 }

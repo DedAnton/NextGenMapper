@@ -15,6 +15,13 @@ namespace MapperSample
             var entity = product.Map<ProductEntity>();
             Console.WriteLine($"{entity.Id} - {entity.Name} - {entity.UpcString}");
             Console.WriteLine($"{entity.User.FirstName} - {entity.User.SecondName} - {entity.User.Email} - {entity.User.Age} - {entity.User.Birthday}");
+
+
+            var human = new HumanModel { Name = "Иван Васильевич", Age = 44 };
+            var cat = new CatModel { Name = "Барсик", Age = 6, Human = human };
+            var catEntity = cat.Map<CatEntity>();
+            Console.WriteLine($"cat {catEntity.Name} was {catEntity.Age} age old");
+            Console.WriteLine($"{catEntity.Human.Name} - {catEntity.Human.Age}");
         }
     }
 }
