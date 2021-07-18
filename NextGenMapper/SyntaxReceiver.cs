@@ -21,6 +21,7 @@ namespace NextGenMapper
                 var custom = mappings.Where(x => x.Type is MappingType.Custom or MappingType.Partial).Distinct();
                 var newCustom = custom.Except(currentCustom.Intersect(custom)).ToList();
                 CustomMappings.Add((newCustom, classNode.GetUsings()));
+                CommonMappings.RemoveAll(x => newCustom.Contains(x));
 
                 var common = mappings.Where(x => x.Type == MappingType.Common);
                 var newCommonMappings = common.Except(common.Intersect(CommonMappings)).Except(currentCustom);

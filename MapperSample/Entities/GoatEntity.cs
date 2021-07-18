@@ -1,9 +1,8 @@
 ﻿namespace MapperSample.Entities
 {
-    public class CatEntity
+    class GoatEntity
     {
         public string Name { get; set; }
         public int Age { get; set; }
-        public HumanEntity Human { get; set; }
     }
 }

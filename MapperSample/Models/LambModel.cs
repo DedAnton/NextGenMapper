@@ -1,8 +1,8 @@
 ﻿namespace MapperSample.Models
 {
-    public class HumanModel
+    public class LambModel
     {
         public string Name { get; set; }
-        public int Age { get; set; }
+        public string Age { get; set; }
     }
 }
