@@ -1,16 +1,18 @@
-﻿namespace MapperSample
+﻿using MapperSample.MappingWithInitialyzers;
+
+namespace MapperSample
 {
     class Program
     {
         static void Main(string[] args)
         {
-            MappingWithInitialyzers.DefaultMapping();
-            MappingWithInitialyzers.DefaultMappingWithIncludes();
-            MappingWithInitialyzers.CustomExpressionMapping();
-            MappingWithInitialyzers.CustomBlockMapping();
-            MappingWithInitialyzers.CustomMappingForDefaultTypes();
-            MappingWithInitialyzers.PartialExpressionMapping();
-            MappingWithInitialyzers.PartialBlockMapping();
+            MappingsWithInitialyzers.DefaultMapping();
+            MappingsWithInitialyzers.DefaultMappingWithIncludes();
+            MappingsWithInitialyzers.CustomExpressionMapping();
+            MappingsWithInitialyzers.CustomBlockMapping();
+            MappingsWithInitialyzers.CustomMappingForDefaultTypes();
+            MappingsWithInitialyzers.PartialExpressionMapping();
+            MappingsWithInitialyzers.PartialBlockMapping();
         }
     }
 }
