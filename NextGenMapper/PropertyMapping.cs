@@ -4,19 +4,31 @@ namespace NextGenMapper
 {
     public class PropertyMapping
     {
-        public IPropertySymbol From { get; }
-        public IPropertySymbol To { get; }
+        public ITypeSymbol TypeFrom { get; }
+        public ITypeSymbol TypeTo { get; }
 
-        public string NameFrom => From.Name;
-        public string NameTo => To.Name;
-        public string TypeFrom => From.Type.ToDisplayString();
-        public string TypeTo => To.Type.ToDisplayString();
-        public bool IsSameTypes => From.Type.Equals(To.Type, SymbolEqualityComparer.IncludeNullability);
+        public string NameFrom { get; }
+        public string NameTo { get; }
+        //public string TypeFrom => From.Type.ToDisplayString();
+        //public string TypeTo => To.Type.ToDisplayString();
+        public bool IsSameTypes => TypeFrom.Equals(TypeTo, SymbolEqualityComparer.IncludeNullability);
+        public bool IsParameterMapping { get; }
 
         public PropertyMapping(IPropertySymbol from, IPropertySymbol to)
         {
-            From = from;
-            To = to;
+            TypeFrom = from.Type;
+            TypeTo = to.Type;
+            NameFrom = from.Name;
+            NameTo = to.Name;
+        }
+
+        public PropertyMapping(IPropertySymbol from, IParameterSymbol to)
+        {
+            TypeFrom = from.Type;
+            TypeTo = to.Type;
+            NameFrom = from.Name;
+            NameTo = to.Name;
+            IsParameterMapping = true;
         }
     }
 }

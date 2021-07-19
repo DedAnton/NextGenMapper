@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace NextGenMapper
@@ -31,12 +32,12 @@ namespace NextGenMapper
 
     public void Initialize(GeneratorInitializationContext context)
         {
-//#if DEBUG
-//            if (!Debugger.IsAttached)
-//            {
-//                Debugger.Launch();
-//            }
-//#endif
+#if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif
 
             context.RegisterForPostInitialization(i =>
             {
@@ -102,19 +103,42 @@ namespace NextGenMapper
         private string GenerateCommonMapFunction(TypeMapping mapping)
         {
             var sourceBuilder = new StringBuilder();
-            sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType} {{ ");
-            foreach (var property in mapping.Properties)
+            if (!mapping.IsConstructorMapping)
             {
-                if (property.IsSameTypes)
+                sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType} {{ ");
+                foreach (var property in mapping.Properties)
                 {
-                    sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}, ");
+                    if (property.IsSameTypes)
+                    {
+                        sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}, ");
+                    }
+                    else
+                    {
+                        sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}.Map<{property.TypeTo}>(), ");
+                    }
                 }
-                else
-                {
-                    sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}.Map<{property.TypeTo}>()");
-                }
+                sourceBuilder.AppendLine("};");
             }
-            sourceBuilder.AppendLine("};");
+            else
+            {
+                sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType}(");
+                foreach (var property in mapping.Properties)
+                {
+                    if (property.IsSameTypes)
+                    {
+                        sourceBuilder.Append($"source.{property.NameFrom}");
+                    }
+                    else
+                    {
+                        sourceBuilder.Append($"source.{property.NameFrom}.Map<{property.TypeTo}>()");
+                    }
+                    if (property != mapping.Properties.Last())
+                    {
+                        sourceBuilder.Append(", ");
+                    }
+                }
+                sourceBuilder.Append(");");
+            }
 
             return sourceBuilder.ToString();
         }

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -72,11 +73,49 @@ namespace NextGenMapper
 
         private List<TypeMapping> CreateCommonMappings(ITypeSymbol from, ITypeSymbol to)
         {
-            var propertiesMappings = CreatePropertiesMappings(from, to);
+            var constructorProperties = GetConstructorPropertiesMappings(from, to);
+            var isConstructorMapping = constructorProperties.Count > 0;
+            var propertiesMappings = isConstructorMapping
+                ? constructorProperties
+                : CreatePropertiesMappings(from, to);
             var mappings = CreateCommonMappingsForProperties(propertiesMappings);
-            mappings.Add(TypeMapping.CreateCommon(from, to, propertiesMappings));
+            var mapping = TypeMapping.CreateCommon(from, to, propertiesMappings, isConstructorMapping);
+            mappings.Add(mapping);
 
             return mappings;
+        }
+
+        private List<PropertyMapping> GetConstructorPropertiesMappings(ITypeSymbol from, ITypeSymbol to)
+        {
+            var constructors = (to as INamedTypeSymbol)
+                .Constructors
+                .Where(x => x.DeclaredAccessibility == Accessibility.Public)
+                .OrderByDescending(x => x.Parameters.Count());
+            if (constructors.Count() == 0)
+            {
+                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
+            }
+
+            foreach (var constructor in constructors)
+            {
+                var propertiesMappings = new List<PropertyMapping>();
+
+                foreach (var parameter in constructor.Parameters)
+                {
+                    var fromProperty = from.GetProperties().FirstOrDefault(x => x.Name.ToUpperInvariant() == parameter.Name.ToUpperInvariant());
+                    if (fromProperty != null)
+                    {
+                        propertiesMappings.Add(new PropertyMapping(fromProperty, parameter));
+                    }
+                }
+
+                if (propertiesMappings.Count() == constructor.Parameters.Count())
+                {
+                    return propertiesMappings;
+                }
+            }
+
+            return new List<PropertyMapping>();
         }
 
         private List<PropertyMapping> CreatePropertiesMappings(ITypeSymbol from, ITypeSymbol to)
@@ -100,10 +139,9 @@ namespace NextGenMapper
             var mappings = new List<TypeMapping>();
             foreach (var propertyMapping in propertiesMappings)
             {
-                if (!propertyMapping.IsSameTypes
-                    && propertyMapping.To.Type.HasDefaultConstructor())
+                if (!propertyMapping.IsSameTypes)
                 {
-                    mappings.AddRange(CreateCommonMappings(propertyMapping.From.Type, propertyMapping.To.Type));
+                    mappings.AddRange(CreateCommonMappings(propertyMapping.TypeFrom, propertyMapping.TypeTo));
                 }
             }
 
@@ -122,28 +160,23 @@ namespace NextGenMapper
 
         private List<TypeMapping> CreatePartialMappings(GeneratorSyntaxContext context, MethodDeclarationSyntax method)
         {
-            //TODO: add validation and ability to return variable in block function
-            var mappedProperties = new List<string>();
-            var arrowExp = method.ExpressionBody;
-            if (arrowExp != null)
-            {
-                var objCreationExp = arrowExp.Expression as ObjectCreationExpressionSyntax;
-                mappedProperties.AddRange(objCreationExp.GetInitializersLeft());
-            }
-            else
-            {
-                var returnStatemant = method.Body.Statements.SingleOrDefault(x => x is ReturnStatementSyntax) as ReturnStatementSyntax;
-                var objCreationExp = returnStatemant.Expression as ObjectCreationExpressionSyntax;
-                mappedProperties.AddRange(objCreationExp.GetInitializersLeft());
-            }
+            ObjectCreationExpressionSyntax objCreationExpression =
+                method.ExpressionBody != null
+                ? method.ExpressionBody.Expression as ObjectCreationExpressionSyntax
+                : (method.Body.Statements.SingleOrDefault(x => x is ReturnStatementSyntax) as ReturnStatementSyntax).Expression as ObjectCreationExpressionSyntax;
+            var byConstructor = (context.GetSymbol(objCreationExpression) as IMethodSymbol).Parameters.Select(x => x.Name.ToUpperInvariant());
+            var byInitialyzer = objCreationExpression.GetInitializersLeft();
 
             var parameter = method.GetSingleParameter();
             var from = context.GetTypeSymbol(parameter.Type);
             var to = context.GetTypeSymbol(method.ReturnType);
-            var propertiesMappings = CreatePropertiesMappings(from, to);
-            propertiesMappings.RemoveAll(x => mappedProperties.Contains(x.NameFrom));
+
+            var propertiesMappings =  CreatePropertiesMappings(from, to);
+            propertiesMappings.RemoveAll(x => byInitialyzer.Contains(x.NameFrom));
+            propertiesMappings.RemoveAll(x => byConstructor.Contains(x.NameFrom.ToUpperInvariant()));
             var mappings = CreateCommonMappingsForProperties(propertiesMappings);
-            mappings.Add(TypeMapping.CreatePartial(from, to, propertiesMappings, method));
+            var mapping = TypeMapping.CreatePartial(from, to, propertiesMappings, method, isConstructorMapping: false);
+            mappings.Add(mapping);
 
             return mappings;
         }

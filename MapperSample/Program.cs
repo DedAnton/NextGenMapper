@@ -1,4 +1,5 @@
-﻿using MapperSample.MappingWithInitialyzers;
+﻿using MapperSample.MappingWithConstructor;
+using MapperSample.MappingWithInitialyzers;
 
 namespace MapperSample
 {
@@ -6,13 +7,17 @@ namespace MapperSample
     {
         static void Main(string[] args)
         {
-            MappingsWithInitialyzers.DefaultMapping();
-            MappingsWithInitialyzers.DefaultMappingWithIncludes();
-            MappingsWithInitialyzers.CustomExpressionMapping();
-            MappingsWithInitialyzers.CustomBlockMapping();
-            MappingsWithInitialyzers.CustomMappingForDefaultTypes();
-            MappingsWithInitialyzers.PartialExpressionMapping();
-            MappingsWithInitialyzers.PartialBlockMapping();
+            //MappingsWithInitialyzers.DefaultMapping();
+            //MappingsWithInitialyzers.DefaultMappingWithIncludes();
+            //MappingsWithInitialyzers.CustomExpressionMapping();
+            //MappingsWithInitialyzers.CustomBlockMapping();
+            //MappingsWithInitialyzers.CustomMappingForDefaultTypes();
+            //MappingsWithInitialyzers.PartialExpressionMapping();
+            //MappingsWithInitialyzers.PartialBlockMapping();
+
+            MappingsWithConstructor.CommonWithFullConstructor();
+            MappingsWithConstructor.CommonChooseRightConstructor();
+            MappingsWithConstructor.CommonMappingWithIncludes();
         }
     }
 }

@@ -95,13 +95,13 @@ namespace NextGenMapper
 
         public static List<string> GetInitializersLeft(this ObjectCreationExpressionSyntax node)
             => node
-            .Initializer
+            .Initializer?
             .Expressions
             .Select(x => ((x as AssignmentExpressionSyntax)
                 .Left as IdentifierNameSyntax)
                 .Identifier
                 .ValueText)
-            .ToList();
+            .ToList() ?? new();
 
         public static List<UsingDirectiveSyntax> GetUsings(this ClassDeclarationSyntax node)
             => (node.Parent.Parent as CompilationUnitSyntax).Usings.ToList();

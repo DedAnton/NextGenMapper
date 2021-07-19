@@ -11,6 +11,7 @@ namespace NextGenMapper
         public List<PropertyMapping> Properties { get; private set; }
         public MethodDeclarationSyntax Method { get; private set; }
         public MappingType Type { get; private set; }
+        public bool IsConstructorMapping { get; private set; }
 
         public string FromType => From.ToDisplayString();
         public string ToType => To.ToDisplayString();
@@ -22,13 +23,14 @@ namespace NextGenMapper
         private TypeMapping() 
         { }
 
-        public static TypeMapping CreateCommon(ITypeSymbol from, ITypeSymbol to, List<PropertyMapping> properties)
+        public static TypeMapping CreateCommon(ITypeSymbol from, ITypeSymbol to, List<PropertyMapping> properties, bool isConstructorMapping)
             => new()
             {
                 From = from.ThrowIfNull(),
                 To = to.ThrowIfNull(),
                 Properties = properties.ThrowIfNull(),
-                Type = MappingType.Common
+                Type = MappingType.Common,
+                IsConstructorMapping = isConstructorMapping
             };
 
         public static TypeMapping CreateCustom(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
@@ -40,14 +42,15 @@ namespace NextGenMapper
                 Type = MappingType.Custom
             };
 
-        public static TypeMapping CreatePartial(ITypeSymbol from, ITypeSymbol to, List<PropertyMapping> properties, MethodDeclarationSyntax method)
+        public static TypeMapping CreatePartial(ITypeSymbol from, ITypeSymbol to, List<PropertyMapping> properties, MethodDeclarationSyntax method, bool isConstructorMapping)
             => new()
             {
                 From = from.ThrowIfNull(),
                 To = to.ThrowIfNull(),
                 Properties = properties.ThrowIfNull(),
                 Method = method.ThrowIfNotValid(),
-                Type = MappingType.Partial
+                Type = MappingType.Partial,
+                IsConstructorMapping = isConstructorMapping
             };
 
         public override bool Equals(object obj)
