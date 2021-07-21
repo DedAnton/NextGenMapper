@@ -9,17 +9,13 @@
     <PropertyGroup>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <IncludeBuildOutput>false</IncludeBuildOutput>
+        <IsRoslynComponent>true</IsRoslynComponent>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
+        <ApplicationIcon />
+        <OutputType>Library</OutputType>
+        <StartupObject />
     </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Remove="bin\**" />
-      <EmbeddedResource Remove="bin\**" />
-      <None Remove="bin\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <None Remove="bin\Debug\netstandard2.0\\NextGenMapper.dll" />
-    </ItemGroup>
 
     <ItemGroup>
         <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
@@ -28,6 +24,10 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.10.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2" PrivateAssets="all" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="CodeGeneration\" />
     </ItemGroup>
 
 </Project>

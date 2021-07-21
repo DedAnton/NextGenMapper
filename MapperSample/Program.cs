@@ -1,5 +1,6 @@
 ﻿using MapperSample.MappingWithConstructor;
 using MapperSample.MappingWithInitialyzers;
+using System.Collections.Generic;
 
 namespace MapperSample
 {
@@ -15,9 +16,14 @@ namespace MapperSample
             //MappingsWithInitialyzers.PartialExpressionMapping();
             //MappingsWithInitialyzers.PartialBlockMapping();
 
-            MappingsWithConstructor.CommonWithFullConstructor();
-            MappingsWithConstructor.CommonChooseRightConstructor();
-            MappingsWithConstructor.CommonMappingWithIncludes();
+            //MappingsWithConstructor.CommonWithFullConstructor();
+            //MappingsWithConstructor.CommonChooseRightConstructor();
+            //MappingsWithConstructor.CommonMappingWithIncludes();
+            //MappingsWithConstructor.PartialExpressionMapping();
+            MappingsWithConstructor.PartialWhenCustomInitializers();
+            //MappingsWithConstructor.PartialWhithFullConstructorWhenCustomConstructor();
+
+            //MappingsWithConstructor.PartialWithJustOneConstructor();
         }
     }
 }

@@ -18,5 +18,5 @@
             Birthday = birthday;
             Gender = gender;
         }
-    }
+}
 }

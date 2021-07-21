@@ -67,12 +67,12 @@ namespace NextGenMapper
 
         private IEnumerable<string> GenerateCustomMappers(SyntaxReceiver receiver)
         {
-            foreach(var (Mappings, Usings) in receiver.CustomMappings)
+            foreach(var plan in receiver.Planner.CustomMappingPlans)
             {
                 var sourceBuilder = new StringBuilder();
-                sourceBuilder.Append(GenerateUsings(Usings));
+                sourceBuilder.Append(GenerateUsings(plan.Usings));
                 sourceBuilder.Append(MAPPER_BEGIN);
-                foreach (var mapping in Mappings)
+                foreach (var mapping in plan.Mappings)
                 {
                     var mapFunction = mapping switch
                     {
@@ -81,7 +81,7 @@ namespace NextGenMapper
                         { Type: MappingType.Partial } => GeneratePartialMapFunction(mapping),
                         _ => throw new ArgumentOutOfRangeException(nameof(mapping.Type))
                     };
-                    sourceBuilder.Append(mapFunction.LeadingSpace(TAB2));
+                    sourceBuilder.AppendLine(mapFunction.LeadingSpace(TAB2));
                 }
                 sourceBuilder.Append(MAPPER_END);
 
@@ -93,8 +93,8 @@ namespace NextGenMapper
         {
             var sourceBuilder = new StringBuilder();
             sourceBuilder.Append(MAPPER_BEGIN);
-            receiver.CommonMappings.ForEach(x => 
-                sourceBuilder.Append(GenerateCommonMapFunction(x).LeadingSpace(TAB2)));
+            receiver.Planner.CommonMappingPlan?.Mappings.ForEach(x => 
+                sourceBuilder.AppendLine(GenerateCommonMapFunction(x).LeadingSpace(TAB2)));
             sourceBuilder.Append(MAPPER_END);
 
             return sourceBuilder.ToString();
@@ -103,42 +103,35 @@ namespace NextGenMapper
         private string GenerateCommonMapFunction(TypeMapping mapping)
         {
             var sourceBuilder = new StringBuilder();
-            if (!mapping.IsConstructorMapping)
+            sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType}(");
+            foreach (var property in mapping.ConstructorProperties)
             {
-                sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType} {{ ");
-                foreach (var property in mapping.Properties)
+                if (property.IsSameTypes)
                 {
-                    if (property.IsSameTypes)
-                    {
-                        sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}, ");
-                    }
-                    else
-                    {
-                        sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}.Map<{property.TypeTo}>(), ");
-                    }
+                    sourceBuilder.Append($"source.{property.NameFrom}");
                 }
-                sourceBuilder.AppendLine("};");
+                else
+                {
+                    sourceBuilder.Append($"source.{property.NameFrom}.Map<{property.TypeTo}>()");
+                }
+                if (property != mapping.ConstructorProperties.Last())
+                {
+                    sourceBuilder.Append(", ");
+                }
             }
-            else
+            sourceBuilder.Append(") { ");
+            foreach (var property in mapping.InitializatorPropererties)
             {
-                sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType}(");
-                foreach (var property in mapping.Properties)
+                if (property.IsSameTypes)
                 {
-                    if (property.IsSameTypes)
-                    {
-                        sourceBuilder.Append($"source.{property.NameFrom}");
-                    }
-                    else
-                    {
-                        sourceBuilder.Append($"source.{property.NameFrom}.Map<{property.TypeTo}>()");
-                    }
-                    if (property != mapping.Properties.Last())
-                    {
-                        sourceBuilder.Append(", ");
-                    }
+                    sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}, ");
                 }
-                sourceBuilder.Append(");");
+                else
+                {
+                    sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}.Map<{property.TypeTo}>(), ");
+                }
             }
+            sourceBuilder.AppendLine("};");
 
             return sourceBuilder.ToString();
         }
@@ -154,21 +147,41 @@ namespace NextGenMapper
             var userFunction = GenerateUserFunction(mapping).LeadingSpace(TAB1);
             var sourceBuilder = new StringBuilder();
 
-            sourceBuilder.Append($"public static {mapping.To} Map<To>(this {mapping.From} _a__source)\r\n{{\r\n");
+            sourceBuilder.Append($"public static {mapping.To} Map<To>(this {mapping.From} _a___source)\r\n{{\r\n");
             sourceBuilder.Append(userFunction);
-            sourceBuilder.AppendLine("var result = UserFunction(_a__source);".LeadingSpace(TAB1));
-            foreach (var property in mapping.Properties)
+            sourceBuilder.AppendLine("var result = UserFunction(_a___source);".LeadingSpace(TAB1));
+            sourceBuilder.Append($"return new {mapping.ToType}(".LeadingSpace(TAB1));
+            foreach (var property in mapping.ConstructorProperties)
             {
-                if (property.IsSameTypes)
+                var source = property.IsProvidedByUser ? "result" : "_a___source";
+                if (property.IsSameTypes || property.IsProvidedByUser)
                 {
-                    sourceBuilder.Append($"result.{property.NameTo} = _a__source.{property.NameFrom};".LeadingSpace(TAB1));
+                    sourceBuilder.Append($"{source}.{property.NameFrom}");
                 }
                 else
                 {
-                    sourceBuilder.Append($"result.{property.NameTo} = _a__source.{property.NameFrom}.Map<{property.TypeTo}>();".LeadingSpace(TAB1));
+                    sourceBuilder.Append($"{source}.{property.NameFrom}.Map<{property.TypeTo}>()");
+                }
+                if (property != mapping.ConstructorProperties.Last())
+                {
+                    sourceBuilder.Append(", ");
                 }
             }
-            sourceBuilder.Append("return result;".LeadingSpace(TAB1));
+            sourceBuilder.Append(") { ");
+            foreach (var property in mapping.InitializatorPropererties)
+            {
+                var source = property.IsProvidedByUser ? "result" : "_a___source";
+
+                if (property.IsSameTypes || property.IsProvidedByUser)
+                {
+                    sourceBuilder.Append($"{property.NameTo} = {source}.{property.NameFrom}, ");
+                }
+                else
+                {
+                    sourceBuilder.Append($"{property.NameTo} = {source}.{property.NameFrom}.Map<{property.TypeTo}>(), ");
+                }
+            }
+            sourceBuilder.AppendLine("};");
             sourceBuilder.AppendLine("}");
 
             return sourceBuilder.ToString();
@@ -182,7 +195,7 @@ namespace NextGenMapper
             return $"{mapping.To} UserFunction({mapping.From} {mapping.ParameterName}) {body}";
         }
 
-        private string GenerateUsings(List<UsingDirectiveSyntax> usings)
+        private string GenerateUsings(List<string> usings)
         {
             var sourceBuilder = new StringBuilder();
             foreach (var @using in usings)

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "NextGenMapper": {
+      "commandName": "DebugRoslynComponent"
+    }
+  }
+}

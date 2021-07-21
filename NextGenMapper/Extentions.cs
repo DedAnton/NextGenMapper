@@ -23,9 +23,6 @@ namespace NextGenMapper
         public static ITypeSymbol GetTypeSymbol(this GeneratorSyntaxContext context, TypeSyntax node)
             => context.GetSymbol(node) as ITypeSymbol;
 
-        public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
-            => type.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol).ToList();
-
         public static string LeadingSpace(this string source, int addLeadingSpacesCount)
         {
             var splittedLines = source.Split(new string[] { "\r\n" }, StringSplitOptions.None);
@@ -51,7 +48,7 @@ namespace NextGenMapper
                 }
             }
 
-            return strBuilder.ToString();
+            return strBuilder.ToString().TrimEnd('\n').TrimEnd('\r');
         }
 
         public static string RemoveLeadingSpace(this string source, int count) => source.LeadingSpace(count * -1);
@@ -102,9 +99,6 @@ namespace NextGenMapper
                 .Identifier
                 .ValueText)
             .ToList() ?? new();
-
-        public static List<UsingDirectiveSyntax> GetUsings(this ClassDeclarationSyntax node)
-            => (node.Parent.Parent as CompilationUnitSyntax).Usings.ToList();
 
         public static bool HasOneParameter(this MethodDeclarationSyntax node)
             => node.ParameterList.Parameters.SingleOrDefault() != null;
