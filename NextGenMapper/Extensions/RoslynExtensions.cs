@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
@@ -68,8 +69,11 @@ namespace NextGenMapper.Extensions
             => method?.Body?.Statements.ToList() ?? new();
 
         public static ReturnStatementSyntax GetReturnStatement(this BaseMethodDeclarationSyntax method)
-            => method?.GetStatements().OfType<ReturnStatementSyntax>().FirstOrDefault();
+            => method?.GetStatements().OfType<ReturnStatementSyntax>().SingleOrDefault();
 
         public static bool IsPrivitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
+
+        public static bool IsDefaultLiteralExpression(this ArgumentSyntax argument)
+            => argument.Expression is LiteralExpressionSyntax literal && literal.Kind() == SyntaxKind.DefaultLiteralExpression;
     }
 }

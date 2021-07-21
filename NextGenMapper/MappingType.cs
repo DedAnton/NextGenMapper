@@ -4,6 +4,7 @@
     {
         Common,
         Custom,
-        Partial
+        Partial,
+        PartialConstructor
     }
 }

@@ -1,4 +1,6 @@
 ﻿using MapperSample.MappingWithConstructor;
+using MapperSample.MappingWithConstructor.Entities;
+using MapperSample.MappingWithConstructor.Models;
 using MapperSample.MappingWithInitialyzers;
 using System.Collections.Generic;
 
@@ -20,10 +22,10 @@ namespace MapperSample
             //MappingsWithConstructor.CommonChooseRightConstructor();
             //MappingsWithConstructor.CommonMappingWithIncludes();
             //MappingsWithConstructor.PartialExpressionMapping();
-            MappingsWithConstructor.PartialWhenCustomInitializers();
+            //MappingsWithConstructor.PartialWhenCustomInitializers();
             //MappingsWithConstructor.PartialWhithFullConstructorWhenCustomConstructor();
 
-            //MappingsWithConstructor.PartialWithJustOneConstructor();
+            MappingsWithConstructor.PartialWithJustOneConstructor();
         }
     }
 }

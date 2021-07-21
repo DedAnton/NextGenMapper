@@ -79,6 +79,7 @@ namespace NextGenMapper
                         { Type: MappingType.Custom, MethodType: MethodType.Block } => GenerateCustomMapBlockFunction(mapping),
                         { Type: MappingType.Custom, MethodType: MethodType.Expression } => GenerateCustomMapExpressionFunction(mapping),
                         { Type: MappingType.Partial } => GeneratePartialMapFunction(mapping),
+                        { Type: MappingType.PartialConstructor } => GeneratePartialConstuctorMapFunction(mapping),
                         _ => throw new ArgumentOutOfRangeException(nameof(mapping.Type))
                     };
                     sourceBuilder.AppendLine(mapFunction.LeadingSpace(TAB2));
@@ -141,6 +142,8 @@ namespace NextGenMapper
 
         private string GenerateCustomMapExpressionFunction(TypeMapping mapping)
             => $"public static {mapping.To} Map<To>(this {mapping.From} {mapping.ParameterName}) {mapping.ExpressionBody};\r\n";
+
+        private string GeneratePartialConstuctorMapFunction(TypeMapping mapping) => mapping.Method.ToString();
 
         private string GeneratePartialMapFunction(TypeMapping mapping)
         {

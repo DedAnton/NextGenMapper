@@ -40,8 +40,11 @@ namespace NextGenMapper
                 {
                     if (context.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName))
                     {
-                        var partialPlanGenerator = new PartialPlanGenerator(context.SemanticModel, Planner);
-                        partialPlanGenerator.GenerateMappingsForPlanner(method);
+                        //var partialPlanGenerator = new PartialPlanGenerator(context.SemanticModel, Planner);
+                        //partialPlanGenerator.GenerateMappingsForPlanner(method);
+
+                        var asd = new PartialOneConstructorPlanGenerator(context.SemanticModel, Planner);
+                        asd.GenerateMappingsForPlanner(method);
                     }
                     else
                     {

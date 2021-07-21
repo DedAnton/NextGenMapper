@@ -39,7 +39,6 @@ namespace NextGenMapper.CodeAnalysis
 
                 var propertyMapping = (toConstructor, toInitializer, isProvidedByUser, UseInitializer) switch
                 {
-                    //!!!
                     ({ }, _, true, _) => new PropertyMapping(fromProperty, toConstructor, isProvidedByUser),
                     (_, { }, true, true) => new PropertyMapping(toInitializer, toInitializer, isProvidedByUser),
                     ({ }, _, false, _) => new PropertyMapping(fromProperty, toConstructor, isProvidedByUser),

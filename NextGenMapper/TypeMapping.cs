@@ -53,6 +53,15 @@ namespace NextGenMapper
                 Type = MappingType.Partial
             };
 
+        public static TypeMapping CreatePartialConstructor(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
+            => new()
+            {
+                From = from.ThrowIfNull(),
+                To = to.ThrowIfNull(),
+                Method = method.ThrowIfNotValid(),
+                Type = MappingType.PartialConstructor
+            };
+
         public override bool Equals(object obj)
         {
             return obj is TypeMapping mapping &&
