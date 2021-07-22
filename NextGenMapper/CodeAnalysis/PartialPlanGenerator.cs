@@ -35,29 +35,6 @@ namespace NextGenMapper.CodeAnalysis
 
             var commonPlanGenerator = new CommonPlanGenerator(_semanticModel, _planner);
             var propertyMappings = new List<PropertyMapping>();
-            //foreach (var fromProperty in from.GetProperties())
-            //{
-            //    var isProvidedByUser = byUser.Contains(fromProperty.Name, StringComparer.InvariantCultureIgnoreCase);
-            //    var toConstructor = constructor.FindParameter(fromProperty.Name);
-            //    var toInitializer = to.FindSettableProperty(fromProperty.Name);
-
-            //    var propertyMapping = (toConstructor, toInitializer, isProvidedByUser, UseInitializer) switch
-            //    {
-            //        ({ }, _, true, _) => new PropertyMapping(fromProperty, toConstructor, isProvidedByUser),
-            //        (_, { }, true, true) => new PropertyMapping(toInitializer, toInitializer, isProvidedByUser),
-            //        ({ }, _, false, _) => new PropertyMapping(fromProperty, toConstructor, isProvidedByUser),
-            //        (_, { }, false, true) => new PropertyMapping(fromProperty, toInitializer, isProvidedByUser),
-            //        _ => null
-            //    };
-            //    propertyMappings.AddIfNotNull(propertyMapping);
-
-            //    if (propertyMapping is { IsSameTypes: false }
-            //        && !propertyMapping.IsPrimitveTypesMapping()
-            //        && !propertyMapping.IsProvidedByUser)
-            //    {
-            //        commonPlanGenerator.GenerateMappingsForPlanner(propertyMapping.TypeFrom, propertyMapping.TypeTo);
-            //    }
-            //}
             foreach(var toProperty in to.GetProperties())
             {
                 var isProvidedByUser = byUser.Contains(toProperty.Name, StringComparer.InvariantCultureIgnoreCase);
