@@ -11,6 +11,6 @@
         public string Name { get; }
         public int Age { get; }
         public string Color { get; set; }
-        public string Height { get; set; }
+        public int Height { get; set; }
     }
 }

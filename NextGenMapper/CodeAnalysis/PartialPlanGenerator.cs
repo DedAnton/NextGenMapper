@@ -76,7 +76,6 @@ namespace NextGenMapper.CodeAnalysis
                 propertyMappings.AddIfNotNull(propertyMapping);
 
                 if (propertyMapping is { IsSameTypes: false }
-                    && !propertyMapping.IsPrimitveTypesMapping()
                     && !propertyMapping.IsProvidedByUser)
                 {
                     commonPlanGenerator.GenerateMappingsForPlanner(propertyMapping.TypeFrom, propertyMapping.TypeTo);

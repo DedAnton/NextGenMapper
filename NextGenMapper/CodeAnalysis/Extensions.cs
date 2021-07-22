@@ -74,8 +74,6 @@ namespace NextGenMapper.CodeAnalysis
             return objCreationExpression;
         }
 
-        public static bool IsPrimitveTypesMapping(this PropertyMapping mapping) => mapping.TypeFrom.IsPrivitive() || mapping.TypeTo.IsPrivitive();
-
         public static IParameterSymbol GetConstructorParameter(this SemanticModel semanticModel, ArgumentSyntax argument)
         {
             //argument -> argumentList -> method

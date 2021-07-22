@@ -30,6 +30,10 @@ namespace NextGenMapper.CodeAnalysis
 
         private void CreateMapping(ITypeSymbol from, ITypeSymbol to)
         {
+            if (from.IsPrivitive() || to.IsPrivitive())
+            {
+                return;
+            }
             var constructor = from.GetOptimalConstructor(to);
 
             var propertyMappings = new List<PropertyMapping>();
@@ -46,8 +50,7 @@ namespace NextGenMapper.CodeAnalysis
                 };
                 propertyMappings.AddIfNotNull(propertyMapping);
 
-                if (propertyMapping is { IsSameTypes: false}
-                    && !propertyMapping.IsPrimitveTypesMapping())
+                if (propertyMapping is { IsSameTypes: false})
                 {
                     CreateMapping(propertyMapping.TypeFrom, propertyMapping.TypeTo);
                 }

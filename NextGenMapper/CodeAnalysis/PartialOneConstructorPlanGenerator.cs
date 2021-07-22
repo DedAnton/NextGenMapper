@@ -55,14 +55,14 @@ namespace NextGenMapper.CodeAnalysis
             newInitializers.AddRange(objCreationExpression.Initializer?.Expressions);
             if (UseInitializer)
             {
-                var forInitializer = to.GetSettableProperties().Select(x => x.Name)
-                    .Complement(byConstructor)
-                    .Complement(byInitialyzer);
+                var forInitializer = to.GetSettableProperties().Where(x => !byUser.Contains(x.Name));
                 foreach (var property in forInitializer)
                 {
-                    if (from.FindProperty(property) is { } fromProperty)
+                    if (from.FindProperty(property.Name) is { } fromProperty)
                     {
-                        var initExpr = GenerateInitializerAssignmentExpression(property, sourceParameter.Name, fromProperty.Name);
+                        var initExpr = property.Type.Equals(fromProperty.Type, SymbolEqualityComparer.IncludeNullability)
+                            ? GenerateInitializerAssignmentExpression(property.Name, sourceParameter.Name, fromProperty.Name)
+                            : GenerateInitializerAssignmentExpressionWithMap(property.Name, property.Type.ToDisplayString(), sourceParameter.Name, fromProperty.Name);
                         newInitializers.Add(initExpr);
                     }
                 }
@@ -103,6 +103,24 @@ namespace NextGenMapper.CodeAnalysis
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName(rightMember),
                     SyntaxFactory.IdentifierName(rightProperty)));
+
+        private ExpressionSyntax GenerateInitializerAssignmentExpressionWithMap(string leftProperty, string leftPropertyType, string rightMember, string rightProperty) =>
+            SyntaxFactory.AssignmentExpression(
+                SyntaxKind.SimpleAssignmentExpression,
+                SyntaxFactory.IdentifierName(leftProperty),
+                SyntaxFactory.InvocationExpression(
+                    SyntaxFactory.MemberAccessExpression(
+                        SyntaxKind.SimpleMemberAccessExpression,
+                        SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression,
+                            SyntaxFactory.IdentifierName(rightMember),
+                            SyntaxFactory.IdentifierName(rightProperty)),
+                        SyntaxFactory.GenericName(
+                            SyntaxFactory.Identifier("Map"))
+                        .WithTypeArgumentList(
+                            SyntaxFactory.TypeArgumentList(
+                                SyntaxFactory.SingletonSeparatedList<TypeSyntax>(
+                                    SyntaxFactory.IdentifierName(leftPropertyType)))))));
 
         private ObjectCreationExpressionSyntax GenerateObjectCreationExpression(
             string createdType, List<ArgumentSyntax> arguments, List<ExpressionSyntax> initializerExpressions) =>

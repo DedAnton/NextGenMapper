@@ -86,6 +86,8 @@ namespace MapperSample.MappingWithConstructor
 
                 return new HorseModel(horseName, default) { Color = entity.Color + " " + "color" };
             }
+
+            public int Map(string src) => int.TryParse(src, out int result) ? result : 0;
         }
     }
 }
