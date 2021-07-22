@@ -7,7 +7,7 @@ namespace NextGenMapper
     {
         public List<MappingPlan> MappingPlans { get; } = new();
 
-        public MappingPlan CommonMappingPlan => MappingPlans.SingleOrDefault(x => x.Mappings.Count > 0 && x.Mappings.All(x => x.Type == MappingType.Common));
+        public MappingPlan CommonMappingPlan => MappingPlans.SingleOrDefault(x => x.Mappings.All(x => x.Type == MappingType.Common));
         public List<MappingPlan> CustomMappingPlans 
             => MappingPlans.Where(x => x.Mappings.Count > 0 && x.Mappings.All(y => y.Type != MappingType.Common)).ToList();
 

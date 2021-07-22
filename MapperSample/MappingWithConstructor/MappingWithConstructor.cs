@@ -7,59 +7,59 @@ namespace MapperSample.MappingWithConstructor
 {
     public static class MappingsWithConstructor
     {
-        //public static void CommonWithFullConstructor()
-        //{
-        //    var entity = new MouseEntity("mickey mouse", 93);
+        public static void CommonWithFullConstructor()
+        {
+            var entity = new MouseEntity("mickey mouse", 93);
 
-        //    var model = entity.Map<MouseModel>();
+            var model = entity.Map<MouseModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Age}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Age}");
+        }
 
-        //public static void CommonChooseRightConstructor()
-        //{
-        //    var entity = new ElephantEntity { Name = "игорь", Age = 60, TrunkLength = 3 };
+        public static void CommonChooseRightConstructor()
+        {
+            var entity = new ElephantEntity { Name = "игорь", Age = 60, TrunkLength = 3 };
 
-        //    var model = entity.Map<ElephantModel>();
+            var model = entity.Map<ElephantModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Age} - {model.TrunkLength} - used right constructor: {model.IsUsedSecondConstructor}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Age} - {model.TrunkLength} - used right constructor: {model.IsUsedSecondConstructor}");
+        }
 
-        //public static void CommonMappingWithIncludes()
-        //{
-        //    var entity = new RabbitEntity("Bugs", 83, new RabbitHouseEntity("Looney Tunes"));
+        public static void CommonMappingWithIncludes()
+        {
+            var entity = new RabbitEntity("Bugs", 83, new RabbitHouseEntity("Looney Tunes"));
 
-        //    var model = entity.Map<RabbitModel>();
+            var model = entity.Map<RabbitModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Age} - {model.House.Address}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Age} - {model.House.Address}");
+        }
 
-        //public static void PartialExpressionMapping()
-        //{
-        //    var entity = new LionEntity { Name = "simba", Birthday = new DateTime(1994, 8, 18), Gender = "Male" };
+        public static void PartialExpressionMapping()
+        {
+            var entity = new LionEntity { Name = "simba", Birthday = new DateTime(1994, 8, 18), Gender = "Male" };
 
-        //    var model = entity.Map<LionModel>();
+            var model = entity.Map<LionModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Birthday} - {model.Gender}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Birthday} - {model.Gender}");
+        }
 
-        //public static void PartialWhenCustomInitializers()
-        //{
-        //    var entity = new DogEntity { Name = "Шарик", Age = 6 };
+        public static void PartialWhenCustomInitializers()
+        {
+            var entity = new DogEntity { Name = "Шарик", Age = 6 };
 
-        //    var model = entity.Map<DogModel>();
+            var model = entity.Map<DogModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Age} - used right constructor: {model.IsUsedSecondConstructor}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Age} - used right constructor: {model.IsUsedSecondConstructor}");
+        }
 
-        //public static void PartialWhithFullConstructorWhenCustomConstructor()
-        //{
-        //    var entity = new CowEntity { Name = "Бурёнка", Age = 5 };
+        public static void PartialWhithFullConstructorWhenCustomConstructor()
+        {
+            var entity = new CowEntity { Name = "Бурёнка", Age = 5 };
 
-        //    var model = entity.Map<CowModel>();
+            var model = entity.Map<CowModel>();
 
-        //    Console.WriteLine($"{model.Name} - {model.Age}");
-        //}
+            Console.WriteLine($"{model.Name} - {model.Age}");
+        }
 
         public static void PartialWithJustOneConstructor()
         {
@@ -73,21 +73,19 @@ namespace MapperSample.MappingWithConstructor
         [Mapper]
         public class CustomMapper
         {
-            //[Partial]
-            //public LionModel Map(LionEntity entity) => new LionModel(entity.Name, entity.Birthday.ToString("f"));
-            //[Partial]
-            //public DogModel Map(DogEntity entity) => new DogModel { Age = entity.Age.ToString() };
-            //[Partial]
-            //public CowModel Map(CowEntity entity) => new CowModel(entity.Name);
-            //[Partial]
-            //public HorseModel Map(HorseEntity entity)
-            //{
-            //    var horseName = $"Horse.{entity.Name}";
-
-            //    return new HorseModel(horseName, default) { Color = entity.Color + " " + "color" };
-            //}
             [Partial]
-            public HorseModel Map(HorseEntity entity) => new HorseModel($"Horse.{entity.Name}", default) { Color = entity.Color + " " + "color" };
+            public LionModel Map(LionEntity entity) => new LionModel(entity.Name, entity.Birthday.ToString("f"));
+            [Partial]
+            public DogModel Map(DogEntity entity) => new DogModel { Age = entity.Age.ToString() };
+            [Partial]
+            public CowModel Map(CowEntity entity) => new CowModel(entity.Name);
+            [Partial]
+            public HorseModel Map(HorseEntity entity)
+            {
+                var horseName = $"Horse.{entity.Name}";
+
+                return new HorseModel(horseName, default) { Color = entity.Color + " " + "color" };
+            }
         }
     }
 }

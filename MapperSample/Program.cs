@@ -10,21 +10,20 @@ namespace MapperSample
     {
         static void Main(string[] args)
         {
-            //MappingsWithInitialyzers.DefaultMapping();
-            //MappingsWithInitialyzers.DefaultMappingWithIncludes();
-            //MappingsWithInitialyzers.CustomExpressionMapping();
-            //MappingsWithInitialyzers.CustomBlockMapping();
-            //MappingsWithInitialyzers.CustomMappingForDefaultTypes();
-            //MappingsWithInitialyzers.PartialExpressionMapping();
-            //MappingsWithInitialyzers.PartialBlockMapping();
+            MappingsWithInitialyzers.DefaultMapping();
+            MappingsWithInitialyzers.DefaultMappingWithIncludes();
+            MappingsWithInitialyzers.CustomExpressionMapping();
+            MappingsWithInitialyzers.CustomBlockMapping();
+            MappingsWithInitialyzers.CustomMappingForDefaultTypes();
+            MappingsWithInitialyzers.PartialExpressionMapping();
+            MappingsWithInitialyzers.PartialBlockMapping();
 
-            //MappingsWithConstructor.CommonWithFullConstructor();
-            //MappingsWithConstructor.CommonChooseRightConstructor();
-            //MappingsWithConstructor.CommonMappingWithIncludes();
-            //MappingsWithConstructor.PartialExpressionMapping();
-            //MappingsWithConstructor.PartialWhenCustomInitializers();
-            //MappingsWithConstructor.PartialWhithFullConstructorWhenCustomConstructor();
-
+            MappingsWithConstructor.CommonWithFullConstructor();
+            MappingsWithConstructor.CommonChooseRightConstructor();
+            MappingsWithConstructor.CommonMappingWithIncludes();
+            MappingsWithConstructor.PartialExpressionMapping();
+            MappingsWithConstructor.PartialWhenCustomInitializers();
+            MappingsWithConstructor.PartialWhithFullConstructorWhenCustomConstructor();
             MappingsWithConstructor.PartialWithJustOneConstructor();
         }
     }

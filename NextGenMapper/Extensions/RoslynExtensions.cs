@@ -33,7 +33,7 @@ namespace NextGenMapper.Extensions
         public static List<string> ToUpperInvariant(this IEnumerable<string> strings) => strings.Select(x => x.ToUpperInvariant()).ToList();
 
         public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
-            => type.GetMembers().Where(x => x.Kind == SymbolKind.Property).Select(x => x as IPropertySymbol).ToList();
+            => type.GetMembers().Where(x => x.Kind == SymbolKind.Property).Cast<IPropertySymbol>().ToList();
 
         public static IPropertySymbol FindSettableProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type?.GetSettableProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));

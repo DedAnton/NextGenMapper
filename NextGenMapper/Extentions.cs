@@ -83,7 +83,7 @@ namespace NextGenMapper
             .Any(x => x.DeclaredAccessibility == Accessibility.Public && x.Parameters.Count() == 0);
 
         public static List<MethodDeclarationSyntax> GetMethodsDeclarations(this ClassDeclarationSyntax node)
-            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Select(x => x as MethodDeclarationSyntax).ToList();
+            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
 
         public static bool IsStartMapperInvocation(this InvocationExpressionSyntax node, GeneratorSyntaxContext context)
             => context.GetSymbol(node.Expression) is IMethodSymbol method

@@ -70,10 +70,6 @@ namespace NextGenMapper.CodeAnalysis
             var objCreationExpression = method.ExpressionBody != null
                 ? method.GetExpression<ObjectCreationExpressionSyntax>()
                 : method.GetReturnStatement().Expression as ObjectCreationExpressionSyntax;
-            if (objCreationExpression == null)
-            {
-                throw new ArgumentException($"Error when create mapping for method \"{method}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
-            }
 
             return objCreationExpression;
         }

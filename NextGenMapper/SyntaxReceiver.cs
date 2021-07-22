@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
+using NextGenMapper.Extensions;
+using System.Linq;
 
 namespace NextGenMapper
 {
@@ -13,7 +15,7 @@ namespace NextGenMapper
             if (context.Node is ClassDeclarationSyntax classNode
                 && context.GetDeclaredSymbol(classNode).HasAttribute(Annotations.MapperAttributeName))
             {
-                HandleCustomMapperClass(context, classNode);
+                HandleCustomMapperClass(context.SemanticModel, classNode);
   
             }
             else if (context.Node is InvocationExpressionSyntax invocationNode
@@ -21,36 +23,36 @@ namespace NextGenMapper
                 && method.MethodKind == MethodKind.ReducedExtension
                 && method.ReducedFrom.ToDisplayString() == StartMapperSource.FunctionFullName)
             {
-                HandleStartMapperInvocation(context, invocationNode, method);
+                HandleStartMapperInvocation(context.SemanticModel, invocationNode);
             }
         }
 
-        private void HandleStartMapperInvocation(
-            GeneratorSyntaxContext context, InvocationExpressionSyntax node, IMethodSymbol method)
+        private void HandleStartMapperInvocation(SemanticModel semanticModel, InvocationExpressionSyntax node)
         {
-            var commonPlanGenerator = new CommonPlanGenerator(context.SemanticModel, Planner);
+            var commonPlanGenerator = new CommonPlanGenerator(semanticModel, Planner);
             commonPlanGenerator.GenerateMappingsForPlanner(node);
         }
 
-        private void HandleCustomMapperClass(GeneratorSyntaxContext context, ClassDeclarationSyntax node)
+        private void HandleCustomMapperClass(SemanticModel semanticModelt, ClassDeclarationSyntax node)
         {
-            foreach (var method in node.GetMethodsDeclarations())
+            foreach (var method in node.GetMethodsDeclarations().Where(x => x.HasOneParameter()))
             {
-                if (method.HasOneParameter())
+                if (semanticModelt.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName) is var isPartial
+                    && method.GetObjectCreateionExpression() is { ArgumentList: { Arguments: var arguments } }
+                    && arguments.Any(x => x.IsDefaultLiteralExpression()))
                 {
-                    if (context.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName))
-                    {
-                        //var partialPlanGenerator = new PartialPlanGenerator(context.SemanticModel, Planner);
-                        //partialPlanGenerator.GenerateMappingsForPlanner(method);
-
-                        var asd = new PartialOneConstructorPlanGenerator(context.SemanticModel, Planner);
-                        asd.GenerateMappingsForPlanner(method);
-                    }
-                    else
-                    {
-                        var customPlanGenerator = new CustomPlanGenerator(context.SemanticModel, Planner);
-                        customPlanGenerator.GenerateMappingsForPlanner(method);
-                    }
+                    var partialOneConstructorPlanGenerator = new PartialOneConstructorPlanGenerator(semanticModelt, Planner);
+                    partialOneConstructorPlanGenerator.GenerateMappingsForPlanner(method);
+                }
+                else if (isPartial)
+                {
+                    var partialPlanGenerator = new PartialPlanGenerator(semanticModelt, Planner);
+                    partialPlanGenerator.GenerateMappingsForPlanner(method);
+                }
+                else
+                {
+                    var customPlanGenerator = new CustomPlanGenerator(semanticModelt, Planner);
+                    customPlanGenerator.GenerateMappingsForPlanner(method);
                 }
             }
         }

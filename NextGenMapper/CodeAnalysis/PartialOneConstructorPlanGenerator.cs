@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -25,6 +26,10 @@ namespace NextGenMapper.CodeAnalysis
         {
             var (to, from) = _semanticModel.GetReturnAndParameterType(method);
             var objCreationExpression = method.GetObjectCreateionExpression();
+            if (objCreationExpression == null)
+            {
+                throw new ArgumentException($"Error when create mapping for method \"{method}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
+            }
             var constructor = _semanticModel.GetMethodSymbol(objCreationExpression);
             var byConstructor = constructor.GetParametersNames();
             var byInitialyzer = objCreationExpression.GetInitializersLeft();
