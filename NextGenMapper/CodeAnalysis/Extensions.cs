@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis
@@ -11,61 +12,67 @@ namespace NextGenMapper.CodeAnalysis
         public static (ITypeSymbol ReturnType, ITypeSymbol SingleParameterType) GetReturnAndParameterType(this SemanticModel semanticModel, MethodDeclarationSyntax method)
         {
             var parameter = method.ParameterList.Parameters.SingleOrDefault();
-            if (parameter == null)
+            if (parameter == null || parameter.Type == null)
             {
                 throw new ArgumentException("method must contains one parameter");
             }
             var returnType = semanticModel.GetTypeSymbol(method.ReturnType);
             var parameterType = semanticModel.GetTypeSymbol(parameter.Type);
+            if (returnType is null || parameterType is null)
+            {
+                throw new ArgumentException("return type and single parameter type must be not null");
+            }
 
             return (returnType, parameterType);
         }
 
-        public static string GetPropertyNameInitializedBy(this IMethodSymbol constructor, string parameterName)
+        public static string? GetPropertyNameInitializedBy(this IMethodSymbol constructor, string parameterName)
         {
             if (constructor == null || constructor.MethodKind != MethodKind.Constructor)
             {
                 throw new ArgumentException($"method \"{constructor}\" is not constructor");
             }
 
-            var constructorDeclaration = constructor.GetFirstDeclaration<ConstructorDeclarationSyntax>();
-            string propertyName = null;
-            if (constructorDeclaration.Body != null)
+            var constructorDeclaration = constructor.GetFirstDeclaration() as ConstructorDeclarationSyntax;
+            string? propertyName = null;
+            if (constructorDeclaration?.Body != null)
             {
-                propertyName = constructorDeclaration.GetStatements().Select(x => x.As<ExpressionStatementSyntax>().Expression.As<AssignmentExpressionSyntax>())
-                    .Where(x => x.GetRightAssigmentIdentifierName().ToUpperInvariant() == parameterName.ToUpperInvariant())
+                propertyName = constructorDeclaration
+                    .GetStatements()
+                    .OfType<ExpressionStatementSyntax>()
+                    .Select(x => x.Expression)
+                    .OfType<AssignmentExpressionSyntax>()
+                    .Where(x => x.GetRightAssigmentIdentifierName()?.ToUpperInvariant() == parameterName.ToUpperInvariant())
                     .Select(x => x.GetLeftAssigmentIdentifierName())
                     .FirstOrDefault();
             }
-            else if (constructorDeclaration.GetExpression<AssignmentExpressionSyntax>()
-                .GetRightAssigmentIdentifierName().ToUpperInvariant() == parameterName.ToUpperInvariant())
+            else if (constructorDeclaration?.GetExpression<AssignmentExpressionSyntax>()?
+                .GetRightAssigmentIdentifierName()?.ToUpperInvariant() == parameterName.ToUpperInvariant())
             {
-                propertyName = constructorDeclaration.ExpressionBody.Expression.As<AssignmentExpressionSyntax>().GetLeftAssigmentIdentifierName();
+                propertyName = constructorDeclaration.ExpressionBody?.Expression.As<AssignmentExpressionSyntax>()?.GetLeftAssigmentIdentifierName();
             }
 
             return propertyName;
         }
 
-        public static IMethodSymbol GetOptimalConstructor(this ITypeSymbol from, ITypeSymbol to)
+        public static IMethodSymbol? GetOptimalConstructor(this ITypeSymbol from, ITypeSymbol to, IEnumerable<string>? byUser = null)
         {
+            byUser ??= new List<string>();
             var constructors = to.GetPublicConstructors().OrderByParametersDesc();
             if (constructors.Count() == 0)
             {
                 throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
             }
             var constructor = constructors.FirstOrDefault(x =>
-                x.GetParametersNames().ToUpperInvariant()
-                .Complement(from.GetPropertiesNames().ToUpperInvariant())
+                x.GetParametersNames()
+                .Complement(byUser)
+                .Complement(from.GetPropertiesNames())
                 .IsEmpty());
-            if (constructor == null)
-            {
-                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} does not have a suitable constructor");
-            } 
 
             return constructor;
         }
 
-        public static ObjectCreationExpressionSyntax GetObjectCreateionExpression(this BaseMethodDeclarationSyntax method)
+        public static ObjectCreationExpressionSyntax? GetObjectCreateionExpression(this BaseMethodDeclarationSyntax method)
         {
             var objCreationExpression = method.ExpressionBody != null
                 ? method.GetExpression<ObjectCreationExpressionSyntax>()
@@ -77,12 +84,19 @@ namespace NextGenMapper.CodeAnalysis
         public static IParameterSymbol GetConstructorParameter(this SemanticModel semanticModel, ArgumentSyntax argument)
         {
             //argument -> argumentList -> method
-            var methodDeclaration = argument?.Parent?.Parent as ObjectCreationExpressionSyntax;
-            var method = semanticModel.GetSymbol(methodDeclaration) as IMethodSymbol;
-            var index = methodDeclaration.ArgumentList.Arguments.IndexOf(argument);
-            var parameter = method.Parameters[index];
-
-            return parameter;
+            if (argument.Parent?.Parent is ObjectCreationExpressionSyntax methodDeclaration
+                && semanticModel.GetSymbol(methodDeclaration) is IMethodSymbol method
+                && methodDeclaration?.ArgumentList?.Arguments.IndexOf(argument) is int index)
+            {
+                return method.Parameters[index];
+            }
+            else
+            {
+                throw new Exception($"Parameter for argument {argument} was not found");
+            }
         }
+
+        public static List<string> GetUsingsAndNamespace(this SyntaxNode node) 
+            => node.GetUsings().Append($"using {node.GetNamespace()};").ToList();
     }
 }

@@ -9,15 +9,36 @@ namespace NextGenMapper.Extensions
 {
     public static class RoslynExtensions
     {
-        public static ISymbol GetSymbol(this SemanticModel semanticModel, SyntaxNode node)
+        public static List<IFieldSymbol> GetFields(this EnumDeclarationSyntax enumDeclaration, SemanticModel semanticModel)
+            => enumDeclaration.Members.Select(x => semanticModel.GetDeclaredSymbol(x)).OfType<IFieldSymbol>().ToList();
+
+        public static List<string> GetInitializersLeft(this ObjectCreationExpressionSyntax node)
+            => node.Initializer?
+            .Expressions
+            .OfType<AssignmentExpressionSyntax>()
+            .Select(x => x.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText)
+            .OfType<string>()
+            .ToList() ?? new List<string>();
+
+        public static bool HasSingleParameterWithType(this MethodDeclarationSyntax node)
+            => node.ParameterList.Parameters.SingleOrDefault() is ParameterSyntax parameter
+            && parameter?.Type is not null;
+
+        public static List<MethodDeclarationSyntax> GetMethodsDeclarations(this ClassDeclarationSyntax node)
+            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
+
+        public static bool HasAttribute(this ISymbol? symbol, string attributeFullName)
+            => symbol?.GetAttributes().Any(x => x.AttributeClass?.ToDisplayString() == attributeFullName) ?? false;
+
+        public static ISymbol? GetSymbol(this SemanticModel semanticModel, SyntaxNode node)
             => semanticModel.GetSymbolInfo(node).Symbol;
 
-        public static T As<T>(this ISymbol symbol) where T : ISymbol => symbol is T tSymbol ? tSymbol : default;
+        public static T? As<T>(this ISymbol? symbol) where T : ISymbol => symbol is T tSymbol ? tSymbol : default;
 
-        public static ITypeSymbol GetTypeSymbol(this SemanticModel semanticModel, TypeSyntax type) 
+        public static ITypeSymbol? GetTypeSymbol(this SemanticModel semanticModel, TypeSyntax type)
             => semanticModel.GetSymbol(type).As<ITypeSymbol>();
 
-        public static IMethodSymbol GetMethodSymbol(this SemanticModel semanticModel, ExpressionSyntax expression)
+        public static IMethodSymbol? GetMethodSymbol(this SemanticModel semanticModel, ExpressionSyntax expression)
             => semanticModel.GetSymbol(expression).As<IMethodSymbol>();
 
         public static IReadOnlyList<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
@@ -28,48 +49,47 @@ namespace NextGenMapper.Extensions
 
         public static List<string> GetParametersNames(this IMethodSymbol method) => method.Parameters.Select(x => x.Name).ToList();
 
-        public static IParameterSymbol FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
+        public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
             => method?.Parameters.FirstOrDefault(x => x.Name.Equals(name, comparision));
-        public static List<string> ToUpperInvariant(this IEnumerable<string> strings) => strings.Select(x => x.ToUpperInvariant()).ToList();
 
         public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
             => type.GetMembers().Where(x => x.Kind == SymbolKind.Property).Cast<IPropertySymbol>().ToList();
 
-        public static IPropertySymbol FindSettableProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        public static IPropertySymbol? FindSettableProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type?.GetSettableProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
 
-        public static IPropertySymbol FindProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        public static IPropertySymbol? FindProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type?.GetProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
 
         public static List<IPropertySymbol> GetSettableProperties(this ITypeSymbol type) => type.GetProperties().Where(x => !x.IsReadOnly).ToList();
 
         public static List<string> GetPropertiesNames(this ITypeSymbol type) => type.GetProperties().Select(x => x.Name).ToList();
 
-        public static T As<T>(this SyntaxNode node) where T : SyntaxNode => node is T tNode ? tNode : default;
+        public static T? As<T>(this SyntaxNode node) where T : SyntaxNode => node is T tNode ? tNode : default;
 
         public static List<string> GetUsings(this SyntaxNode node)
             => node.Ancestors().OfType<CompilationUnitSyntax>().Single().Usings.Select(x => x.ToString()).ToList();
 
-        public static T GetFirstDeclaration<T>(this ISymbol symbol) where T : SyntaxNode 
-            => symbol.DeclaringSyntaxReferences.FirstOrDefault().GetSyntax().As<T>();
+        public static string GetNamespace(this SyntaxNode node)
+            => node.Ancestors().OfType<NamespaceDeclarationSyntax>().Single().Name.ToString();
 
-        public static SyntaxNode GetSyntaxNode(this ISymbol symbol)
-            => symbol.Locations.FirstOrDefault() is { } location ? location.SourceTree?.GetRoot().FindNode(location.SourceSpan) : null;
+        public static SyntaxNode? GetFirstDeclaration(this ISymbol symbol)
+            => symbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
 
-        public static string GetLeftAssigmentIdentifierName(this AssignmentExpressionSyntax assignmentExpression)
+        public static string? GetLeftAssigmentIdentifierName(this AssignmentExpressionSyntax assignmentExpression)
             => assignmentExpression.Left.As<IdentifierNameSyntax>()?.Identifier.Text;
 
-        public static string GetRightAssigmentIdentifierName(this AssignmentExpressionSyntax assignmentExpression)
+        public static string? GetRightAssigmentIdentifierName(this AssignmentExpressionSyntax assignmentExpression)
             => assignmentExpression.Right.As<IdentifierNameSyntax>()?.Identifier.Text;
 
-        public static T GetExpression<T>(this BaseMethodDeclarationSyntax method) where T : ExpressionSyntax
-            => method?.ExpressionBody?.Expression.As<T>();
+        public static T? GetExpression<T>(this BaseMethodDeclarationSyntax method) where T : ExpressionSyntax
+            => method.ExpressionBody?.Expression.As<T>();
 
         public static List<StatementSyntax> GetStatements(this BaseMethodDeclarationSyntax method)
-            => method?.Body?.Statements.ToList() ?? new();
+            => method.Body?.Statements.ToList() ?? new();
 
         public static ReturnStatementSyntax GetReturnStatement(this BaseMethodDeclarationSyntax method)
-            => method?.GetStatements().OfType<ReturnStatementSyntax>().SingleOrDefault();
+            => method.GetStatements().OfType<ReturnStatementSyntax>().Single();
 
         public static bool IsPrivitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
 

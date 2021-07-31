@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenMapper", "NextGenMap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapperSample", "MapperSample\MapperSample.csproj", "{9CB7C034-23B3-4759-93D8-1A967163E5C8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NextGenMapperTests", "NextGenMapperTests\NextGenMapperTests.csproj", "{7147B828-86F5-4D5C-BBFA-B552B775EA52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

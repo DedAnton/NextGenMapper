@@ -1,10 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using NextGenMapper.CodeAnalysis.Maps;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using NextGenMapper.Extensions;
 
 namespace NextGenMapper
 {
@@ -66,20 +68,20 @@ namespace NextGenMapper
 
         private IEnumerable<string> GenerateCustomMappers(SyntaxReceiver receiver)
         {
-            foreach(var plan in receiver.Planner.CustomMappingPlans)
+            foreach (var mapGroup in receiver.Planner.MapGroups.Where(x => x.Priority == CodeAnalysis.MapPriority.Custom))
             {
                 var sourceBuilder = new StringBuilder();
-                sourceBuilder.Append(GenerateUsings(plan.Usings));
+                sourceBuilder.Append(GenerateUsings(mapGroup.Usings));
                 sourceBuilder.Append(MAPPER_BEGIN);
-                foreach (var mapping in plan.Mappings)
+                foreach (var map in mapGroup.Maps)
                 {
-                    var mapFunction = mapping switch
+                    var mapFunction = map switch
                     {
-                        { Type: MappingType.Custom, MethodType: MethodType.Block } => GenerateCustomMapBlockFunction(mapping),
-                        { Type: MappingType.Custom, MethodType: MethodType.Expression } => GenerateCustomMapExpressionFunction(mapping),
-                        { Type: MappingType.Partial } => GeneratePartialMapFunction(mapping),
-                        { Type: MappingType.PartialConstructor } => GeneratePartialConstuctorMapFunction(mapping),
-                        _ => throw new ArgumentOutOfRangeException(nameof(mapping.Type))
+                        TypeCustomMap { MethodType: MethodType.Block } customBlockMap  => GenerateCustomMapBlockFunction(customBlockMap),
+                        TypeCustomMap { MethodType: MethodType.Expression } customExpressionMap => GenerateCustomMapExpressionFunction(customExpressionMap),
+                        ClassPartialMap partialMap => GeneratePartialMapFunction(partialMap),
+                        ClassPartialConstructorMap partialConstructorMap => GeneratePartialConstuctorMapFunction(partialConstructorMap),
+                        _ => throw new ArgumentOutOfRangeException(map.GetType().ToString())
                     };
                     sourceBuilder.AppendLine(mapFunction.LeadingSpace(TAB2));
                 }
@@ -93,20 +95,38 @@ namespace NextGenMapper
         {
             var sourceBuilder = new StringBuilder();
             sourceBuilder.Append(MAPPER_BEGIN);
-            receiver.Planner.CommonMappingPlan?.Mappings.ForEach(x => 
-                sourceBuilder.AppendLine(GenerateCommonMapFunction(x).LeadingSpace(TAB2)));
+            receiver.Planner.MapGroups.FirstOrDefault(x => x.Priority == CodeAnalysis.MapPriority.Common)?.Maps.OfType<ClassMap>().ForEach(x => 
+                sourceBuilder.AppendLine(GenerateClassMapFunction(x).LeadingSpace(TAB2)));
+            receiver.Planner.MapGroups.FirstOrDefault(x => x.Priority == CodeAnalysis.MapPriority.Common)?.Maps.OfType<EnumMap>().ForEach(x =>
+                sourceBuilder.AppendLine(GenerateEnumMapFunction(x).LeadingSpace(TAB2)));
             sourceBuilder.Append(MAPPER_END);
 
             return sourceBuilder.ToString();
         }
 
-        private string GenerateCommonMapFunction(TypeMapping mapping)
+        private string GenerateEnumMapFunction(EnumMap map)
         {
             var sourceBuilder = new StringBuilder();
-            sourceBuilder.Append($"public static {mapping.ToType} Map<To>(this {mapping.FromType} source) => new {mapping.ToType}(");
-            foreach (var property in mapping.ConstructorProperties)
+            sourceBuilder.AppendLine($"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} source)");
+            sourceBuilder.AppendLine($"=> source switch".LeadingSpace(TAB1));
+            sourceBuilder.AppendLine("{".LeadingSpace(TAB1));
+            foreach(var field in map.Fields)
             {
-                if (property.IsSameTypes)
+                sourceBuilder.AppendLine($"{field.TypeFrom}.{field.NameFrom} => {field.TypeTo}.{field.NameTo},".LeadingSpace(TAB2));
+            }
+            sourceBuilder.AppendLine($"_ => throw new System.ArgumentOutOfRangeException(\"Error when mapping {map.From.ToDisplayString()} to {map.To.ToDisplayString()}\")".LeadingSpace(TAB2));
+            sourceBuilder.AppendLine("};".LeadingSpace(TAB1));
+
+            return sourceBuilder.ToString();
+        }
+
+        private string GenerateClassMapFunction(ClassMap map)
+        {
+            var sourceBuilder = new StringBuilder();
+            sourceBuilder.Append($"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} source) => new {map.To.ToDisplayString()}(");
+            foreach (var property in map.ConstructorProperties)
+            {
+                if (property.IsSameTypes || property.HasImplicitConversion)
                 {
                     sourceBuilder.Append($"source.{property.NameFrom}");
                 }
@@ -114,15 +134,15 @@ namespace NextGenMapper
                 {
                     sourceBuilder.Append($"source.{property.NameFrom}.Map<{property.TypeTo}>()");
                 }
-                if (property != mapping.ConstructorProperties.Last())
+                if (property != map.ConstructorProperties.Last())
                 {
                     sourceBuilder.Append(", ");
                 }
             }
             sourceBuilder.Append(") { ");
-            foreach (var property in mapping.InitializatorPropererties)
+            foreach (var property in map.InitializerProperties)
             {
-                if (property.IsSameTypes)
+                if (property.IsSameTypes || property.HasImplicitConversion)
                 {
                     sourceBuilder.Append($"{property.NameTo} = source.{property.NameFrom}, ");
                 }
@@ -136,27 +156,27 @@ namespace NextGenMapper
             return sourceBuilder.ToString();
         }
 
-        private string GenerateCustomMapBlockFunction(TypeMapping mapping)
-            => $"public static {mapping.To} Map<To>(this {mapping.From} {mapping.ParameterName})\r\n{mapping.Body.ToString().RemoveLeadingSpace(TAB2)}";
+        private string GenerateCustomMapBlockFunction(TypeCustomMap map)
+            => $"public static {map.To} Map<To>(this {map.From} {map.ParameterName})\r\n{map.Body?.ToString().RemoveLeadingSpace(TAB2)}";
 
-        private string GenerateCustomMapExpressionFunction(TypeMapping mapping)
-            => $"public static {mapping.To} Map<To>(this {mapping.From} {mapping.ParameterName}) {mapping.ExpressionBody};\r\n";
+        private string GenerateCustomMapExpressionFunction(TypeCustomMap map)
+            => $"public static {map.To} Map<To>(this {map.From} {map.ParameterName}) {map.ExpressionBody};\r\n";
 
-        private string GeneratePartialConstuctorMapFunction(TypeMapping mapping) => mapping.Method.ToString();
+        private string GeneratePartialConstuctorMapFunction(ClassPartialConstructorMap map) => map.Method.ToString();
 
-        private string GeneratePartialMapFunction(TypeMapping mapping)
+        private string GeneratePartialMapFunction(ClassPartialMap map)
         {
-            var userFunction = GenerateUserFunction(mapping).LeadingSpace(TAB1);
+            var userFunction = GenerateUserFunction(map).LeadingSpace(TAB1);
             var sourceBuilder = new StringBuilder();
 
-            sourceBuilder.Append($"public static {mapping.To} Map<To>(this {mapping.From} _a___source)\r\n{{\r\n");
+            sourceBuilder.Append($"public static {map.To} Map<To>(this {map.From} _a___source)\r\n{{\r\n");
             sourceBuilder.Append(userFunction);
             sourceBuilder.AppendLine("var result = UserFunction(_a___source);".LeadingSpace(TAB1));
-            sourceBuilder.Append($"return new {mapping.ToType}(".LeadingSpace(TAB1));
-            foreach (var property in mapping.ConstructorProperties)
+            sourceBuilder.Append($"return new {map.To.ToDisplayString()}(".LeadingSpace(TAB1));
+            foreach (var property in map.ConstructorProperties)
             {
                 var source = property.IsProvidedByUser ? "result" : "_a___source";
-                if (property.IsSameTypes || property.IsProvidedByUser)
+                if (property.IsSameTypes || property.IsProvidedByUser || property.HasImplicitConversion)
                 {
                     sourceBuilder.Append($"{source}.{property.NameFrom}");
                 }
@@ -164,17 +184,17 @@ namespace NextGenMapper
                 {
                     sourceBuilder.Append($"{source}.{property.NameFrom}.Map<{property.TypeTo}>()");
                 }
-                if (property != mapping.ConstructorProperties.Last())
+                if (property != map.ConstructorProperties.Last())
                 {
                     sourceBuilder.Append(", ");
                 }
             }
             sourceBuilder.Append(") { ");
-            foreach (var property in mapping.InitializatorPropererties)
+            foreach (var property in map.InitializerProperties)
             {
                 var source = property.IsProvidedByUser ? "result" : "_a___source";
 
-                if (property.IsSameTypes || property.IsProvidedByUser)
+                if (property.IsSameTypes || property.IsProvidedByUser || property.HasImplicitConversion)
                 {
                     sourceBuilder.Append($"{property.NameTo} = {source}.{property.NameFrom}, ");
                 }
@@ -189,12 +209,12 @@ namespace NextGenMapper
             return sourceBuilder.ToString();
         }
 
-        private string GenerateUserFunction(TypeMapping mapping)
+        private string GenerateUserFunction(ClassPartialMap map)
         {
-            var body = mapping.MethodType == MethodType.Block 
-                ? $"\r\n{mapping.Body.ToString().RemoveLeadingSpace(TAB2)}" 
-                : $"{mapping.ExpressionBody};\r\n";
-            return $"{mapping.To} UserFunction({mapping.From} {mapping.ParameterName}) {body}";
+            var body = map.MethodType == MethodType.Block 
+                ? $"\r\n{map.Body?.ToString().RemoveLeadingSpace(TAB2)}" 
+                : $"{map.ExpressionBody};\r\n";
+            return $"{map.To} UserFunction({map.From} {map.ParameterName}) {body}";
         }
 
         private string GenerateUsings(List<string> usings)
@@ -202,7 +222,7 @@ namespace NextGenMapper
             var sourceBuilder = new StringBuilder();
             foreach (var @using in usings)
             {
-                sourceBuilder.AppendLine(@using.ToString());
+                sourceBuilder.AppendLine(@using);
             }
 
             return sourceBuilder.AppendLine().ToString();
