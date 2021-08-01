@@ -1,4 +1,4 @@
-﻿namespace NextGenMapper
+﻿namespace NextGenMapper.PostInitialization
 {
     public static class Annotations
     {

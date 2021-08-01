@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using NextGenMapper.Extensions;
+using NextGenMapper.PostInitialization;
 
 namespace NextGenMapper
 {

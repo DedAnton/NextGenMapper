@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.Extensions;
+using NextGenMapper.PostInitialization;
 using System.Linq;
 
 namespace NextGenMapper

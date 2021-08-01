@@ -13,11 +13,4 @@ namespace NextGenMapper.CodeAnalysis.Maps
             Fields = fields;
         }
     }
-
-    public enum EnumMapType
-    {
-        ByNameAndValue,
-        ByName,
-        ByValue
-    }
 }

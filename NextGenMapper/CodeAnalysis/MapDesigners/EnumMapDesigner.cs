@@ -33,18 +33,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var valuesMappings = new List<FieldMap>();
             foreach (var fromField in fromFields)
             {
-                var type = EnumMapType.ByNameAndValue;
-
                 var byName = toFields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
                 var byValue = toFields.FirstOrDefault(x => x.HasConstantValue && fromField.HasConstantValue 
                     && x.ConstantValue.UnboxToLong() == fromField.ConstantValue.UnboxToLong());
-                var toField = type switch
-                {
-                    EnumMapType.ByNameAndValue => byName ?? byValue,
-                    EnumMapType.ByName => byName,
-                    EnumMapType.ByValue => byValue,
-                    _ => throw new ArgumentOutOfRangeException(nameof(EnumMapType))
-                };
+                var toField = byValue ?? byName;
                 if (toField is not null)
                 {
                     valuesMappings.Add(new FieldMap(fromField, toField));
