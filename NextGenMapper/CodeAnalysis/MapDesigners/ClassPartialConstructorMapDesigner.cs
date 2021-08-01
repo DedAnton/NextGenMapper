@@ -48,6 +48,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     var parameter = _semanticModel.GetConstructorParameter(argument);
                     var fromProperty = from.FindProperty(parameter.Name);
+                    if (fromProperty is null)
+                    {
+                        throw new ArgumentException($"Error when mapping {from} to {to}. Can`t find property to constructor parameter {parameter}");
+                    }
                     newArguments.Add(GenerateMeberAccessArgument(sourceParameter.Name, fromProperty.Name));
                 }
                 else

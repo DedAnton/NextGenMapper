@@ -38,6 +38,11 @@ namespace NextGenMapper
                 var designer = new EnumMapDesigner(semanticModel, Planner);
                 designer.DesignMapsForPlanner(from, to);
             }
+            else if (from.IsGenericEnumerable() && to.IsGenericEnumerable())
+            {
+                var designer = new CollectionMapDesigner(semanticModel, Planner);
+                designer.DesignMapsForPlanner(from, to);
+            }
             else if (from.TypeKind == TypeKind.Class && to.TypeKind == TypeKind.Class)
             {
                 var designer = new ClassMapDesigner(semanticModel, Planner);

@@ -6,6 +6,8 @@ namespace NextGenMapper.CodeAnalysis
 {
     public class MapPlanner
     {
+        private readonly List<string> _commonGroupUsings = new() { "using System.Linq;" };
+
         public List<MapGroup> MapGroups { get; } = new();
 
         public void AddCommonMap(TypeMap map)
@@ -23,7 +25,7 @@ namespace NextGenMapper.CodeAnalysis
             }
             else
             {
-                MapGroups.Add(new MapGroup(map, new(), MapPriority.Common));
+                MapGroups.Add(new MapGroup(map, _commonGroupUsings, MapPriority.Common));
             }
         }
 

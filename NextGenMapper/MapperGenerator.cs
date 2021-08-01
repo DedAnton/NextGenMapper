@@ -95,15 +95,20 @@ namespace NextGenMapper
         private string GenerateCommonMapper(SyntaxReceiver receiver)
         {
             var sourceBuilder = new StringBuilder();
+            var commonGroup = receiver.Planner.MapGroups.FirstOrDefault(x => x.Priority == CodeAnalysis.MapPriority.Common);
+            sourceBuilder.Append(GenerateUsings(commonGroup?.Usings));
             sourceBuilder.Append(MAPPER_BEGIN);
-            receiver.Planner.MapGroups.FirstOrDefault(x => x.Priority == CodeAnalysis.MapPriority.Common)?.Maps.OfType<ClassMap>().ForEach(x => 
-                sourceBuilder.AppendLine(GenerateClassMapFunction(x).LeadingSpace(TAB2)));
-            receiver.Planner.MapGroups.FirstOrDefault(x => x.Priority == CodeAnalysis.MapPriority.Common)?.Maps.OfType<EnumMap>().ForEach(x =>
-                sourceBuilder.AppendLine(GenerateEnumMapFunction(x).LeadingSpace(TAB2)));
+            commonGroup?.Maps.OfType<ClassMap>().ForEach(x => sourceBuilder.AppendLine(GenerateClassMapFunction(x).LeadingSpace(TAB2)));
+            commonGroup?.Maps.OfType<EnumMap>().ForEach(x => sourceBuilder.AppendLine(GenerateEnumMapFunction(x).LeadingSpace(TAB2)));
+            commonGroup?.Maps.OfType<CollectionMap>().ForEach(x => sourceBuilder.AppendLine(GenerateCollectionMapFunction(x).LeadingSpace(TAB2)));
             sourceBuilder.Append(MAPPER_END);
 
             return sourceBuilder.ToString();
         }
+
+        private string GenerateCollectionMapFunction(CollectionMap map)
+            => $"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} sources) => " +
+            $"sources.Select(x => x.Map<{map.ItemTo.ToDisplayString()}>())" + (map.CollectionType == CollectionType.List ? ".ToList();" : ".ToArray();");
 
         private string GenerateEnumMapFunction(EnumMap map)
         {
@@ -218,8 +223,13 @@ namespace NextGenMapper
             return $"{map.To} UserFunction({map.From} {map.ParameterName}) {body}";
         }
 
-        private string GenerateUsings(List<string> usings)
+        private string GenerateUsings(List<string>? usings)
         {
+            if (usings is null)
+            {
+                return string.Empty;
+            }
+
             var sourceBuilder = new StringBuilder();
             foreach (var @using in usings)
             {

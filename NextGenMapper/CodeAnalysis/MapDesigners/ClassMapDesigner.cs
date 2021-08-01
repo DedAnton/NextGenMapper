@@ -2,6 +2,7 @@
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {

@@ -9,6 +9,10 @@ namespace NextGenMapper.Extensions
 {
     public static class RoslynExtensions
     {
+        public static bool IsGenericEnumerable(this ITypeSymbol type) =>
+            type.AllInterfaces.Any(x => x.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            || type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T;
+
         public static List<IFieldSymbol> GetFields(this EnumDeclarationSyntax enumDeclaration, SemanticModel semanticModel)
             => enumDeclaration.Members.Select(x => semanticModel.GetDeclaredSymbol(x)).OfType<IFieldSymbol>().ToList();
 
@@ -53,7 +57,9 @@ namespace NextGenMapper.Extensions
             => method?.Parameters.FirstOrDefault(x => x.Name.Equals(name, comparision));
 
         public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
-            => type.GetMembers().Where(x => x.Kind == SymbolKind.Property).Cast<IPropertySymbol>().ToList();
+            => type.GetMembers().OfType<IPropertySymbol>()
+            .Where(x => x.CanBeReferencedByName && x.DeclaredAccessibility == Accessibility.Public)
+            .ToList();
 
         public static IPropertySymbol? FindSettableProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type?.GetSettableProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
