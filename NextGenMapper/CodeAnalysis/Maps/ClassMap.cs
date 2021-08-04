@@ -9,7 +9,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public List<PropertyMap> InitializerProperties { get; }
         public List<ParameterMap> ConstructorProperties { get; }
 
-        public ClassMap(ITypeSymbol from, ITypeSymbol to, List<IMemberMap> properties)
+        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<IMemberMap> properties)
             : base(from, to)
         {
             InitializerProperties = properties.OfType<PropertyMap>().ToList();

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
@@ -19,5 +20,6 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public string NameTo => To.Name;
         public bool IsSameTypes => true;
         public bool IsProvidedByUser => false;
+        public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(From.Type, To.Type);
     }
 }

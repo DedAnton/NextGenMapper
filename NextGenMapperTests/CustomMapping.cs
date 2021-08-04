@@ -1,4 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
 
 namespace NextGenMapperTests
@@ -259,6 +261,133 @@ public EnumTo Map(EnumFrom source)
 
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CustomMappingTwoMappers()
+        {
+            var source1 =
+@"using NextGenMapper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Test.First
+{
+    public class Program
+    {
+        public void TestMethod()
+        {
+            var source = new Source { FirstName = ""Anton"", SecondName = ""Ryabchikov"", Birthday = new DateTime(1997, 05, 20) };
+
+            var destination = source.Map<Destination>();
+
+            var isValid = destination.Name == ""Anton Ryabchikov"" && destination.Birthday == source.Birthday.ToShortDateString();
+
+            if (!isValid) throw new MapFailedException(source, destination);
+        }
+    }
+
+    public class MapFailedException : System.Exception 
+    {
+        public object MapSource { get; set; }
+        public object MapDestination { get; set; }
+
+        public MapFailedException(object source, object destination) 
+            : base()
+        {
+            MapSource = source;
+            MapDestination = destination;
+        }
+    }
+
+    public class Source
+    {
+        public string FirstName { get; set; }
+        public string SecondName { get; set; }
+        public DateTime Birthday { get; set; }
+    }
+
+    public class Destination
+    {
+        public string Name { get; set; }
+        public string Birthday { get; set; }
+    }
+
+    [Mapper]
+    public class CustomMapper
+    {
+        public Destination Map(Source source) => new Destination { Name = $""{source.FirstName} {source.SecondName}"", Birthday = source.Birthday.ToShortDateString() };
+    }
+}
+";
+
+            var source2 =
+@"using NextGenMapper;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace Test.Second
+{
+    public class Program
+    {
+        public void TestMethod()
+        {
+            var source = new Source { FirstName = ""Anton"", SecondName = ""Ryabchikov"", Birthday = new DateTime(1997, 05, 20) };
+
+            var destination = source.Map<Destination>();
+
+            var isValid = destination.Name == ""Anton Ryabchikov"" && destination.Birthday == source.Birthday.ToShortDateString();
+
+            if (!isValid) throw new MapFailedException(source, destination);
+        }
+    }
+
+    public class MapFailedException : System.Exception 
+    {
+        public object MapSource { get; set; }
+        public object MapDestination { get; set; }
+
+        public MapFailedException(object source, object destination) 
+            : base()
+        {
+            MapSource = source;
+            MapDestination = destination;
+        }
+    }
+
+    public class Source
+    {
+        public string FirstName { get; set; }
+        public string SecondName { get; set; }
+        public DateTime Birthday { get; set; }
+    }
+
+    public class Destination
+    {
+        public string Name { get; set; }
+        public string Birthday { get; set; }
+    }
+
+    [Mapper]
+    public class CustomMapper
+    {
+        public Destination Map(Source source) => new Destination { Name = $""{source.FirstName} {source.SecondName}"", Birthday = source.Birthday.ToShortDateString() };
+    }
+}
+";
+
+            var compilation = CSharpCompilation.Create(
+                assemblyName: nameof(CustomMappingTwoMappers),
+                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source1, new CSharpParseOptions(LanguageVersion.CSharp9)), CSharpSyntaxTree.ParseText(source2, new CSharpParseOptions(LanguageVersion.CSharp9)) },
+                references: TestExtensions.GetReferences,
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+            compilation.CreateDriver(new MapperGenerator()).RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var generatorDiagnostics);
+            Assert.IsTrue(generatorDiagnostics.IsEmpty, generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = updatedCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
         }
     }
 }

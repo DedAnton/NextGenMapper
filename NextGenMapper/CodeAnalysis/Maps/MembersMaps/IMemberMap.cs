@@ -10,5 +10,6 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public string NameTo { get; }
         public bool IsSameTypes { get; }
         public bool IsProvidedByUser { get; }
+        public bool HasImplicitConversion { get; }
     }
 }

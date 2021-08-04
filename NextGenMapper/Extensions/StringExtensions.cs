@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace NextGenMapper.Extensions
@@ -34,5 +36,12 @@ namespace NextGenMapper.Extensions
         }
 
         public static string RemoveLeadingSpace(this string source, int count) => source.LeadingSpace(count * -1);
+
+        public static string Join(this IEnumerable<string> strings, int indent = 1, string separator = "\r\n") => string.Join(separator.LeadingSpace(4 * indent), strings);
+
+        public static string InterpolateAndJoin<T>(this IEnumerable<T> objects, Func<T, string> pattern, int intend = 1, string separator = "\r\n") => string.Join(separator, objects.Select(pattern)).LeadingSpace(intend * 4);
+       
+        public static string TernarInterpolateAndJoin<T>(this IEnumerable<T> objects, Func<T, bool> condition, Func<T, string> truePattern, Func<T, string> falsePattern, int intend = 1, string separator = "\r\n")
+            => string.Join(separator, objects.Select(x => condition(x) ? truePattern(x) : falsePattern(x))).LeadingSpace(intend * 4);
     }
 }

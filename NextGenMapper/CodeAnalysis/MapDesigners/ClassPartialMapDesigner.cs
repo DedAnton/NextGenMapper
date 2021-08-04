@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
@@ -64,7 +65,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            _planner.AddCustomMap(new ClassPartialMap(from, to, membersMaps, method), method.GetUsingsAndNamespace());
+            var customStatements = method.Body != null 
+                ? method.Body.Statements.ToList() 
+                : new() { SyntaxFactory.ReturnStatement(objCreationExpression).NormalizeWhitespace() };
+            var customParameterName = method.ParameterList.Parameters.First().Identifier.Text;
+
+            _planner.AddCustomMap(new ClassPartialMap(from, to, membersMaps, customStatements, customParameterName), method.GetUsingsAndNamespace());
         }
     }
 }
