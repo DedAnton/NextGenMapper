@@ -4,7 +4,7 @@ using NextGenMapper;
 namespace NextGenMapperTests
 {
     [TestClass]
-    public class CommonMapping
+    public class CommonClassMapping
     {
         [TestMethod]
         public void MappingInitializer()

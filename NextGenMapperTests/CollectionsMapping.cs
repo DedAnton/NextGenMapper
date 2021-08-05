@@ -1,9 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapperTests
 {
