@@ -113,58 +113,5 @@ public Destination Map(Source source) => new Destination($""{source.FirstName} {
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
-
-        
-        public void JustOneConstructorMappingMustIgnoreInitializer()
-        {
-            var classes = @"
-public class Source
-{
-    public string FirstName { get; set; }
-    public string SecondName { get; set; }
-    public int Height { get; set; }
-    public string City { get; set; }
-    public DateTime Birthday { get; set; }
-}
-
-public class Destination
-{
-    public string Name { get; }
-    public int Height { get; }
-    public string City { get; set; }
-    public DateTime Birthday { get; set; }
-
-    public Destination() { }
-
-    public Destination(string name, int height)
-    {
-        Name = name;
-        Height = height;
-    }
-}";
-
-            var validateFunction = @"
-var source = new Source { FirstName = ""Anton"", SecondName = ""Ryabchikov"", Height = 190, City = ""Dinamo"", Birthday = new DateTime(1997, 05, 20)};
-
-var destination = source.Map<Destination>();
-
-var isValid = destination.Name == ""Anton Ryabchikov"" && source.Height == destination.Height && destination.City == null && destination.Birthday == new DateTime();
-
-if (!isValid) throw new MapFailedException(source, destination);";
-
-            var customMapping = @"
-[Partial]
-public Destination Map(Source source) => new Destination($""{source.FirstName} {source.SecondName}"", default);
-";
-
-            var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
-            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
-            Assert.IsTrue(generatorDiagnostics.IsEmpty, generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
-            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
-            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
-
-            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
-            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
-        }
     }
 }
