@@ -13,17 +13,11 @@ namespace NextGenMapperTests
 {
     public static class TestExtensions
     {
-        public static IEnumerable<MetadataReference> GetReferences
-            = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .Where(a => !a.IsDynamic)
-            .Select(a => MetadataReference.CreateFromFile(a.Location));
-
         public static Compilation CreateCompilation(this string source, string assemblyName)
             => CSharpCompilation.Create(
             assemblyName: assemblyName,
             syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)) },
-            references: GetReferences,
+            references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
         );
 
@@ -113,7 +107,6 @@ namespace NextGenMapperTests
 @"using NextGenMapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Test
 {

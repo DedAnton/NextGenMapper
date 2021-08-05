@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
+using System.Reflection;
 
 namespace NextGenMapperTests
 {
@@ -270,7 +271,6 @@ public EnumTo Map(EnumFrom source)
 @"using NextGenMapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Test.First
 {
@@ -326,7 +326,6 @@ namespace Test.First
 @"using NextGenMapper;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Test.Second
@@ -382,7 +381,7 @@ namespace Test.Second
             var compilation = CSharpCompilation.Create(
                 assemblyName: nameof(CustomMappingTwoMappers),
                 syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source1, new CSharpParseOptions(LanguageVersion.CSharp9)), CSharpSyntaxTree.ParseText(source2, new CSharpParseOptions(LanguageVersion.CSharp9)) },
-                references: TestExtensions.GetReferences,
+                references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             compilation.CreateDriver(new MapperGenerator()).RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var generatorDiagnostics);
             Assert.IsTrue(generatorDiagnostics.IsEmpty, generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));

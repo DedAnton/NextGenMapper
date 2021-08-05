@@ -9,8 +9,8 @@ namespace NextGenMapper.CodeGeneration
     public class CustomMapperGenerator
     {
         public string Generate(MapGroup customMapGroup) =>
-$@"
-{customMapGroup.Usings.Join()}
+
+$@"{customMapGroup.Usings.Join()}
 
 namespace NextGenMapper
 {{

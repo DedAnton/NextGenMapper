@@ -6,7 +6,7 @@ namespace NextGenMapper.CodeAnalysis
 {
     public class MapPlanner
     {
-        private readonly List<string> _commonGroupUsings = new() { "using System.Linq;" };
+        private readonly List<string> _commonGroupUsings = new() { "using NextGenMapper.Extensions;" };
 
         public List<MapGroup> MapGroups { get; } = new();
 

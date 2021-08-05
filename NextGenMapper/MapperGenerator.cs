@@ -16,6 +16,7 @@ namespace NextGenMapper
         {
             context.RegisterForPostInitialization(i =>
             {
+                i.AddSource("MapperExtensions", ExtensionsSource.Source);
                 i.AddSource("MapperAttribute", Annotations.MapperAttributeText);
                 i.AddSource("PartialAttribute", Annotations.PartialAttributeText);
                 i.AddSource("StartMapper", StartMapperSource.StartMapper);

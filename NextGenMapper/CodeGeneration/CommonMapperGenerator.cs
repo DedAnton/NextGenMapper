@@ -9,8 +9,8 @@ namespace NextGenMapper.CodeGeneration
     public class CommonMapperGenerator
     {
         public string Generate(MapGroup commonMapGroup) =>
-$@"
-{commonMapGroup.Usings.Join()}
+
+$@"{commonMapGroup.Usings.Join()}
 
 namespace NextGenMapper
 {{
@@ -60,5 +60,6 @@ $@"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayStri
     separator: ",\r\n")}
 }};
 ";
+
     }
 }
