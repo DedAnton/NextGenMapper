@@ -4,7 +4,7 @@ using NextGenMapper;
 namespace NextGenMapperTests
 {
     [TestClass]
-    public class PartialMapping
+    public class PartialClassMapping
     {
         [TestMethod]
         public void PartialExpressionMapping()
