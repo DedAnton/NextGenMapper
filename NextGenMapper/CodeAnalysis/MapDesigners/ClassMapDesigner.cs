@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,6 +13,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         private readonly SemanticModel _semanticModel;
         private readonly MapPlanner _planner;
+
+        private List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory = new();
 
         public ClassMapDesigner(SemanticModel semanticModel, MapPlanner planner)
         {
@@ -26,6 +29,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             {
                 return;
             }
+            if (_referencesHistory.Contains((from, to), new ReferencesEqualityComparer()))
+            {
+                //add diagnostics
+                throw new ArgumentException("Circular reference was found." + string.Join(" => ", _referencesHistory.Select(x => $"{x.from} to {x.to}")));
+            }
+            _referencesHistory.Add((from, to));
 
             var membersMaps = new List<IMemberMap>();
             foreach (var fromProperty in from.GetProperties())
