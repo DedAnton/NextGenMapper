@@ -9,8 +9,6 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassMapDesigner
     {
-        private const bool UseInitializer = true;
-
         private readonly SemanticModel _semanticModel;
         private readonly MapPlanner _planner;
 
@@ -36,27 +34,107 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
             _referencesHistory.Add((from, to));
 
-            var membersMaps = new List<IMemberMap>();
-            foreach (var fromProperty in from.GetProperties())
+            var membersMaps = new List<MemberMap>();
+            var toMembers = constructor.GetConstructorInitializerMembers();
+            foreach (var member in toMembers)
             {
-                var toConstructor = constructor.FindParameter(fromProperty.Name);
-                var toInitializer = to.FindSettableProperty(fromProperty.Name);
-
-                IMemberMap? map = (toConstructor, toInitializer, UseInitializer) switch
+                MemberMap? map = member switch
                 {
-                    ({ }, _, _) => new ParameterMap(fromProperty, toConstructor),
-                    (_, { }, true) => new PropertyMap(fromProperty, toInitializer),
+                    IParameterSymbol parameter => DesignConstructorParameterMap(from, parameter),
+                    IPropertySymbol property => DesignInitializerPropertyMap(from, property),
                     _ => null
                 };
                 membersMaps.AddIfNotNull(map);
-
-                if (map is { IsSameTypes: false })
-                {
-                    DesignMapsForPlanner(map.TypeFrom, map.TypeTo);
-                }
+                DesignMapForDifferentTypes(map);
             }
 
             _planner.AddCommonMap(new ClassMap(from, to, membersMaps));
+        }
+
+        private MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter)
+        {
+            var fromProperty = from.FindProperty(constructorParameter.Name);
+            if (fromProperty != null)
+            {
+                return new MemberMap(fromProperty, constructorParameter);
+            }
+
+            var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(constructorParameter.Name);
+            if (flattenProperty != null && mappedProperty != null)
+            {
+                return new MemberMap(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
+            }
+
+            var unflattingClassMap = DesignUnflattingClassMap(from, constructorParameter.Name, constructorParameter.Type);
+            if (unflattingClassMap != null)
+            {
+                _planner.AddCommonMap(unflattingClassMap);
+                return new MemberMap(from, constructorParameter);
+            }
+
+            return null;
+        }
+
+        private MemberMap? DesignInitializerPropertyMap(ITypeSymbol from, IPropertySymbol initializerProperty)
+        {
+            var fromProperty = from.FindProperty(initializerProperty.Name);
+            if (fromProperty != null)
+            {
+                return new MemberMap(fromProperty, initializerProperty);
+            }
+
+            var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(initializerProperty.Name);
+            if (flattenProperty != null && mappedProperty != null)
+            {
+                return new MemberMap(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
+            }
+
+            var unflattingClassMap = DesignUnflattingClassMap(from, initializerProperty.Name, initializerProperty.Type);
+            if (unflattingClassMap != null)
+            {
+                _planner.AddCommonMap(unflattingClassMap);
+                return new MemberMap(from, initializerProperty);
+            }
+
+            return null;
+        }
+
+        private ClassMap? DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
+        {
+            var constructor = from.GetOptimalUnflattingConstructor(unflattingPropertyType, unflattingPropertyName);
+            if (constructor == null)
+            {
+                return null;
+            }
+            var toMembers = constructor.GetConstructorInitializerMembers();
+
+            var membersMaps = new List<MemberMap>();
+            foreach(var member in toMembers)
+            {
+                var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
+                MemberMap? map = (fromProperty, member) switch
+                {
+                    ({ }, IParameterSymbol parameter) => new MemberMap(fromProperty, parameter),
+                    ({ }, IPropertySymbol property) => new MemberMap(fromProperty, property),
+                    _ => null
+                };
+                membersMaps.AddIfNotNull(map);
+                DesignMapForDifferentTypes(map);
+            }
+            if (membersMaps.IsEmpty())
+            {
+                return null;
+            }
+
+            return new ClassMap(from, unflattingPropertyType, membersMaps, isUnflattening: true);
+        }
+
+        private void DesignMapForDifferentTypes(MemberMap? map)
+        {
+            if (map is { IsSameTypes: false })
+            {
+                DesignMapsForPlanner(map.FromType, map.ToType);
+            }
         }
     }
 }

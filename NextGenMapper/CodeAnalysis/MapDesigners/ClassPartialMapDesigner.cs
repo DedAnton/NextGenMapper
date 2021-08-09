@@ -11,8 +11,6 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassPartialMapDesigner
     {
-        private const bool UseInitializer = true;
-
         private readonly SemanticModel _semanticModel;
         private readonly MapPlanner _planner;
 
@@ -40,7 +38,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
 
             var classMapDesigner = new ClassMapDesigner(_semanticModel, _planner);
-            var membersMaps = new List<IMemberMap>();
+            var membersMaps = new List<MemberMap>();
             foreach (var toProperty in to.GetProperties())
             {
                 var isProvidedByUser = byUser.Contains(toProperty.Name, StringComparer.InvariantCultureIgnoreCase);
@@ -48,12 +46,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var toInitializer = to.FindSettableProperty(toProperty.Name);
                 var fromProperty = from.FindProperty(toProperty.Name);
 
-                IMemberMap? map = (fromProperty, toConstructor, toInitializer, isProvidedByUser, UseInitializer) switch
+                MemberMap? map = (fromProperty, toConstructor, toInitializer, isProvidedByUser) switch
                 {
-                    (_, { }, _, true, _) => new ParameterMap(toProperty, toConstructor, isProvidedByUser),
-                    (_, _, { }, true, true) => new PropertyMap(toInitializer, toInitializer, isProvidedByUser),
-                    ({ }, { }, _, false, _) => new ParameterMap(fromProperty, toConstructor, isProvidedByUser),
-                    ({ }, _, { }, false, true) => new PropertyMap(fromProperty, toInitializer, isProvidedByUser),
+                    (_, { }, _, true) => new MemberMap(toProperty, toConstructor, isProvidedByUser),
+                    (_, _, { }, true) => new MemberMap(toInitializer, toInitializer, isProvidedByUser),
+                    ({ }, { }, _, false) => new MemberMap(fromProperty, toConstructor, isProvidedByUser),
+                    ({ }, _, { }, false) => new MemberMap(fromProperty, toInitializer, isProvidedByUser),
                     _ => null
                 };
                 membersMaps.AddIfNotNull(map);
@@ -61,7 +59,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 if (map is { IsSameTypes: false }
                     && !map.IsProvidedByUser)
                 {
-                    classMapDesigner.DesignMapsForPlanner(map.TypeFrom, map.TypeTo);
+                    classMapDesigner.DesignMapsForPlanner(map.FromType, map.ToType);
                 }
             }
 

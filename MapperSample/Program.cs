@@ -8,55 +8,45 @@ namespace MapperSample
 {
     public class Program
     {
+        public class PhoneNumber
+        {
+            public string Code { get; set; }
+            public string Number { get; set; }
+        }
+
+        public class Address
+        {
+            public string City { get; set; }
+            public string Street { get; set; }
+        }
+
+        public class UserFlat
+        {
+            public string PhoneNumberNumber { get; set; }
+            public string PhoneNumberCode { get; set; }
+        }
+        private static PhoneNumber UnflatteningMap_TestPhone(UserFlat source, PhoneNumber descriminator = null) => new PhoneNumber
+        (
+
+        )
+        {
+            Code = source.PhoneNumberCode,
+            Number = source.PhoneNumberNumber,
+        };
+
+        private static Address UnflatteningMap(UserFlat source, Address descriminator = null) => new Address
+        (
+
+        )
+        {
+            City = source.PhoneNumberCode,
+            Street = source.PhoneNumberNumber,
+        };
+
         static void Main(string[] args)
         {
-            var source1 = new Source { Name = "Anton", Birthday = new DateTime(1997, 05, 20) };
-            var source2 = new Source { Name = "Roman", Birthday = new DateTime(1996, 07, 08) };
-            var source = new System.Collections.Generic.List<Source> { source1, source2 };
-
-
-            var destination = source.Map<List<Destination>>();
-
-            Console.WriteLine(destination.FirstOrDefault()?.Name);
-            //ASD();
-            //var destination = source.Map<List<Destination>>();
-        }
-
-        private static void ASD()
-        {
-            var source1 = new Source { Name = "Anton", Birthday = new DateTime(1997, 05, 20) };
-            var source2 = new Source { Name = "Roman", Birthday = new DateTime(1996, 07, 08) };
-            var source = new List<Source> { source1, source2 };
-
-            //var destination = source.Map<List<Destination>>();
-
-            var isValid = true;
-
-            //if (!isValid) throw new MapFailedException(source, destination);
-        }
-
-        public Destination Map<To>(Source source) => new Destination() { Name = source.Name, Birthday = source.Birthday, };
-
-        public List<Destination> Map<To>(List<Source> sources) => sources.Select(x => x.Map<Destination>()).ToList();
-
-        //public static Destination Map<To>(this Source source) => new Destination() { Name = source.Name, Birthday = source.Birthday, };
-
-        //public static List<Destination> Map<To>(this List<Source> source) 
-        //    => new List<Destination>(source.Capacity) 
-        //    { 
-        //        //System.Collections.IList.Item = source.System.Collections.IList.Item,
-        //    };
-
-        public class Source
-        {
-            public string Name { get; set; }
-            public DateTime Birthday { get; set; }
-        }
-
-        public class Destination
-        {
-            public string Name { get; set; }
-            public DateTime Birthday { get; set; }
+            var user = new UserFlat();
+            var result = UnflatteningMap(user);
         }
     }
 }

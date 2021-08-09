@@ -59,19 +59,19 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     (
 {map.ConstructorProperties.TernarInterpolateAndJoin(
     x => x.IsSameTypes || x.IsProvidedByUser || x.HasImplicitConversion,
-    x => $"{GetSource(x)}.{x.NameFrom}",
-    x => $"{GetSource(x)}.{x.NameFrom}.Map<{x.TypeTo}>()",
+    x => $"{GetSource(x)}.{x.FromName}",
+    x => $"{GetSource(x)}.{x.FromName}.Map<{x.ToType}>()",
     intend: 2, separator: ",\r\n")}
     )
     {{
 {map.InitializerProperties.TernarInterpolateAndJoin(
     x => x.IsSameTypes || x.IsProvidedByUser || x.HasImplicitConversion,
-    x => $"{x.NameTo} = {GetSource(x)}.{x.NameFrom}",
-    x => $"{x.NameTo} = {GetSource(x)}.{x.NameFrom}.Map<{x.TypeTo}>()",
+    x => $"{x.ToName} = {GetSource(x)}.{x.FromName}",
+    x => $"{x.ToName} = {GetSource(x)}.{x.FromName}.Map<{x.ToType}>()",
     intend: 2, separator: ",\r\n")}
     }};
 }}";
 
-        private string GetSource(IMemberMap member) => member.IsProvidedByUser ? "_a__result" : "_a___source";
+        private string GetSource(MemberMap member) => member.IsProvidedByUser ? "_a__result" : "_a___source";
     }
 }

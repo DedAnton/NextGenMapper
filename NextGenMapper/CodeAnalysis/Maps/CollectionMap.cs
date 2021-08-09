@@ -2,7 +2,7 @@
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public class CollectionMap : TypeMap
+    public sealed class CollectionMap : TypeMap
     {
         public ITypeSymbol ItemFrom { get; }
         public ITypeSymbol ItemTo { get; }

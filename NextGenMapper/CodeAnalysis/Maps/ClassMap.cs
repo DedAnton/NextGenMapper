@@ -4,16 +4,18 @@ using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public sealed class ClassMap : TypeMap
+    public class ClassMap : TypeMap
     {
-        public List<PropertyMap> InitializerProperties { get; }
-        public List<ParameterMap> ConstructorProperties { get; }
+        public List<MemberMap> InitializerProperties { get; }
+        public List<MemberMap> ConstructorProperties { get; }
+        public bool IsUnflattening { get; }
 
-        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<IMemberMap> properties)
+        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, bool isUnflattening = false)
             : base(from, to)
         {
-            InitializerProperties = properties.OfType<PropertyMap>().ToList();
-            ConstructorProperties = properties.OfType<ParameterMap>().ToList();
+            InitializerProperties = properties.Where(x => x.MapType is MemberMapType.Initializer or MemberMapType.UnflattenInitializer).ToList();
+            ConstructorProperties = properties.Where(x => x.MapType is MemberMapType.Constructor or MemberMapType.UnflattenConstructor).ToList();
+            IsUnflattening = isUnflattening;
         }
     }
 }

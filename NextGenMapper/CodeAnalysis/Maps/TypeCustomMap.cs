@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public class TypeCustomMap : TypeMap
+    public sealed class TypeCustomMap : TypeMap
     {
         public ArrowExpressionClauseSyntax? ExpressionBody { get; }
         public BlockSyntax? Body { get; }

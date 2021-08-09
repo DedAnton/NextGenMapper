@@ -35,5 +35,7 @@ namespace NextGenMapper.Extensions
                 list.Add(item);
             }
         }
+
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> collectionWithNulls) => collectionWithNulls.OfType<T>(); 
     }
 }

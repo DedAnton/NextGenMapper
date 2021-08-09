@@ -30,7 +30,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var fromFields = fromDeclaration.GetFields(_semanticModel);
             var toFields = toDeclaration.GetFields(_semanticModel);
 
-            var valuesMappings = new List<FieldMap>();
+            var valuesMappings = new List<MemberMap>();
             foreach (var fromField in fromFields)
             {
                 var byName = toFields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
@@ -39,7 +39,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var toField = byValue ?? byName;
                 if (toField is not null)
                 {
-                    valuesMappings.Add(new FieldMap(fromField, toField));
+                    valuesMappings.Add(new MemberMap(fromField, toField));
                 }
                 else
                 {

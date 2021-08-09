@@ -51,6 +51,8 @@ namespace NextGenMapper.Extensions
         public static IReadOnlyList<IMethodSymbol> OrderByParametersDesc(this IEnumerable<IMethodSymbol> methods) 
             => methods.OrderByDescending(x => x.Parameters.Count()).ToList();
 
+        public static List<IParameterSymbol> GetParameters(this IMethodSymbol method) => method.Parameters.ToList();
+
         public static List<string> GetParametersNames(this IMethodSymbol method) => method.Parameters.Select(x => x.Name).ToList();
 
         public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 

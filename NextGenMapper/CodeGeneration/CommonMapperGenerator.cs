@@ -25,41 +25,64 @@ namespace NextGenMapper
             {
                 CollectionMap collectionMap => GenerateCollectionMapFunction(collectionMap),
                 EnumMap enumMap => GenerateEnumMapFunction(enumMap),
-                ClassMap classMap => GenerateClassMapFunction(classMap),
+                ClassMap classMap when !classMap.IsUnflattening => GenerateClassMapFunction(classMap),
+                ClassMap unflattenClassMap when unflattenClassMap.IsUnflattening => GenerateUnflattenClassMapFunction(unflattenClassMap),
                 _ => throw new ArgumentOutOfRangeException()
             };
 
         private string GenerateCollectionMapFunction(CollectionMap map) => 
-$@"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} sources)
-    => sources.Select(x => x.Map<{map.ItemTo.ToDisplayString()}>()){(map.CollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
+$@"public static {map.To} Map<To>(this {map.From} sources)
+    => sources.Select(x => x.Map<{map.ItemTo}>()){(map.CollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
 
 
         private string GenerateEnumMapFunction(EnumMap map) =>
-$@"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} source) => source switch
+$@"public static {map.To} Map<To>(this {map.From} source) => source switch
 {{
-    {map.Fields.InterpolateAndJoin(x => $"{x.TypeFrom}.{x.NameFrom} => {x.TypeTo}.{x.NameTo},")}
-    _ => throw new System.ArgumentOutOfRangeException(""Error when mapping { map.From.ToDisplayString()} to { map.To.ToDisplayString()}"")
+    {map.Fields.InterpolateAndJoin(x => $"{x.FromType}.{x.FromName} => {x.ToType}.{x.ToName},")}
+    _ => throw new System.ArgumentOutOfRangeException(""Error when mapping { map.From} to { map.To}"")
 }};
 ";
 
 
         private string GenerateClassMapFunction(ClassMap map) =>
-$@"public static {map.To.ToDisplayString()} Map<To>(this {map.From.ToDisplayString()} source) => new {map.To.ToDisplayString()}
+$@"public static {map.To} Map<To>(this {map.From} source) => new {map.To}
+(
+{map.ConstructorProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenConstructor,
+    one => $"source.{one.FromName}",
+    two => $" UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
+    @default => $"source.{@default.FromName}.Map<{@default.ToType}>()",
+    separator: ",\r\n")}
+)
+{{
+{map.InitializerProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenInitializer,
+    one => $"{one.ToName} = source.{one.FromName}",
+    two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
+    @default => $"{@default.ToName} = source.{@default.FromName}.Map<{@default.ToType}>()",
+    separator: ",\r\n")}
+}};
+";
+
+
+        private string GenerateUnflattenClassMapFunction(ClassMap map) =>
+$@"private static {map.To} UnflatteningMap_{map.To.ToString().RemoveDots()}({map.From} source) => new {map.To}
 (
 {map.ConstructorProperties.TernarInterpolateAndJoin(
     x => x.IsSameTypes || x.HasImplicitConversion,
-    x => $"source.{x.NameFrom}",
-    x => $"source.{x.NameFrom}.Map<{x.TypeTo}>()", 
+    x => $"source.{x.FromName}",
+    x => $"source.{x.FromName}.Map<{x.ToType}>()",
     separator: ",\r\n")}
 )
 {{
 {map.InitializerProperties.TernarInterpolateAndJoin(
     x => x.IsSameTypes || x.HasImplicitConversion,
-    x => $"{x.NameTo} = source.{x.NameFrom}",
-    x => $"{x.NameTo} = source.{x.NameFrom}.Map<{x.TypeTo}>()",
+    x => $"{x.ToName} = source.{x.FromName}",
+    x => $"{x.ToName} = source.{x.FromName}.Map<{x.ToType}>()",
     separator: ",\r\n")}
 }};
 ";
-
     }
 }

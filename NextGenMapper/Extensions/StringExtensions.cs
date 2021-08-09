@@ -43,5 +43,18 @@ namespace NextGenMapper.Extensions
        
         public static string TernarInterpolateAndJoin<T>(this IEnumerable<T> objects, Func<T, bool> condition, Func<T, string> truePattern, Func<T, string> falsePattern, int intend = 1, string separator = "\r\n")
             => string.Join(separator, objects.Select(x => condition(x) ? truePattern(x) : falsePattern(x))).LeadingSpace(intend * 4);
+
+        public static string TwoTernarInterpolateAndJoin<T>(
+            this IEnumerable<T> objects,
+            Func<T, bool> conditionOne,
+            Func<T, bool> conditionTwo,
+            Func<T, string> patternOne,
+            Func<T, string> patternTwo,
+            Func<T, string> defaultPattern,
+            int intend = 1,
+            string separator = "\r\n")
+            => string.Join(separator, objects.Select(x => conditionOne(x) ? patternOne(x) : conditionTwo(x) ? patternTwo(x) : defaultPattern(x))).LeadingSpace(intend * 4);
+
+        public static string RemoveDots(this string str) => str.Replace(".", string.Empty);
     }
 }

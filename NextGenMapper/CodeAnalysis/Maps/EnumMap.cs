@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public class EnumMap : TypeMap
+    public sealed class EnumMap : TypeMap
     {
-        public List<FieldMap> Fields { get; }
+        public List<MemberMap> Fields { get; }
 
-        public EnumMap(ITypeSymbol from, ITypeSymbol to, List<FieldMap> fields)
+        public EnumMap(ITypeSymbol from, ITypeSymbol to, List<MemberMap> fields)
             : base(from, to)
         {
             Fields = fields;
