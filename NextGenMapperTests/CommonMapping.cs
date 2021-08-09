@@ -465,19 +465,26 @@ if (!isValid) throw new MapFailedException(source, destination);";
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
 
-        public void MappingStruct()
+        [TestMethod]
+        public void MappingConstructorBadParametersOrder()
         {
             var classes = @"
 public class Source
 {
-    public string Name;
-    public DateTime Birthday;
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }
 
 public class Destination
 {
-    public string Name;
-    public DateTime Birthday;
+    public Destination(DateTime birthday, string name)
+    {
+        Name = name;
+        Birthday = birthday;
+    }
+
+    public string Name { get; }
+    public DateTime Birthday { get; }
 }";
 
             var validateFunction = @"

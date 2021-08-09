@@ -346,5 +346,180 @@ public UserFlat Map(User source) => new UserFlat { Date = source.Date.ToShortDat
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void PartialMappingByConstructorWithUnflattening()
+        {
+            var classes = @"
+public class User
+{
+    public string Date { get; set; }
+    public Address Address { get; }
+
+    public User()
+    {
+    }
+
+    public User(Address address)
+    {
+        Address = address;
+    }
+}
+
+public class Address
+{
+    public string City { get; }
+    public string Street { get; }
+
+    public Address(string city, string street)
+    {
+        City = city;
+        Street = street;
+    }
+}
+
+public class UserFlat
+{
+    public DateTime Date { get; set; }
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", Date = new DateTime(2021, 08, 09) };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address.City == source.AddressCity && destination.Address.Street == source.AddressStreet && source.Date.ToShortDateString() == destination.Date;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var customMapping = @"
+[Partial]
+public User Map(UserFlat source) => new User { Date = source.Date.ToShortDateString() };
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void PartialJOCMappingWithFlattening()
+        {
+            var classes = @"
+public class User
+{
+    public DateTime Date { get; set; }
+    public Address Address { get; set; }
+}
+
+public class Address
+{
+    public string City { get; set; }
+    public string Street { get; set; }
+}
+
+public class UserFlat
+{
+    public string Date { get; set; }
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+
+    public UserFlat(string date, string addressCity, string addressStreet)
+    {
+        Date = date;
+        AddressCity = addressCity;
+        AddressStreet = addressStreet;
+    }
+}";
+
+            var validateFunction = @"
+var source = new User { Address = new Address { City = ""Dinamo"", Street = ""3rd Builders Street"" }, Date = new DateTime(2021, 08, 09) };
+
+var destination = source.Map<UserFlat>();
+
+var isValid = source.Address.City == destination.AddressCity && source.Address.Street == destination.AddressStreet && source.Date.ToShortDateString() == destination.Date;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var customMapping = @"
+[Partial]
+public UserFlat Map(User source) => new UserFlat(source.Date.ToShortDateString(), default, deafult);
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void PartialJOCMappingWithUnflattening()
+        {
+            var classes = @"
+public class User
+{
+    public string Date { get; set; }
+    public Address Address { get; }
+
+    public User(Date date, Address address)
+    {
+        Date = date;
+        Address = address;
+    }
+}
+
+public class Address
+{
+    public string City { get; }
+    public string Street { get; }
+
+    public Address(string city, string street)
+    {
+        City = city;
+        Street = street;
+    }
+}
+
+public class UserFlat
+{
+    public DateTime Date { get; set; }
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", Date = new DateTime(2021, 08, 09) };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address.City == source.AddressCity && destination.Address.Street == source.AddressStreet && source.Date.ToShortDateString() == destination.Date;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var customMapping = @"
+[Partial]
+public User Map(UserFlat source) => new User { Date = source.Date.ToShortDateString() };
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }

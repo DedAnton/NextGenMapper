@@ -57,17 +57,21 @@ public static {map.To} Map<To>(this {map.From} _a___source)
 
     return new {map.To.ToDisplayString()}
     (
-{map.ConstructorProperties.TernarInterpolateAndJoin(
-    x => x.IsSameTypes || x.IsProvidedByUser || x.HasImplicitConversion,
-    x => $"{GetSource(x)}.{x.FromName}",
-    x => $"{GetSource(x)}.{x.FromName}.Map<{x.ToType}>()",
+{map.ConstructorProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenConstructor,
+    one => $"{GetSource(one)}.{one.FromName}",
+    two => $" UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
+    @default => $"{GetSource(@default)}.{@default.FromName}.Map<{@default.ToType}>()",
     intend: 2, separator: ",\r\n")}
     )
     {{
-{map.InitializerProperties.TernarInterpolateAndJoin(
-    x => x.IsSameTypes || x.IsProvidedByUser || x.HasImplicitConversion,
-    x => $"{x.ToName} = {GetSource(x)}.{x.FromName}",
-    x => $"{x.ToName} = {GetSource(x)}.{x.FromName}.Map<{x.ToType}>()",
+{map.InitializerProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenInitializer,
+    one => $"{one.ToName} = {GetSource(one)}.{one.FromName}",
+    two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
+    @default => $"{@default.ToName} = {GetSource(@default)}.{@default.FromName}.Map<{@default.ToType}>()",
     intend: 2, separator: ",\r\n")}
     }};
 }}";

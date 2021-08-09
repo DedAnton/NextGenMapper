@@ -9,6 +9,7 @@ namespace NextGenMapper.Extensions
 {
     public static class RoslynExtensions
     {
+        public static int GetParametersCount(this IMethodSymbol? method) => method?.Parameters.Length ?? -1;
         public static bool IsGenericEnumerable(this ITypeSymbol type) =>
             type.AllInterfaces.Any(x => x.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
             || type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T;

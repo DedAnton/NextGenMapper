@@ -45,7 +45,7 @@ namespace NextGenMapper
             }
             else if (from.TypeKind == TypeKind.Class && to.TypeKind == TypeKind.Class)
             {
-                var designer = new ClassMapDesigner(semanticModel, Planner);
+                var designer = new ClassMapDesigner(Planner);
                 designer.DesignMapsForPlanner(from, to);
             }
         }

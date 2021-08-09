@@ -9,14 +9,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassMapDesigner
     {
-        private readonly SemanticModel _semanticModel;
         private readonly MapPlanner _planner;
 
         private List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory = new();
 
-        public ClassMapDesigner(SemanticModel semanticModel, MapPlanner planner)
+        public ClassMapDesigner(MapPlanner planner)
         {
-            _semanticModel = semanticModel;
             _planner = planner;
         }
 
@@ -56,20 +54,20 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var fromProperty = from.FindProperty(constructorParameter.Name);
             if (fromProperty != null)
             {
-                return new MemberMap(fromProperty, constructorParameter);
+                return MemberMap.Counstructor(fromProperty, constructorParameter);
             }
 
             var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(constructorParameter.Name);
             if (flattenProperty != null && mappedProperty != null)
             {
-                return new MemberMap(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
+                return MemberMap.Counstructor(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
             }
 
             var unflattingClassMap = DesignUnflattingClassMap(from, constructorParameter.Name, constructorParameter.Type);
             if (unflattingClassMap != null)
             {
                 _planner.AddCommonMap(unflattingClassMap);
-                return new MemberMap(from, constructorParameter);
+                return MemberMap.CounstructorUnflatten(from, constructorParameter);
             }
 
             return null;
@@ -80,20 +78,20 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var fromProperty = from.FindProperty(initializerProperty.Name);
             if (fromProperty != null)
             {
-                return new MemberMap(fromProperty, initializerProperty);
+                return MemberMap.Initializer(fromProperty, initializerProperty);
             }
 
             var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(initializerProperty.Name);
             if (flattenProperty != null && mappedProperty != null)
             {
-                return new MemberMap(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
+                return MemberMap.Initializer(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
             }
 
             var unflattingClassMap = DesignUnflattingClassMap(from, initializerProperty.Name, initializerProperty.Type);
             if (unflattingClassMap != null)
             {
                 _planner.AddCommonMap(unflattingClassMap);
-                return new MemberMap(from, initializerProperty);
+                return MemberMap.InitializerUnflatten(from, initializerProperty);
             }
 
             return null;
@@ -114,8 +112,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
                 MemberMap? map = (fromProperty, member) switch
                 {
-                    ({ }, IParameterSymbol parameter) => new MemberMap(fromProperty, parameter),
-                    ({ }, IPropertySymbol property) => new MemberMap(fromProperty, property),
+                    ({ }, IParameterSymbol parameter) => MemberMap.Counstructor(fromProperty, parameter),
+                    ({ }, IPropertySymbol property) => MemberMap.Initializer(fromProperty, property),
                     _ => null
                 };
                 membersMaps.AddIfNotNull(map);

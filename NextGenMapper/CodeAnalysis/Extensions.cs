@@ -70,15 +70,20 @@ namespace NextGenMapper.CodeAnalysis
                 .Complement(byUser)
                 .Complement(from.GetPropertiesNames())
                 .Complement(from.GetFlattenPropertiesNames())
-                .IsEmpty()) 
-                ??
-            constructors.FirstOrDefault(x => x
-                .GetFlattenParametersNames()
-                .Complement(byUser)
-                .Complement(from.GetPropertiesNames())
                 .IsEmpty());
 
-            return constructor;
+            var unflattenConstructor = constructors.FirstOrDefault(x => x
+                    .GetFlattenParametersNames()
+                    .Complement(byUser)
+                    .Complement(from.GetPropertiesNames())
+                    .IsEmpty());
+            var asd = constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
+                ? constructor
+                : unflattenConstructor;
+
+            return constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
+                ? constructor
+                : unflattenConstructor;
         }
 
         public static IMethodSymbol? GetOptimalUnflattingConstructor(

@@ -16,24 +16,29 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
         public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
 
-        public MemberMap(IPropertySymbol from, IPropertySymbol to, bool isProvidedByUser = false, string? flattenPropertyName = null)
-            :this(from.Type, from.Name, to.Type, to.Name, MemberMapType.Initializer, isProvidedByUser, flattenPropertyName) 
-        { }
+        public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null) 
+            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, false, flattenPropertyName);
 
-        public MemberMap(IPropertySymbol from, IParameterSymbol to, bool isProvidedByUser = false, string? flattenPropertyName = null)
-            : this(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, isProvidedByUser, flattenPropertyName)
-        { }
+        public static MemberMap Initializer(IPropertySymbol from, IPropertySymbol to, string? flattenPropertyName = null)
+            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Initializer, false, flattenPropertyName);
 
-        public MemberMap(ITypeSymbol from, IPropertySymbol to, bool isProvidedByUser = false)
-            : this(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenInitializer, isProvidedByUser, null)
-        { }
+        public static MemberMap CounstructorUnflatten(ITypeSymbol from, IParameterSymbol to)
+            => new(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenConstructor, false, null);
 
-        public MemberMap(ITypeSymbol from, IParameterSymbol to, bool isProvidedByUser = false)
-            : this(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenConstructor, isProvidedByUser, null)
-        { }
+        public static MemberMap InitializerUnflatten(ITypeSymbol from, IPropertySymbol to)
+            => new(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenInitializer, false, null);
 
-        public MemberMap(IFieldSymbol from, IFieldSymbol to, bool isProvidedByUser = false)
-            : this(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, isProvidedByUser, null)
+        public static MemberMap Field(IPropertySymbol from, IParameterSymbol to)
+            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
+
+        public static MemberMap User(IPropertySymbol from, IParameterSymbol to)
+            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, true, null);
+
+        public static MemberMap User(IPropertySymbol to)
+            => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Initializer, true, null);
+
+        public MemberMap(IFieldSymbol from, IFieldSymbol to)
+            : this(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null)
         { }
 
         private MemberMap(

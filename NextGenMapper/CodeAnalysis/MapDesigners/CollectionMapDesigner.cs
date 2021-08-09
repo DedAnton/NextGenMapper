@@ -43,7 +43,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var elementTypeFrom = GetCollectionElementType(from);
             var elementTypeTo = GetCollectionElementType(to);
-            var classMapDesigner = new ClassMapDesigner(_semanticModel, _planner);
+            var classMapDesigner = new ClassMapDesigner(_planner);
             classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo);
 
             var map = new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionType);

@@ -438,5 +438,56 @@ public Destination Map(Source source) => new Destination { Name = $""{source.Fir
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void PartialMappingBadParametersOrder()
+        {
+            var classes = @"
+public class Source
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public Destination(DateTime birthday, string name)
+    {
+        Name = name;
+        Birthday = birthday;
+    }
+
+    public Destination()
+    { }
+
+    public string Name { get; }
+    public DateTime Birthday { get; }
+    public string Id { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Id = 123, Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+
+var destination = source.Map<Destination>();
+
+var isValid = source.Name == destination.Name && source.Birthday == destination.Birthday && source.Id.ToString() == destination.Id;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var customMapping = @"
+[Partial]
+public Destination Map(Source source) => new Destination { Id = source.Id.ToString() };
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }
