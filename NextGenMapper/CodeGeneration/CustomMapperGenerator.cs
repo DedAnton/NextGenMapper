@@ -43,7 +43,27 @@ public static {map.To} Map<To>(this {map.From} {map.ParameterName})
     {map.ExpressionBody};";
 
 
-        private string GeneratePartialConstuctorMapFunction(ClassPartialConstructorMap map) => map.Method.ToString();
+        private string GeneratePartialConstuctorMapFunction(ClassPartialConstructorMap map) =>
+$@"
+public static {map.To} Map<To>(this {map.From} {map.ParameterName}) => new {map.To}
+(
+{map.ConstructorProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenConstructor,
+    one => $"{one.ArgumentSyntax?.ToString() ?? $"{map.ParameterName}.{one.FromName}"}",
+    two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}({map.ParameterName})",
+    @default => $"{map.ParameterName}.{@default.FromName}.Map<{@default.ToType}>()",
+    separator: ",\r\n")}
+)
+{{
+{map.InitializerProperties.TwoTernarInterpolateAndJoin(
+    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
+    two => two.MapType == MemberMapType.UnflattenInitializer,
+    one => $"{one.InitializerExpressionSyntax?.ToString() ?? $"{one.ToName} = {map.ParameterName}.{one.FromName}"}",
+    two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}({map.ParameterName})",
+    @default => $"{@default.ToName} = {map.ParameterName}.{@default.FromName}.Map<{@default.ToType}>()",
+    separator: ",\r\n")}
+}};";
 
         private string GeneratePartialMapFunction(ClassPartialMap map) =>
 $@"
@@ -61,7 +81,7 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
     two => two.MapType == MemberMapType.UnflattenConstructor,
     one => $"{GetSource(one)}.{one.FromName}",
-    two => $" UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
+    two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
     @default => $"{GetSource(@default)}.{@default.FromName}.Map<{@default.ToType}>()",
     intend: 2, separator: ",\r\n")}
     )

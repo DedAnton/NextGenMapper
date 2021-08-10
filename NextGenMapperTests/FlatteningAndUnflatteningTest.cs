@@ -450,7 +450,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
             var customMapping = @"
 [Partial]
-public UserFlat Map(User source) => new UserFlat(source.Date.ToShortDateString(), default, deafult);
+public UserFlat Map(User source) => new UserFlat(source.Date.ToShortDateString(), default, default);
 ";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);
@@ -469,10 +469,10 @@ public UserFlat Map(User source) => new UserFlat(source.Date.ToShortDateString()
             var classes = @"
 public class User
 {
-    public string Date { get; set; }
+    public string Date { get; }
     public Address Address { get; }
 
-    public User(Date date, Address address)
+    public User(string date, Address address)
     {
         Date = date;
         Address = address;
@@ -509,7 +509,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
             var customMapping = @"
 [Partial]
-public User Map(UserFlat source) => new User { Date = source.Date.ToShortDateString() };
+public User Map(UserFlat source) => new User(source.Date.ToShortDateString(), default);
 ";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction, customMapping);

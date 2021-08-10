@@ -51,7 +51,7 @@ $@"public static {map.To} Map<To>(this {map.From} source) => new {map.To}
     one => one.IsSameTypes || one.HasImplicitConversion,
     two => two.MapType == MemberMapType.UnflattenConstructor,
     one => $"source.{one.FromName}",
-    two => $" UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
+    two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
     @default => $"source.{@default.FromName}.Map<{@default.ToType}>()",
     separator: ",\r\n")}
 )

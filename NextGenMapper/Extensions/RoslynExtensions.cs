@@ -17,6 +17,9 @@ namespace NextGenMapper.Extensions
         public static List<IFieldSymbol> GetFields(this EnumDeclarationSyntax enumDeclaration, SemanticModel semanticModel)
             => enumDeclaration.Members.Select(x => semanticModel.GetDeclaredSymbol(x)).OfType<IFieldSymbol>().ToList();
 
+        public static string? GetInitializerLeft(this InitializerExpressionSyntax initializer)
+            => initializer.As<AssignmentExpressionSyntax>()?.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText;
+
         public static List<string> GetInitializersLeft(this ObjectCreationExpressionSyntax node)
             => node.Initializer?
             .Expressions

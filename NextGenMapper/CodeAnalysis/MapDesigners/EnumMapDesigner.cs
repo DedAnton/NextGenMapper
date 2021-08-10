@@ -39,7 +39,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var toField = byValue ?? byName;
                 if (toField is not null)
                 {
-                    valuesMappings.Add(new MemberMap(fromField, toField));
+                    valuesMappings.Add(MemberMap.Field(fromField, toField));
                 }
                 else
                 {

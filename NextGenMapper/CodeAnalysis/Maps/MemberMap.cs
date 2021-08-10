@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
@@ -12,6 +13,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public MemberMapType MapType { get; }
         public bool IsProvidedByUser { get; }
         public string? FlattenPropertyName { get; }
+        public ArgumentSyntax? ArgumentSyntax { get; private set; }
+        public InitializerExpressionSyntax? InitializerExpressionSyntax { get; private set; }
 
         public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
         public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
@@ -37,9 +40,14 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public static MemberMap User(IPropertySymbol to)
             => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Initializer, true, null);
 
-        public MemberMap(IFieldSymbol from, IFieldSymbol to)
-            : this(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null)
-        { }
+        public static MemberMap Field(IFieldSymbol from, IFieldSymbol to)
+            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
+
+        public static MemberMap Argument(IParameterSymbol parameter, ArgumentSyntax argument)
+            => new(parameter.Type, parameter.Name, parameter.Type, parameter.Name, MemberMapType.Constructor, true, null) { ArgumentSyntax = argument };
+
+        public static MemberMap InitializerExpression(IPropertySymbol property, InitializerExpressionSyntax initializerExpression)
+            => new(property.Type, property.Name, property.Type, property.Name, MemberMapType.Initializer, true, null) { InitializerExpressionSyntax = initializerExpression };
 
         private MemberMap(
             ITypeSymbol fromType,

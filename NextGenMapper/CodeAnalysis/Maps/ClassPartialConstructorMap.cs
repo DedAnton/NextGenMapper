@@ -1,16 +1,16 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public sealed class ClassPartialConstructorMap : TypeMap
+    public sealed class ClassPartialConstructorMap : ClassMap
     {
-        public MethodDeclarationSyntax Method { get; }
+        public string ParameterName { get; }
 
-        public ClassPartialConstructorMap(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
-            : base(from, to)
+        public ClassPartialConstructorMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, string parameterName)
+            : base(from, to, properties)
         {
-            Method = method;
+            ParameterName = parameterName;
         }
     }
 }
