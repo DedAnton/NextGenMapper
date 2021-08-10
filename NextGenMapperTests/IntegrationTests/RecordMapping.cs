@@ -2,7 +2,7 @@
 using NextGenMapper;
 
 
-namespace NextGenMapperTests
+namespace NextGenMapperTests.IntegrationTests
 {
     [TestClass]
     public class RecordMapping

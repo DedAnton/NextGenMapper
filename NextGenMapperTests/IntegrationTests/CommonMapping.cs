@@ -1,7 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
 
-namespace NextGenMapperTests
+namespace NextGenMapperTests.IntegrationTests
 {
     [TestClass]
     public class CommonMapping

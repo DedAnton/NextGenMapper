@@ -2,7 +2,7 @@
 using NextGenMapper;
 using System.Linq;
 
-namespace NextGenMapperTests
+namespace NextGenMapperTests.IntegrationTests
 {
     [TestClass]
     public class SpecificTest

@@ -1,34 +1,36 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
 
-namespace NextGenMapperTests
+namespace NextGenMapperTests.IntegrationTests
 {
     [TestClass]
-    public class EnumMapping
+    public class CollectionsMapping
     {
         [TestMethod]
-        public void MappingByName()
+        public void ListMapping()
         {
             var classes = @"
-public enum EnumFrom   
-{   ValueA,
-    ValueB,
-    ValueC
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }
 
-public enum EnumTo
+public class Destination
 {
-    valueA = 10,
-    valueB = 20,
-    valueC = 30
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }";
 
             var validateFunction = @"
-var source = EnumFrom.ValueB;
+var source1 = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+var source2 = new Source { Name = ""Roman"", Birthday = new DateTime(1996, 07, 08) };
+var source = new List<Source> { source1, source2 };
 
-var destination = source.Map<EnumTo>();
+var destination = source.Map<List<Destination>>();
 
-var isValid = destination == EnumTo.valueB;
+var isValid = source[0].Name == destination[0].Name && source[0].Birthday == destination[0].Birthday
+           && source[1].Name == destination[1].Name && source[1].Birthday == destination[1].Birthday;
 
 if (!isValid) throw new MapFailedException(source, destination);";
 
@@ -43,28 +45,30 @@ if (!isValid) throw new MapFailedException(source, destination);";
         }
 
         [TestMethod]
-        public void MappingByValue()
+        public void ArrayMapping()
         {
             var classes = @"
-public enum EnumFrom   
-{   ValueA = 1,
-    ValueB = 2,
-    ValueC = 3
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }
 
-public enum EnumTo
+public class Destination
 {
-    ValueD = 1,
-    ValueE = 2,
-    ValueF = 3
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }";
 
             var validateFunction = @"
-var source = EnumFrom.ValueB;
+var source1 = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+var source2 = new Source { Name = ""Roman"", Birthday = new DateTime(1996, 07, 08) };
+var source = new Source[] { source1, source2 };
 
-var destination = source.Map<EnumTo>();
+var destination = source.Map<Destination[]>();
 
-var isValid = destination == EnumTo.ValueE;
+var isValid = source[0].Name == destination[0].Name && source[0].Birthday == destination[0].Birthday
+           && source[1].Name == destination[1].Name && source[1].Birthday == destination[1].Birthday;
 
 if (!isValid) throw new MapFailedException(source, destination);";
 
@@ -79,32 +83,32 @@ if (!isValid) throw new MapFailedException(source, destination);";
         }
 
         [TestMethod]
-        public void MappingByNameAndValue()
+        public void GenericInterfaceMapping()
         {
             var classes = @"
-public enum EnumFrom   
-{   ValueA,
-    ZXC = 5,
-    ValueC
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }
 
-public enum EnumTo
+public class Destination
 {
-    valueA,
-    QWE = 5,
-    valueC
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
 }";
 
             var validateFunction = @"
-var sourceN = EnumFrom.ValueA;
-var sourceV = EnumFrom.ZXC;
+var source1 = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+var source2 = new Source { Name = ""Roman"", Birthday = new DateTime(1996, 07, 08) };
+var sourceList = new List<Source> { source1, source2 };
+//var source = source1;
+var source = sourceList as System.Collections.Generic.IEnumerable<Source>;
+var destination = source.Map<ICollection<Destination>>();
 
-var destinationN = sourceN.Map<EnumTo>();
-var destinationV = sourceV.Map<EnumTo>();
+var isValid = true;
 
-var isValid = destinationN == EnumTo.valueA && destinationV == EnumTo.QWE;
-
-if (!isValid) throw new MapFailedException(sourceN, destinationN);";
+if (!isValid) throw new MapFailedException(source, null);";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
             var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
