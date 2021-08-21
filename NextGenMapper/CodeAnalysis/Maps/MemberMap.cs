@@ -1,79 +1,105 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
-    public sealed class MemberMap
+    public class FlattenedMap : MemberMap
     {
-        public ITypeSymbol FromType { get; }
-        public string FromName { get; }
-        public ITypeSymbol ToType { get; }
-        public string ToName { get; }
-        public MemberMapType MapType { get; }
-        public bool IsProvidedByUser { get; }
-        public string? FlattenPropertyName { get; }
-        public ArgumentSyntax? ArgumentSyntax { get; private set; }
-        public InitializerExpressionSyntax? InitializerExpressionSyntax { get; private set; }
+        public string FlattenPropertyName { get; }
 
-        public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
-        public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
+        public FlattenedMap(IMember from, IMember to, MemberMapType mapType, string flattenedPropertyName)
+            : base(from.Type, $"{flattenedPropertyName}.{from.Name}", to.Type, to.Name, mapType)
+        {
+            FlattenPropertyName = flattenedPropertyName;
+        }
+    }
 
-        public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null) 
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, false, flattenPropertyName);
+    public class UnflattenedMap : MemberMap
+    {
+        public UnflattenedMap(Type from, IMember to, MemberMapType mapType)
+            : base(from, from.Name, to.Type, to.Name, mapType)
+        {
 
-        public static MemberMap Initializer(IPropertySymbol from, IPropertySymbol to, string? flattenPropertyName = null)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Initializer, false, flattenPropertyName);
+        }
+    }
 
-        public static MemberMap CounstructorUnflatten(ITypeSymbol from, IParameterSymbol to)
-            => new(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenConstructor, false, null);
+    public class CustomMap : MemberMap
+    {
+        private CustomMap(IMember from, IMember to, MemberMapType mapType)
+            : base(from.Type, from.Name, to.Type, to.Name, mapType)
+        {
 
-        public static MemberMap InitializerUnflatten(ITypeSymbol from, IPropertySymbol to)
-            => new(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenInitializer, false, null);
+        }
 
-        public static MemberMap Field(IPropertySymbol from, IParameterSymbol to)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
+        public static CustomMap Constructor(Property fromProperty, Parameter constructorParameter) => new CustomMap(fromProperty, constructorParameter, MemberMapType.Constructor);
+        public static CustomMap Initializer(Property initializerProperty) => new CustomMap(initializerProperty, initializerProperty, MemberMapType.Initializer);
+    }
 
-        public static MemberMap User(IPropertySymbol from, IParameterSymbol to)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, true, null);
+    public class CustomArgumentMap : MemberMap
+    {
+        public ArgumentSyntax ArgumentSyntax { get; }
 
-        public static MemberMap User(IPropertySymbol to)
-            => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Initializer, true, null);
+        public CustomArgumentMap(Parameter parameter, ArgumentSyntax argument)
+            : base(parameter.Type, parameter.Name, parameter.Type, parameter.Name, MemberMapType.Constructor)
+        {
+            ArgumentSyntax = argument;
+        }
+    }
 
-        public static MemberMap Field(IFieldSymbol from, IFieldSymbol to)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
+    public class CustomInitializerExpressionMap : MemberMap
+    {
+        public AssignmentExpressionSyntax InitializerExpression { get; }
 
-        public static MemberMap Argument(IParameterSymbol parameter, ArgumentSyntax argument)
-            => new(parameter.Type, parameter.Name, parameter.Type, parameter.Name, MemberMapType.Constructor, true, null) { ArgumentSyntax = argument };
+        public CustomInitializerExpressionMap(Property property, AssignmentExpressionSyntax initializerExpression)
+            : base(property.Type, property.Name, property.Type, property.Name, MemberMapType.Initializer)
+        {
+            InitializerExpression = initializerExpression;
+        }
+    }
 
-        public static MemberMap InitializerExpression(IPropertySymbol property, InitializerExpressionSyntax initializerExpression)
-            => new(property.Type, property.Name, property.Type, property.Name, MemberMapType.Initializer, true, null) { InitializerExpressionSyntax = initializerExpression };
 
-        private MemberMap(
-            ITypeSymbol fromType,
-            string fromName,
-            ITypeSymbol toType,
-            string toName,
-            MemberMapType mapType,
-            bool isProvidedByUser,
-            string? flattenPropertyName)
+    public class EnumFieldMap : MemberMap
+    {
+        public EnumFieldMap(EnumField from, EnumField to)
+            :base(from.Type, from.Name, to.Type, from.Name, MemberMapType.Special)
+        { }
+    }
+
+    public class MemberMap
+    {
+        public MemberMap(IMember from, IMember to, MemberMapType mapType)
+        {
+            FromType = from.Type;
+            FromName = from.Name;
+            ToType = to.Type;
+            ToName = to.Name;
+            Type = mapType;
+        }
+
+        public MemberMap(Type fromType, string fromName, Type toType, string toName, MemberMapType mapType)
         {
             FromType = fromType;
+            FromName = fromName;
             ToType = toType;
-            FromName = flattenPropertyName != null ? $"{flattenPropertyName}.{fromName}" : fromName;
             ToName = toName;
-            MapType = mapType;
-            IsProvidedByUser = isProvidedByUser;
-            FlattenPropertyName = flattenPropertyName;
+            Type = mapType;
         }
+
+        public Type FromType { get; }
+        public string FromName { get; }
+        public Type ToType { get; }
+        public string ToName { get; }
+        public MemberMapType Type { get; }
+
+        public bool IsSameTypes => FromType == ToType;
+        public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
     }
 
     public enum MemberMapType
     {
         Constructor,
         Initializer,
-        Field,
-        UnflattenConstructor,
-        UnflattenInitializer
+        Special
     }
 }

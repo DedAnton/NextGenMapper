@@ -32,7 +32,7 @@ namespace NextGenMapper
 
         private string GenerateCollectionMapFunction(CollectionMap map) => 
 $@"public static {map.To} Map<To>(this {map.From} sources)
-    => sources.Select(x => x.Map<{map.ItemTo}>()){(map.CollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
+    => sources.Select(x => x.Map<{map.ElementToType}>()){(map.MapToCollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
 
 
         private string GenerateEnumMapFunction(EnumMap map) =>
@@ -49,7 +49,7 @@ $@"public static {map.To} Map<To>(this {map.From} source) => new {map.To}
 (
 {map.ConstructorProperties.TwoTernarInterpolateAndJoin(
     one => one.IsSameTypes || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenConstructor,
+    two => two is UnflattenedMap,
     one => $"source.{one.FromName}",
     two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
     @default => $"source.{@default.FromName}.Map<{@default.ToType}>()",
@@ -58,10 +58,10 @@ $@"public static {map.To} Map<To>(this {map.From} source) => new {map.To}
 {{
 {map.InitializerProperties.TwoTernarInterpolateAndJoin(
     one => one.IsSameTypes || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenInitializer,
-    one => $"{one.ToName} = source.{one.FromName}",
-    two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
-    @default => $"{@default.ToName} = source.{@default.FromName}.Map<{@default.ToType}>()",
+    two => two is UnflattenedMap,
+    one => $"{one.FromName} = source.{one.FromName}",
+    two => $"{two.FromName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}(source)",
+    @default => $"{@default.FromName} = source.{@default.FromName}.Map<{@default.ToType}>()",
     separator: ",\r\n")}
 }};
 ";
@@ -79,8 +79,8 @@ $@"private static {map.To} UnflatteningMap_{map.To.ToString().RemoveDots()}({map
 {{
 {map.InitializerProperties.TernarInterpolateAndJoin(
     x => x.IsSameTypes || x.HasImplicitConversion,
-    x => $"{x.ToName} = source.{x.FromName}",
-    x => $"{x.ToName} = source.{x.FromName}.Map<{x.ToType}>()",
+    x => $"{x.FromName} = source.{x.FromName}",
+    x => $"{x.FromName} = source.{x.FromName}.Map<{x.ToType}>()",
     separator: ",\r\n")}
 }};
 ";

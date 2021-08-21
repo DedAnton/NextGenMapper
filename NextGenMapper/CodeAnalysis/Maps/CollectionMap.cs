@@ -1,25 +1,24 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using NextGenMapper.CodeAnalysis.Models;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
     public sealed class CollectionMap : TypeMap
     {
-        public ITypeSymbol ItemFrom { get; }
-        public ITypeSymbol ItemTo { get; }
-        public CollectionType CollectionType { get; }
+        public Type ElementFromType { get; }
+        public Type ElementToType { get; }
+        public CollectionType MapToCollectionType { get; }
 
-        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo,  CollectionType collectionType)
-            : base(from, to)
+        public CollectionMap(Collection from, Collection to)
+            : base(from.ElementType, to.ElementType)
         {
-            ItemFrom = itemFrom;
-            ItemTo = itemTo;
-            CollectionType = collectionType;
+            ElementFromType = from.ElementType;
+            ElementToType = from.ElementType;
+            MapToCollectionType = to.IsArray ? CollectionType.Array : CollectionType.List;
         }
     }
 
     public enum CollectionType
     {
-        Undefined,
         List,
         Array
     }

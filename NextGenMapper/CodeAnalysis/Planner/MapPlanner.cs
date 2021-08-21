@@ -29,7 +29,7 @@ namespace NextGenMapper.CodeAnalysis
             }
         }
 
-        public void AddCustomMap(TypeMap map, List<string> usings)
+        public void AddCustomMap(TypeMap map, IEnumerable<string> usings)
         {
             if (MapGroups.Where(x => x.Priority == MapPriority.Custom).SelectMany(x => x.Maps).Contains(map))
             {

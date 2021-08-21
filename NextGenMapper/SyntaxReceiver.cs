@@ -10,16 +10,16 @@ namespace NextGenMapper
     partial class SyntaxReceiver : ISyntaxContextReceiver
     {
         private const string MAP_METHOD_NAME = "Map";
-        public List<MapMethodInvocation> mapMethodInvocations { get; } = new();
-        public List<MapperClassDeclaration> mapperClassDeclarations { get; } = new();
+        public List<MapMethodInvocation> MapMethodInvocations { get; } = new();
+        public List<MapperClassDeclaration> MapperClassDeclarations { get; } = new();
 
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
             if (context.Node is ClassDeclarationSyntax classNode
-                && classNode.AttributeLists.SelectMany(x => x.Attributes).Any(x => x.Name.ToString() == Annotations.MapperAttributeShortName || x.Name.ToString() == Annotations.MapperAttributeName))
+                && classNode.AttributeLists.SelectMany(x => x.Attributes).Any(x => x.Name.ToString() is Annotations.MapperAttributeShortName or Annotations.MapperAttributeName))
             {
                 var mapperClasDeclaration = new MapperClassDeclaration(classNode, context.SemanticModel);
-                mapperClassDeclarations.Add(mapperClasDeclaration);
+                MapperClassDeclarations.Add(mapperClasDeclaration);
             }
             else if (context.Node is InvocationExpressionSyntax invocationNode
                 && invocationNode.Expression is MemberAccessExpressionSyntax memberAccessExpression
@@ -27,7 +27,7 @@ namespace NextGenMapper
                 && memberAccessExpression.Name.Identifier.ToString() == MAP_METHOD_NAME)
             {
                 var mapMethodInvocation = new MapMethodInvocation(invocationNode, context.SemanticModel);
-                mapMethodInvocations.Add(mapMethodInvocation);
+                MapMethodInvocations.Add(mapMethodInvocation);
             }
         }
     }

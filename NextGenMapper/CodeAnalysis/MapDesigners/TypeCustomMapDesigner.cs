@@ -1,26 +1,14 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis.Maps;
+﻿using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Models;
+using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class TypeCustomMapDesigner
     {
-        private readonly SemanticModel _semanticModel;
-        private readonly MapPlanner _planner;
+        public TypeCustomMapDesigner()
+        { }
 
-        public TypeCustomMapDesigner(SemanticModel semanticModel, MapPlanner planner)
-        {
-            _semanticModel = semanticModel;
-            _planner = planner;
-        }
-
-        public void DesignMapsForPlanner(MethodDeclarationSyntax method)
-        {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
-            var map = new TypeCustomMap(from, to, method);
-
-            _planner.AddCustomMap(map, method.GetUsingsAndNamespace());
-        }
+        public ImmutableArray<TypeMap> DesignTypeCustomMaps(CustomMapMethod customMapMethod) => ImmutableArray.Create<TypeMap>(new TypeCustomMap(customMapMethod));
     }
 }

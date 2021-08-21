@@ -1,9 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.Extensions;
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using StringComparer = System.StringComparer;
+using StringComparison = System.StringComparison;
 
 namespace NextGenMapper.CodeAnalysis
 {
@@ -11,16 +14,16 @@ namespace NextGenMapper.CodeAnalysis
     {
         public static (ITypeSymbol ReturnType, ITypeSymbol SingleParameterType) GetReturnAndParameterType(this SemanticModel semanticModel, MethodDeclarationSyntax method)
         {
-            var parameter = method.ParameterList.Parameters.SingleOrDefault();
-            if (parameter == null || parameter.Type == null)
+            if (method.ParameterList.Parameters.Count() != 1)
             {
-                throw new ArgumentException("method must contains one parameter");
+                throw new System.ArgumentException("method must contains one parameter");
             }
+            var parameter = method.ParameterList.Parameters.Single();
             var returnType = semanticModel.GetTypeSymbol(method.ReturnType);
             var parameterType = semanticModel.GetTypeSymbol(parameter.Type);
             if (returnType is null || parameterType is null)
             {
-                throw new ArgumentException("return type and single parameter type must be not null");
+                throw new System.ArgumentException("return type and single parameter type must be not null");
             }
 
             return (returnType, parameterType);
@@ -30,7 +33,7 @@ namespace NextGenMapper.CodeAnalysis
         {
             if (constructor == null || constructor.MethodKind != MethodKind.Constructor)
             {
-                throw new ArgumentException($"method \"{constructor}\" is not constructor");
+                throw new System.ArgumentException($"method \"{constructor}\" is not constructor");
             }
 
             var constructorDeclaration = constructor.GetFirstDeclaration() as ConstructorDeclarationSyntax;
@@ -55,14 +58,13 @@ namespace NextGenMapper.CodeAnalysis
             return propertyName;
         }
 
-        public static IMethodSymbol? GetOptimalConstructor(
-            this ITypeSymbol from, ITypeSymbol to, IEnumerable<string>? byUser = null)
+        //TODO: переделать эти методы (2), потому что нихуя не очевидно
+        public static Constructor? GetOptimalConstructor(this Type from, Type to, IEnumerable<string> byUser)
         {
-            byUser ??= new List<string>();
-            var constructors = to.GetPublicConstructors().OrderByParametersDesc();
+            var constructors = to.Constructors.OrderByDescending(x => x.Parameters.Count());
             if (constructors.Count() == 0)
             {
-                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
+                throw new System.ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
             }
 
             var constructor = constructors.FirstOrDefault(x => x
@@ -77,28 +79,74 @@ namespace NextGenMapper.CodeAnalysis
                     .Complement(byUser)
                     .Complement(from.GetPropertiesNames())
                     .IsEmpty());
-            var asd = constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
-                ? constructor
-                : unflattenConstructor;
 
-            return constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
+            return constructor.Parameters.Count() > unflattenConstructor.Parameters.Count()
                 ? constructor
                 : unflattenConstructor;
         }
-
-        public static IMethodSymbol? GetOptimalUnflattingConstructor(
-            this ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName, IEnumerable<string>? byUser = null)
+        public static Constructor? GetOptimalUnflatteningConstructor(this Type from, Type to, string unflattingPropertyName)
         {
-            byUser ??= new List<string>();
-            var constructors = to.GetPublicConstructors().OrderByParametersDesc();
+            var constructors = to.Constructors.OrderByDescending(x => x.Parameters.Count());
             if (constructors.Count() == 0)
             {
-                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
+                throw new System.ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
             }
 
             var constructor = constructors.FirstOrDefault(x => x
                 .GetParametersNames()
-                .Complement(byUser)
+                .Select(y => $"{unflattingPropertyName}{y}")
+                .Complement(from.GetPropertiesNames())
+                .IsEmpty());
+
+            return constructor;
+        }
+
+        public static ImmutableArray<string> GetPropertiesNames(this Type type) => type.Properties.Select(x => x.Name).ToImmutableArray();
+        public static ImmutableArray<string> GetParametersNames(this Constructor constructor) => constructor.Parameters.Select(x => x.Name).ToImmutableArray();
+
+        //public static ImmutableArray<string> GetInitializerExpressionsLeft(this Initializer initializer) => initializer.Expressions.Select(x => x.Left.Name).ToImmutableArray();
+
+        public static ImmutableArray<string> GetFlattenPropertiesNames(this Type type)
+            => type.Properties.SelectMany(x => x.Type.Properties.Select(y => $"{x.Name}{y.Name}")).ToImmutableArray();
+        public static ImmutableArray<string> GetFlattenParametersNames(this Constructor constructor)
+            => constructor.Parameters.SelectMany(x => x.Type.Properties.Select(y => $"{x.Name}{y.Name}")).ToImmutableArray();
+
+        public static ImmutableArray<Property> GetInitializerProperties(this Constructor constructor)
+            => constructor.ConstructedType.Properties.Where(x => !x.IsReadOnly)
+            .Where(x => !constructor.GetParametersNames().Contains(x.Name, StringComparer.InvariantCultureIgnoreCase)).ToImmutableArray();
+
+        public static Property? FindProperty(this Type type, string propertyName, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+            => type.Properties.FirstOrDefault(x => x.Name.Equals(propertyName, comparision));
+
+        public static (Property flattenProperty, Property mappedProperty) FindFlattenMappedProperty(
+            this Type type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+            => type
+            .Properties
+            .SelectMany(flatten => flatten.Type
+                .Properties
+                .Where(mapped => $"{flatten.Name}{mapped.Name}".Equals(name, comparision))
+                .Select(mapped => (flatten, mapped)))
+            .FirstOrDefault();
+        public static (Property unflattenProperty, Property mappedProperty) FindUnflattenMappedProperties(
+            this Type type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+            => type
+            .Properties
+            .SelectMany(flatten => flatten.Type
+                .Properties
+                .Where(mapped => $"{flatten.Name}{mapped.Name}".Equals(name, comparision))
+                .Select(mapped => (flatten, mapped)))
+            .FirstOrDefault();
+
+        public static IMethodSymbol? GetOptimalUnflattingConstructor(this ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName)
+        {
+            var constructors = to.GetPublicConstructors().OrderByParametersDesc();
+            if (constructors.Count() == 0)
+            {
+                throw new System.ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
+            }
+
+            var constructor = constructors.FirstOrDefault(x => x
+                .GetParametersNames()
                 .Select(y => $"{unflattingPropertyName}{y}")
                 .Complement(from.GetPropertiesNames())
                 .IsEmpty());
@@ -126,7 +174,7 @@ namespace NextGenMapper.CodeAnalysis
             }
             else
             {
-                throw new Exception($"Parameter for argument {argument} was not found");
+                throw new System.Exception($"Parameter for argument {argument} was not found");
             }
         }
 
@@ -134,7 +182,7 @@ namespace NextGenMapper.CodeAnalysis
             => node.GetUsings().Append($"using {node.GetNamespace()};").ToList();
 
         public static (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
-            this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
+            this ITypeSymbol type, string name, System.StringComparison comparision = System.StringComparison.InvariantCultureIgnoreCase) 
             => type
             .GetProperties()
             .SelectMany(flatten => flatten.Type
@@ -144,10 +192,9 @@ namespace NextGenMapper.CodeAnalysis
             .FirstOrDefault();
 
         public static (IPropertySymbol unflattenProperty, IPropertySymbol mappedProperty) FindUnflattenMappedProperties(
-            this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+            this ITypeSymbol type, string name, System.StringComparison comparision = System.StringComparison.InvariantCultureIgnoreCase)
             => type
             .GetProperties()
-
             .SelectMany(flatten => flatten.Type
                 .GetProperties()
                 .Where(mapped => $"{flatten.Name}{mapped.Name}".Equals(name, comparision))
@@ -160,7 +207,7 @@ namespace NextGenMapper.CodeAnalysis
         public static List<string> GetFlattenParametersNames(this IMethodSymbol method)
             => method.GetParameters().SelectMany(x => x.Type.GetProperties().Select(y => $"{x.Name}{y.Name}")).ToList();
 
-        public static IParameterSymbol? FindUnflattenParameter(this IMethodSymbol constructor, string name, IPropertySymbol unflattingProperty, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        public static IParameterSymbol? FindUnflattenParameter(this IMethodSymbol constructor, string name, IPropertySymbol unflattingProperty, System.StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => constructor?.Parameters.FirstOrDefault(x => $"{unflattingProperty.Name}{x.Name}".Equals(name, comparision));
 
         public static IPropertySymbol? FindSettableUnflattenProperty(this ITypeSymbol type, string name, IPropertySymbol unflattingProperty, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)

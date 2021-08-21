@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace NextGenMapper.Extensions
@@ -32,8 +33,8 @@ namespace NextGenMapper.Extensions
             => node.ParameterList.Parameters.SingleOrDefault() is ParameterSyntax parameter
             && parameter?.Type is not null;
 
-        public static List<MethodDeclarationSyntax> GetMethodsDeclarations(this ClassDeclarationSyntax node)
-            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
+        public static ImmutableArray<MethodDeclarationSyntax> GetMethodsDeclarations(this ClassDeclarationSyntax classDeclaration)
+            => classDeclaration.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToImmutableArray();
 
         public static bool HasAttribute(this ISymbol? symbol, string attributeFullName)
             => symbol?.GetAttributes().Any(x => x.AttributeClass?.ToDisplayString() == attributeFullName) ?? false;
@@ -43,14 +44,16 @@ namespace NextGenMapper.Extensions
 
         public static T? As<T>(this ISymbol? symbol) where T : ISymbol => symbol is T tSymbol ? tSymbol : default;
 
-        public static ITypeSymbol? GetTypeSymbol(this SemanticModel semanticModel, TypeSyntax type)
-            => semanticModel.GetSymbol(type).As<ITypeSymbol>();
+        public static ITypeSymbol? GetTypeSymbol(this SemanticModel semanticModel, TypeSyntax? type)
+            => semanticModel.GetSymbol(type!).As<ITypeSymbol>();
 
         public static IMethodSymbol? GetMethodSymbol(this SemanticModel semanticModel, ExpressionSyntax expression)
             => semanticModel.GetSymbol(expression).As<IMethodSymbol>();
 
-        public static IReadOnlyList<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
-            => type.As<INamedTypeSymbol>()?.Constructors.Where(x => x.DeclaredAccessibility == Accessibility.Public).ToList() ?? new();
+        public static ImmutableArray<IMethodSymbol> GetConstructors(this ITypeSymbol type)
+            => type is INamedTypeSymbol namedType ? namedType.Constructors : ImmutableArray.Create<IMethodSymbol>();
+        public static ImmutableArray<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
+            => type.As<INamedTypeSymbol>()?.Constructors.Where(x => x.DeclaredAccessibility == Accessibility.Public).ToImmutableArray() ?? ImmutableArray.Create<IMethodSymbol>();
 
         public static IReadOnlyList<IMethodSymbol> OrderByParametersDesc(this IEnumerable<IMethodSymbol> methods) 
             => methods.OrderByDescending(x => x.Parameters.Count()).ToList();
@@ -62,10 +65,9 @@ namespace NextGenMapper.Extensions
         public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
             => method?.Parameters.FirstOrDefault(x => x.Name.Equals(name, comparision));
 
-        public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
-            => type.GetMembers().OfType<IPropertySymbol>()
-            .Where(x => x.CanBeReferencedByName && x.DeclaredAccessibility == Accessibility.Public)
-            .ToList();
+        public static ImmutableArray<IPropertySymbol> GetProperties(this ITypeSymbol type) => type.GetMembers().OfType<IPropertySymbol>().ToImmutableArray();
+        public static ImmutableArray<IPropertySymbol> GetPublicProperties(this ITypeSymbol type) 
+            => type.GetMembers().OfType<IPropertySymbol>().Where(x => x.DeclaredAccessibility == Accessibility.Public).ToImmutableArray();
 
         public static IPropertySymbol? FindSettableProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type?.GetSettableProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
@@ -103,7 +105,7 @@ namespace NextGenMapper.Extensions
         public static ReturnStatementSyntax GetReturnStatement(this BaseMethodDeclarationSyntax method)
             => method.GetStatements().OfType<ReturnStatementSyntax>().Single();
 
-        public static bool IsPrivitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
+        public static bool IsPrimitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
 
         public static bool IsDefaultLiteralExpression(this ArgumentSyntax argument)
             => argument.Expression is LiteralExpressionSyntax literal && literal.Kind() == SyntaxKind.DefaultLiteralExpression;

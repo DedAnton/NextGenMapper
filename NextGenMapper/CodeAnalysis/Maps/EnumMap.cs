@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using NextGenMapper.CodeAnalysis.Models;
 using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps
@@ -7,7 +7,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public List<MemberMap> Fields { get; }
 
-        public EnumMap(ITypeSymbol from, ITypeSymbol to, List<MemberMap> fields)
+        public EnumMap(Enum from, Enum to, List<MemberMap> fields)
             : base(from, to)
         {
             Fields = fields;

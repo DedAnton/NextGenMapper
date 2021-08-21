@@ -48,18 +48,18 @@ $@"
 public static {map.To} Map<To>(this {map.From} {map.ParameterName}) => new {map.To}
 (
 {map.ConstructorProperties.TwoTernarInterpolateAndJoin(
-    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenConstructor,
-    one => $"{one.ArgumentSyntax?.ToString() ?? $"{map.ParameterName}.{one.FromName}"}",
+    one => one.IsSameTypes || one.HasImplicitConversion || one is CustomArgumentMap,
+    two => two is UnflattenedMap,
+    one => $"{((CustomArgumentMap)one).ArgumentSyntax.ToString() ?? $"{map.ParameterName}.{one.FromName}"}",
     two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}({map.ParameterName})",
     @default => $"{map.ParameterName}.{@default.FromName}.Map<{@default.ToType}>()",
     separator: ",\r\n")}
 )
 {{
 {map.InitializerProperties.TwoTernarInterpolateAndJoin(
-    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenInitializer,
-    one => $"{one.InitializerExpressionSyntax?.ToString() ?? $"{one.ToName} = {map.ParameterName}.{one.FromName}"}",
+    one => one.IsSameTypes || one.HasImplicitConversion || one is CustomInitializerExpressionMap,
+    two => two is UnflattenedMap,
+    one => $"{((CustomInitializerExpressionMap)one).InitializerExpression?.ToString() ?? $"{one.ToName} = {map.ParameterName}.{one.FromName}"}",
     two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}({map.ParameterName})",
     @default => $"{@default.ToName} = {map.ParameterName}.{@default.FromName}.Map<{@default.ToType}>()",
     separator: ",\r\n")}
@@ -75,11 +75,11 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     }}
     var _a__result = _a__UserFunction(_a___source);
 
-    return new {map.To.ToDisplayString()}
+    return new {map.To}
     (
 {map.ConstructorProperties.TwoTernarInterpolateAndJoin(
-    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenConstructor,
+    one => one.IsSameTypes || one.HasImplicitConversion || one is CustomMap,
+    two => two is UnflattenedMap,
     one => $"{GetSource(one)}.{one.FromName}",
     two => $"UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
     @default => $"{GetSource(@default)}.{@default.FromName}.Map<{@default.ToType}>()",
@@ -87,8 +87,8 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     )
     {{
 {map.InitializerProperties.TwoTernarInterpolateAndJoin(
-    one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,
-    two => two.MapType == MemberMapType.UnflattenInitializer,
+    one => one.IsSameTypes || one.HasImplicitConversion || one is CustomMap,
+    two => two is UnflattenedMap,
     one => $"{one.ToName} = {GetSource(one)}.{one.FromName}",
     two => $"{two.ToName} = UnflatteningMap_{two.ToType.ToString().RemoveDots()}(_a___source)",
     @default => $"{@default.ToName} = {GetSource(@default)}.{@default.FromName}.Map<{@default.ToType}>()",
@@ -96,6 +96,6 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     }};
 }}";
 
-        private string GetSource(MemberMap member) => member.IsProvidedByUser ? "_a__result" : "_a___source";
+        private string GetSource(MemberMap member) => member is CustomMap ? "_a__result" : "_a___source";
     }
 }

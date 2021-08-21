@@ -1,5 +1,6 @@
 ﻿using NextGenMapper.CodeAnalysis.Maps;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis
 {
@@ -9,10 +10,10 @@ namespace NextGenMapper.CodeAnalysis
         public List<string> Usings { get; } = new();
         public MapPriority Priority { get; }
 
-        public MapGroup(TypeMap map, List<string> usings, MapPriority priority) 
+        public MapGroup(TypeMap map, IEnumerable<string> usings, MapPriority priority) 
         {
             Maps.Add(map);
-            Usings = usings;
+            Usings = usings.ToList();
             Priority = priority;
         }
 

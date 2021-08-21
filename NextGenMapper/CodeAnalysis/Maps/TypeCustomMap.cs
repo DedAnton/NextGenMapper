@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
@@ -10,13 +10,13 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public MethodType MethodType { get; }
         public string ParameterName { get; }
 
-        public TypeCustomMap(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
-            :base(from, to)
+        public TypeCustomMap(CustomMapMethod cutomMapMethod)
+            :base(cutomMapMethod.Parameter.Type, cutomMapMethod.ReturnType)
         {
-            ExpressionBody = method.ExpressionBody;
-            Body = method.Body;
-            MethodType = method.Body is null ? MethodType.Expression : MethodType.Block;
-            ParameterName = method.ParameterList.Parameters.First().Identifier.Text;
+            ExpressionBody = cutomMapMethod.Syntax.ExpressionBody;
+            Body = cutomMapMethod.Syntax.Body;
+            MethodType = ExpressionBody != null ? MethodType.Expression : MethodType.Block;
+            ParameterName = cutomMapMethod.Parameter.Name;
         }
     }
 }

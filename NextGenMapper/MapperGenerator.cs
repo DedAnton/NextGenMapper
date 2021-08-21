@@ -3,10 +3,13 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
+using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -34,24 +37,39 @@ namespace NextGenMapper
                 return;
 
             var planner = new MapPlanner();
+            var analyzer = new SyntaxAnalyzer();
 
-            foreach(var mapMethodInvocation in receiver.mapMethodInvocations)
+            foreach(var mapMethodInvocation in receiver.MapMethodInvocations)
             {
-                if (mapMethodInvocation.SemanticModel.GetSymbol(mapMethodInvocation.Node.Expression) is IMethodSymbol method
-                    && method.MethodKind == MethodKind.ReducedExtension
-                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.FunctionFullName
-                    && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapMethodInvocation.SemanticModel.GetSymbol(memberAccess.Expression) is ILocalSymbol invocatingVariable)
+                var result = analyzer.AnalyzeMapMethodInvocation(mapMethodInvocation);
+                ImmutableArray<TypeMap> maps = (result?.from, result?.to) switch
                 {
-                    MapInvocation(mapMethodInvocation.SemanticModel, planner, invocatingVariable.Type, method.ReturnType);
+                    (Enum from, Enum to) => new EnumMapDesigner().DesignEnumMaps(from, to),
+                    (Collection from, Collection to) => new CollectionMapDesigner().DesignCollectionMaps(from, to),
+                    (Type from, Type to) => new ClassMapDesigner().DesignClassMaps(from, to),
+                    _ => ImmutableArray.Create<TypeMap>()
+                };
+                foreach(var map in maps)
+                {
+                    planner.AddCommonMap(map);
                 }
             }
 
-            foreach(var mapperClassDeclaration in receiver.mapperClassDeclarations)
+            foreach (var mapperClassDeclaration in receiver.MapperClassDeclarations)
             {
-                if (mapperClassDeclaration.SemanticModel.GetDeclaredSymbol(mapperClassDeclaration.Node).HasAttribute(Annotations.MapperAttributeName))
+                var mapMethod = analyzer.AnalyzeMapperClassDeclarations(mapperClassDeclaration);
+                ImmutableArray<TypeMap> maps = mapMethod switch
                 {
-                    HandleCustomMapperClass(mapperClassDeclaration.SemanticModel, planner, mapperClassDeclaration.Node);
+                    CustomMapMethod customMapMethod => new TypeCustomMapDesigner().DesignTypeCustomMaps(customMapMethod),
+                    PartialMapMethod partialMapMethod => new ClassPartialMapDesigner().DesignClassPartialMaps(partialMapMethod),
+                    PartialConstructorMapMethod partialConstructorMapMethod 
+                        => new ClassPartialConstructorMapDesigner().DesignClassPartialConstructorMaps(partialConstructorMapMethod),
+                    _ => ImmutableArray.Create<TypeMap>()
+                };
+                var usings = mapperClassDeclaration.Node.GetUsingsAndNamespace();
+                foreach (var map in maps)
+                {
+                    planner.AddCustomMap(map, usings);
                 }
             }
 
@@ -60,51 +78,6 @@ namespace NextGenMapper
 
             var customMappers = GenerateCustomMappers(planner);
             customMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CustomMapper", SourceText.From(mapper, Encoding.UTF8)));
-        }
-
-        private void MapInvocation(SemanticModel semanticModel, MapPlanner planner, ITypeSymbol from, ITypeSymbol to)
-        {
-
-            if (from.TypeKind == TypeKind.Enum && to.TypeKind == TypeKind.Enum)
-            {
-                var designer = new EnumMapDesigner(semanticModel, planner);
-                designer.DesignMapsForPlanner(from, to);
-            }
-            else if (from.IsGenericEnumerable() && to.IsGenericEnumerable())
-            {
-                var designer = new CollectionMapDesigner(semanticModel, planner);
-                designer.DesignMapsForPlanner(from, to);
-            }
-            else if (from.TypeKind == TypeKind.Class && to.TypeKind == TypeKind.Class)
-            {
-                var designer = new ClassMapDesigner(planner);
-                designer.DesignMapsForPlanner(from, to);
-            }
-        }
-
-        private void HandleCustomMapperClass(SemanticModel semanticModelt, MapPlanner planner, ClassDeclarationSyntax node)
-        {
-            foreach (var method in node.GetMethodsDeclarations().Where(x => x.HasSingleParameterWithType()))
-            {
-                if (semanticModelt.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName) is var isPartial
-                    && isPartial == true
-                    && method.GetObjectCreateionExpression() is { ArgumentList: { Arguments: var arguments } }
-                    && arguments.Any(x => x.IsDefaultLiteralExpression()))
-                {
-                    var partialOneConstructorPlanGenerator = new ClassPartialConstructorMapDesigner(semanticModelt, planner);
-                    partialOneConstructorPlanGenerator.DesignMapsForPlanner(method);
-                }
-                else if (isPartial)
-                {
-                    var partialPlanGenerator = new ClassPartialMapDesigner(semanticModelt, planner);
-                    partialPlanGenerator.DesignMapsForPlanner(method);
-                }
-                else
-                {
-                    var customPlanGenerator = new TypeCustomMapDesigner(semanticModelt, planner);
-                    customPlanGenerator.DesignMapsForPlanner(method);
-                }
-            }
         }
 
         private List<string> GenerateCommonMapper(MapPlanner planner)

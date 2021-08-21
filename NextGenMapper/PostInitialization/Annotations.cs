@@ -33,6 +33,8 @@ namespace NextGenMapper
         public PartialAttribute() { }
     }
 }";
-        public const string PartialAttributeName = "NextGenMapper.PartialAttribute";
+        public const string PartialAttributeFullName = "NextGenMapper.PartialAttribute";
+        public const string PartialAttributeName = "PartialAttribute";
+        public const string PartialAttributeShortName = "Partial";
     }
 }

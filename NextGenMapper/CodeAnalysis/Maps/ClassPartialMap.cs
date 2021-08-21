@@ -1,20 +1,20 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
     public sealed class ClassPartialMap : ClassMap
     {
-        public List<StatementSyntax> CustomStatements { get; }
+        public ImmutableArray<StatementSyntax> CustomStatements { get; }
         public string ParameterName { get; }
 
-        public ClassPartialMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, IEnumerable<StatementSyntax> customStatements, string customParameterName)
+        public ClassPartialMap(Type from, Type to, IEnumerable<MemberMap> properties, PartialMapMethod customMapMethod)
             : base(from, to, properties)
         {
-            CustomStatements = customStatements.ToList();
-            ParameterName = customParameterName;
+            CustomStatements = customMapMethod.Statements;
+            ParameterName = customMapMethod.Parameter.Name;
         }
     }
 }

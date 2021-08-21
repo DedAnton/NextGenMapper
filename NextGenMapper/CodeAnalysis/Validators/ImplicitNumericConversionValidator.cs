@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.CodeAnalysis.Models;
 using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Validators
@@ -20,7 +21,7 @@ namespace NextGenMapper.CodeAnalysis.Validators
                 { SpecialType.System_Single, new() { SpecialType.System_Double } }
             };
 
-        public static bool HasImplicitConversion(ITypeSymbol from, ITypeSymbol to)
+        public static bool HasImplicitConversion(Type from, Type to)
             => _implicitNumericConversions.TryGetValue(from.SpecialType, out var implicitTypes) && implicitTypes.Contains(to.SpecialType);
     }
 }
