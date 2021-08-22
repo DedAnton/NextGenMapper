@@ -7,20 +7,17 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     public class TypeCustomMapDesigner
     {
         private readonly SemanticModel _semanticModel;
-        private readonly MapPlanner _planner;
 
-        public TypeCustomMapDesigner(SemanticModel semanticModel, MapPlanner planner)
+        public TypeCustomMapDesigner(SemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
-            _planner = planner;
         }
 
-        public void DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public TypeCustomMap DesignMapsForPlanner(MethodDeclarationSyntax method)
         {
             var (to, from) = _semanticModel.GetReturnAndParameterType(method);
-            var map = new TypeCustomMap(from, to, method);
 
-            _planner.AddCustomMap(map, method.GetUsingsAndNamespace());
+            return new TypeCustomMap(from, to, method);
         }
     }
 }

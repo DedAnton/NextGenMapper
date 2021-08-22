@@ -11,19 +11,16 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     public class EnumMapDesigner
     {
         private readonly SemanticModel _semanticModel;
-        private readonly MapPlanner _planner;
 
-        public EnumMapDesigner(SemanticModel semanticModel, MapPlanner planner)
+        public EnumMapDesigner(SemanticModel semanticModel)
         {
             _semanticModel = semanticModel;
-            _planner = planner;
         }
 
-        public void DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
-            var fromDeclaration = from.GetFirstDeclaration() as EnumDeclarationSyntax;
-            var toDeclaration = to.GetFirstDeclaration() as EnumDeclarationSyntax;
-            if (fromDeclaration is null || toDeclaration is null)
+            if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration 
+                || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
                 throw new ArgumentException("enum must have declaration");
             }
@@ -48,7 +45,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 //add diagnostic if 'to' has unmapped values 
             }
 
-            _planner.AddCommonMap(new EnumMap(from, to, valuesMappings));
+            return new EnumMap(from, to, valuesMappings);
         }
     }
 }

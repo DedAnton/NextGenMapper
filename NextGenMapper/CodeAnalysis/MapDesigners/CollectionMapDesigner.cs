@@ -18,16 +18,14 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
             SpecialType.System_Collections_Generic_IReadOnlyList_T
         };
-        private readonly SemanticModel _semanticModel;
-        private readonly MapPlanner _planner;
+        private readonly ClassMapDesigner _classMapDesigner;
 
-        public CollectionMapDesigner(SemanticModel semanticModel, MapPlanner planner)
+        public CollectionMapDesigner()
         {
-            _semanticModel = semanticModel;
-            _planner = planner;
+            _classMapDesigner = new();
         }
 
-        public void DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
             var collectionType = to switch
             {
@@ -43,11 +41,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var elementTypeFrom = GetCollectionElementType(from);
             var elementTypeTo = GetCollectionElementType(to);
-            var classMapDesigner = new ClassMapDesigner(_planner);
-            classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo);
 
-            var map = new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionType);
-            _planner.AddCommonMap(map);
+            var maps = new List<TypeMap>();
+            maps.AddRange(_classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo));
+            maps.Add(new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionType));
+
+            return maps;
         }
 
         private ITypeSymbol GetCollectionElementType(ITypeSymbol collection)

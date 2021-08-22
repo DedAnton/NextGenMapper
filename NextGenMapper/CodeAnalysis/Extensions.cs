@@ -73,20 +73,17 @@ namespace NextGenMapper.CodeAnalysis
                 .IsEmpty());
 
             var unflattenConstructor = constructors.FirstOrDefault(x => x
-                    .GetFlattenParametersNames()
-                    .Complement(byUser)
-                    .Complement(from.GetPropertiesNames())
-                    .IsEmpty());
-            var asd = constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
-                ? constructor
-                : unflattenConstructor;
+                .GetFlattenParametersNames()
+                .Complement(byUser)
+                .Complement(from.GetPropertiesNames())
+                .IsEmpty());
 
             return constructor.GetParametersCount() > unflattenConstructor.GetParametersCount()
                 ? constructor
                 : unflattenConstructor;
         }
 
-        public static IMethodSymbol? GetOptimalUnflattingConstructor(
+        public static IMethodSymbol? GetOptimalUnflatteningConstructor(
             this ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName, IEnumerable<string>? byUser = null)
         {
             byUser ??= new List<string>();
