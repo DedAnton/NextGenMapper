@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
@@ -31,17 +32,14 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public static MemberMap InitializerUnflatten(ITypeSymbol from, IPropertySymbol to)
             => new(from, from.Name, to.Type, to.Name, MemberMapType.UnflattenInitializer, false, null);
 
-        public static MemberMap Field(IPropertySymbol from, IParameterSymbol to)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
+        public static MemberMap EnumField(ITypeSymbol fromType, EnumField fromField, ITypeSymbol to, EnumField toField)
+            => new(fromType, fromField.Name, to, toField.Name, MemberMapType.Field, false, null);
 
         public static MemberMap User(IPropertySymbol from, IParameterSymbol to)
             => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, true, null);
 
         public static MemberMap User(IPropertySymbol to)
             => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Initializer, true, null);
-
-        public static MemberMap Field(IFieldSymbol from, IFieldSymbol to)
-            => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Field, false, null);
 
         public static MemberMap Argument(IParameterSymbol parameter, ArgumentSyntax argument)
             => new(parameter.Type, parameter.Name, parameter.Type, parameter.Name, MemberMapType.Constructor, true, null) { ArgumentSyntax = argument };

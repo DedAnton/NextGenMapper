@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
@@ -12,40 +11,24 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassPartialConstructorMapDesigner
     {
-        private readonly string _defaultKeyword = SyntaxFactory.Token(SyntaxKind.DefaultKeyword).ValueText;
-
-        private readonly SemanticModel _semanticModel;
         private readonly ClassMapDesigner _classMapDesigner;
 
-        public ClassPartialConstructorMapDesigner(SemanticModel semanticModel)
+        public ClassPartialConstructorMapDesigner()
         {
-            _semanticModel = semanticModel;
             _classMapDesigner = new();
         }
 
-        public List<ClassMap> DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol constructor, MethodDeclarationSyntax methodSyntax)
         {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
-            var objCreationExpression = method.GetObjectCreateionExpression();
+            var objCreationExpression = methodSyntax.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
-                throw new ArgumentException($"Error when create mapping for method \"{method}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
-            }
-            var sourceParameter = _semanticModel.GetDeclaredSymbol(method)?.Parameters.SingleOrDefault();
-            if (sourceParameter == null)
-            {
-                throw new ArgumentException($"Error when create mapping for method \"{method}\", method must declare single parameter.");
-            }
-
-            var constructor = _semanticModel.GetMethodSymbol(objCreationExpression);
-            if (constructor == null)
-            {
-                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} does not have a suitable constructor");
+                throw new ArgumentException($"Error when create mapping for method \"{methodSyntax}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
             }
 
             var argumentByParameterName = objCreationExpression.ArgumentList?.Arguments
                 .Where(x => !x.IsDefaultLiteralExpression())
-                .Select(x => new { Argument = x, ParameterName = _semanticModel.GetConstructorParameter(x).Name })
+                .Select(x => new { Argument = x, ParameterName = constructor.GetConstructorParameter(x).Name })
                 .ToDictionary(x => x.ParameterName, x => x.Argument, StringComparer.InvariantCultureIgnoreCase) ?? new();
 
             var initializerByPropertyName = objCreationExpression.Initializer?.Expressions
@@ -85,7 +68,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            var customParameterName = method.ParameterList.Parameters.First().Identifier.Text;
+            var customParameterName = methodSyntax.ParameterList.Parameters.First().Identifier.Text;
             maps.Add(new ClassPartialConstructorMap(from, to, membersMaps, customParameterName));
 
             return maps;

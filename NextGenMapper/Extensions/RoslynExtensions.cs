@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using NextGenMapper.CodeAnalysis.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace NextGenMapper.Extensions
             type.AllInterfaces.Any(x => x.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
             || type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T;
 
-        public static List<IFieldSymbol> GetFields(this EnumDeclarationSyntax enumDeclaration, SemanticModel semanticModel)
-            => enumDeclaration.Members.Select(x => semanticModel.GetDeclaredSymbol(x)).OfType<IFieldSymbol>().ToList();
+        public static List<EnumField> GetFields(this EnumDeclarationSyntax enumDeclaration)
+            => enumDeclaration.Members.Select(x => new EnumField(x.Identifier.ValueText, x.EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value?.UnboxToLong())).ToList();
 
         public static string? GetInitializerLeft(this InitializerExpressionSyntax initializer)
             => initializer.As<AssignmentExpressionSyntax>()?.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText;

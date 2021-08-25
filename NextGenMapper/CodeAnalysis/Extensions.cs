@@ -118,14 +118,13 @@ namespace NextGenMapper.CodeAnalysis
             return objCreationExpression;
         }
 
-        public static IParameterSymbol GetConstructorParameter(this SemanticModel semanticModel, ArgumentSyntax argument)
+        public static IParameterSymbol GetConstructorParameter(this IMethodSymbol constructor, ArgumentSyntax argument)
         {
             //argument -> argumentList -> method
             if (argument.Parent?.Parent is ObjectCreationExpressionSyntax methodDeclaration
-                && semanticModel.GetSymbol(methodDeclaration) is IMethodSymbol method
                 && methodDeclaration?.ArgumentList?.Arguments.IndexOf(argument) is int index)
             {
-                return method.Parameters[index];
+                return constructor.Parameters[index];
             }
             else
             {

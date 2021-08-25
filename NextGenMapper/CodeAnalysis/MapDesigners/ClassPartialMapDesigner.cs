@@ -11,24 +11,21 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassPartialMapDesigner
     {
-        private readonly SemanticModel _semanticModel;
         private readonly ClassMapDesigner _classMapDesigner;
 
-        public ClassPartialMapDesigner(SemanticModel semanticModel)
+        public ClassPartialMapDesigner()
         {
-            _semanticModel = semanticModel;
             _classMapDesigner = new();
         }
 
-        public List<ClassMap> DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
         {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
-            var objCreationExpression = method.GetObjectCreateionExpression();
+            var objCreationExpression = userMethod.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
-                throw new ArgumentException($"Error when create mapping for method \"{method}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
+                throw new ArgumentException($"Error when create mapping for method \"{userMethod}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
             }
-            var byConstructor = _semanticModel.GetMethodSymbol(objCreationExpression)?.GetParametersNames() ?? new();
+            var byConstructor = userConstructor.GetParametersNames();
             var byInitialyzer = objCreationExpression.GetInitializersLeft();
             var byUser = byConstructor.Union(byInitialyzer);
             var constructor = from.GetOptimalConstructor(to, byUser);
@@ -69,10 +66,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            var customStatements = method.Body != null 
-                ? method.Body.Statements.ToList() 
+            var customStatements = userMethod.Body != null 
+                ? userMethod.Body.Statements.ToList() 
                 : new() { SyntaxFactory.ReturnStatement(objCreationExpression).NormalizeWhitespace() };
-            var customParameterName = method.ParameterList.Parameters.First().Identifier.Text;
+            var customParameterName = userMethod.ParameterList.Parameters.First().Identifier.Text;
 
             maps.Add(new ClassPartialMap(from, to, membersMaps, customStatements, customParameterName));
 

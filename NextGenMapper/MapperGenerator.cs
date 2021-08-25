@@ -57,7 +57,7 @@ namespace NextGenMapper
                     && mapMethodInvocation.SemanticModel.GetSymbol(memberAccess.Expression) is ILocalSymbol invocatingVariable
                     && !planner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
                 {
-                    var maps = MapInvocation(mapMethodInvocation.SemanticModel, planner, invocatingVariable.Type, method.ReturnType);
+                    var maps = MapInvocation(invocatingVariable.Type, method.ReturnType);
                     foreach (var map in maps)
                     {
                         AddMapToPlanner(map, planner, new());
@@ -72,12 +72,12 @@ namespace NextGenMapper
             customMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CustomMapper", SourceText.From(mapper, Encoding.UTF8)));
         }
 
-        private List<TypeMap> MapInvocation(SemanticModel semanticModel, MapPlanner planner, ITypeSymbol from, ITypeSymbol to)
+        private List<TypeMap> MapInvocation(ITypeSymbol from, ITypeSymbol to)
         {
             var maps = new List<TypeMap>();
             if (from.TypeKind == TypeKind.Enum && to.TypeKind == TypeKind.Enum)
             {
-                var designer = new EnumMapDesigner(semanticModel);
+                var designer = new EnumMapDesigner();
                 maps.Add(designer.DesignMapsForPlanner(from, to));
             }
             else if (from.IsGenericEnumerable() && to.IsGenericEnumerable())
@@ -94,29 +94,39 @@ namespace NextGenMapper
             return maps;
         }
 
-        private List<TypeMap> HandleCustomMapperClass(SemanticModel semanticModelt, ClassDeclarationSyntax node)
+        private List<TypeMap> HandleCustomMapperClass(SemanticModel semanticModel, ClassDeclarationSyntax node)
         {
             var maps = new List<TypeMap>();
             foreach (var method in node.GetMethodsDeclarations().Where(x => x.HasSingleParameterWithType()))
             {
-                if (semanticModelt.GetDeclaredSymbol(method).HasAttribute(Annotations.PartialAttributeName) is var isPartial
-                    && isPartial == true
-                    && method.GetObjectCreateionExpression() is { ArgumentList: { Arguments: var arguments } }
-                    && arguments.Any(x => x.IsDefaultLiteralExpression()))
+                if (semanticModel.GetDeclaredSymbol(method) is not IMethodSymbol userMethod)
                 {
-                    var designer = new ClassPartialConstructorMapDesigner(semanticModelt);
-                    maps.AddRange(designer.DesignMapsForPlanner(method));
+                    continue;
                 }
-                else if (isPartial)
+
+                var(to, from) = semanticModel.GetReturnAndParameterType(method);
+                if (userMethod.Parameters.Length == 1
+                    && userMethod.HasAttribute(Annotations.PartialAttributeName)
+                    && method.GetObjectCreateionExpression() is { } objCreationExpression
+                    && semanticModel.GetSymbol(objCreationExpression) is IMethodSymbol constructor)
                 {
-                    var designer = new ClassPartialMapDesigner(semanticModelt);
-                    maps.AddRange(designer.DesignMapsForPlanner(method));
+                    if (objCreationExpression.ArgumentList?.Arguments.Any(x => x.IsDefaultLiteralExpression()) == true)
+                    {
+                        var designer = new ClassPartialConstructorMapDesigner();
+                        maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                    }
+                    else
+                    {
+                        var designer = new ClassPartialMapDesigner();
+                        maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                    }
                 }
                 else
                 {
-                    var designer = new TypeCustomMapDesigner(semanticModelt);
+                    var designer = new TypeCustomMapDesigner(semanticModel);
                     maps.Add(designer.DesignMapsForPlanner(method));
                 }
+
             }
 
             return maps;

@@ -10,12 +10,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class EnumMapDesigner
     {
-        private readonly SemanticModel _semanticModel;
-
-        public EnumMapDesigner(SemanticModel semanticModel)
-        {
-            _semanticModel = semanticModel;
-        }
+        public EnumMapDesigner()
+        { }
 
         public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
@@ -24,19 +20,19 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             {
                 throw new ArgumentException("enum must have declaration");
             }
-            var fromFields = fromDeclaration.GetFields(_semanticModel);
-            var toFields = toDeclaration.GetFields(_semanticModel);
+            var fromFields = fromDeclaration.GetFields();
+            var toFields = toDeclaration.GetFields();
 
             var valuesMappings = new List<MemberMap>();
             foreach (var fromField in fromFields)
             {
                 var byName = toFields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
-                var byValue = toFields.FirstOrDefault(x => x.HasConstantValue && fromField.HasConstantValue 
-                    && x.ConstantValue.UnboxToLong() == fromField.ConstantValue.UnboxToLong());
+                var byValue = toFields.FirstOrDefault(x => x.Value != null && fromField.Value != null
+                    && x.Value == fromField.Value);
                 var toField = byValue ?? byName;
                 if (toField is not null)
                 {
-                    valuesMappings.Add(MemberMap.Field(fromField, toField));
+                    valuesMappings.Add(MemberMap.EnumField(from, fromField, to, toField));
                 }
                 else
                 {
