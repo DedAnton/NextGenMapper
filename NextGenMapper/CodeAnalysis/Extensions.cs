@@ -73,7 +73,8 @@ namespace NextGenMapper.CodeAnalysis
                 .IsEmpty());
 
             var unflattenConstructor = constructors.FirstOrDefault(x => x
-                .GetFlattenParametersNames()
+                .Parameters.Where(y => from.GetOptimalUnflatteningConstructor(y.Type, y.Name) == null)
+                .Select(x => x.Name)
                 .Complement(byUser)
                 .Complement(from.GetPropertiesNames())
                 .IsEmpty());
@@ -84,21 +85,26 @@ namespace NextGenMapper.CodeAnalysis
         }
 
         public static IMethodSymbol? GetOptimalUnflatteningConstructor(
-            this ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName, IEnumerable<string>? byUser = null)
+            this ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName)
         {
-            byUser ??= new List<string>();
             var constructors = to.GetPublicConstructors().OrderByParametersDesc();
-            if (constructors.Count() == 0)
+            if (constructors.IsEmpty())
             {
                 throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} must declare at least one public constructor");
             }
 
             var constructor = constructors.FirstOrDefault(x => x
                 .GetParametersNames()
-                .Complement(byUser)
                 .Select(y => $"{unflattingPropertyName}{y}")
                 .Complement(from.GetPropertiesNames())
                 .IsEmpty());
+
+            var flattenProperties = to.GetPropertiesNames().Select(x => $"{unflattingPropertyName}{x}");
+            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x, StringComparer.InvariantCultureIgnoreCase));
+            if (!isUnflattening)
+            {
+                return null;
+            }
 
             return constructor;
         }

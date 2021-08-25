@@ -521,5 +521,196 @@ public User Map(UserFlat source) => new User(source.Date.ToShortDateString(), de
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void MappingByConstructorWithUnflatteningAndNotUnflatteningProperty()
+        {
+            var classes = @"
+public class User
+{
+    public Address Address { get; }
+    public string NotUnflatteningProperty { get; }
+
+    public User(Address address, string notUnflatteningProperty)
+    {
+        Address = address;
+        NotUnflatteningProperty = notUnflatteningProperty;
+    }
+}
+
+public class Address
+{
+    public string City { get; }
+    public string Street { get; }
+
+    public Address(string city, string street)
+    {
+        City = city;
+        Street = street;
+    }
+}
+
+public class UserFlat
+{
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", NotUnflatteningProperty = ""value"" };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address.City == source.AddressCity && destination.Address.Street == source.AddressStreet && destination.NotUnflatteningProperty == source.NotUnflatteningProperty;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void MappingByInitializerWithUnflatteningAndNotUnflatteningProperty()
+        {
+            var classes = @"
+public class User
+{
+    public Address Address { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}
+
+public class Address
+{
+    public string City { get; }
+    public string Street { get; }
+
+    public Address(string city, string street)
+    {
+        City = city;
+        Street = street;
+    }
+}
+
+public class UserFlat
+{
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", NotUnflatteningProperty = ""value"" };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address.City == source.AddressCity && destination.Address.Street == source.AddressStreet && destination.NotUnflatteningProperty == source.NotUnflatteningProperty;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void MappingByInitializerWithFalseUnflattening()
+        {
+            var classes = @"
+public class User
+{
+    public Address Address { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}
+
+public class Address
+{
+    public string Property { get; set; }
+}
+
+public class UserFlat
+{
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", NotUnflatteningProperty = ""value"" };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address == null && destination.NotUnflatteningProperty == source.NotUnflatteningProperty;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void MappingByConstructorWithFalseUnflattening()
+        {
+            var classes = @"
+public class User
+{
+    public Address Address { get; }
+    public string NotUnflatteningProperty { get; }
+
+    public User(Address address, string notUnflatteningProperty)
+    {
+        Address = address;
+        NotUnflatteningProperty = notUnflatteningProperty;
+    }
+}
+
+public class Address
+{
+    public string Property { get; set; }
+}
+
+public class UserFlat
+{
+    public string AddressCity { get; set; }
+    public string AddressStreet { get; set; }
+    public string NotUnflatteningProperty { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new UserFlat { AddressCity = ""Dinamo"", AddressStreet = ""3rd Builders Street"", NotUnflatteningProperty = ""value"" };
+
+var destination = source.Map<User>();
+
+var isValid = destination.Address == null && destination.NotUnflatteningProperty == null;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult == false && message == "Error when mapping Test.UserFlat to Test.User, mapping function was not found. Create custom mapping function.");
+        }
+
     }
 }
