@@ -7,7 +7,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public string ParameterName { get; }
 
-        public ClassPartialConstructorMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, string parameterName)
+        public ClassPartialConstructorMap(Type from, Type to, IEnumerable<MemberMap> properties, string parameterName)
             : base(from, to, properties)
         {
             ParameterName = parameterName;

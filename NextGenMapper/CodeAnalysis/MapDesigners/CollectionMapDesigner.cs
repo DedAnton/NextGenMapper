@@ -2,6 +2,7 @@
 using NextGenMapper.CodeAnalysis.Maps;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
@@ -25,36 +26,31 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _classMapDesigner = new();
         }
 
-        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public List<TypeMap> DesignMapsForPlanner(Collection from, Collection to)
         {
-            var collectionType = to switch
-            {
-                { TypeKind: TypeKind.Array } => CollectionType.Array,
-                { OriginalDefinition: { Name: LIST_NAME } } list when list.OriginalDefinition.ToString() == LIST_FULL_NAME => CollectionType.List,
-                INamedTypeSymbol toInterface when _listInterfacesSpecislTypes.Contains(toInterface.OriginalDefinition.SpecialType) => CollectionType.List,
-                _ => CollectionType.Undefined
-            };
-            if (collectionType == CollectionType.Undefined)
-            {
-                throw new ArgumentException($"Error when mappig {from} to {to}. Collection type was undefined. Use List<T> or interfaces implemented by List<T>");
-            }
-
-            var elementTypeFrom = GetCollectionElementType(from);
-            var elementTypeTo = GetCollectionElementType(to);
-
             var maps = new List<TypeMap>();
-            maps.AddRange(_classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo));
-            maps.Add(new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionType));
+            maps.AddRange(_classMapDesigner.DesignMapsForPlanner(from.ElementType, to.ElementType));
+
+            var mapType = to.CollectionType switch
+            {
+                CollectionType.Array => CollectionMapType.ToArray,
+                CollectionType.IEnumerable_T or CollectionType.ICollection_T or CollectionType.IList_T
+                or CollectionType.List_T or CollectionType.IReadOnlyCollection_T or CollectionType.IReadOnlyList_T => CollectionMapType.ToList,
+                CollectionType.ImmutableArray_T or CollectionType.IImmutableArray_T => CollectionMapType.ToImmutableArray,
+                CollectionType.ImmutableList_T or CollectionType.IImmutableList_T => CollectionMapType.ToImmutableList,
+                _ => throw new ArgumentOutOfRangeException(nameof(to), $"Collection type {to.CollectionType} not supported")
+            };
+            maps.Add(new CollectionMap(from, to, mapType));
 
             return maps;
         }
 
-        private ITypeSymbol GetCollectionElementType(ITypeSymbol collection)
-            => collection switch
-            {
-                IArrayTypeSymbol array => array.ElementType,
-                INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments.Single(),
-                _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
-            };
+        //private ITypeSymbol GetCollectionElementType(ITypeSymbol collection)
+        //    => collection switch
+        //    {
+        //        IArrayTypeSymbol array => array.ElementType,
+        //        INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments.Single(),
+        //        _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
+        //    };
     }
 }

@@ -13,10 +13,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _semanticModel = semanticModel;
         }
 
-        public TypeCustomMap DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public TypeCustomMap DesignMapsForPlanner(Type from, Type to, MethodDeclarationSyntax method)
         {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
-
             return new TypeCustomMap(from, to, method);
         }
     }

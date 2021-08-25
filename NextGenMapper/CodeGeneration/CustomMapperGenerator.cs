@@ -75,7 +75,7 @@ public static {map.To} Map<To>(this {map.From} _a___source)
     }}
     var _a__result = _a__UserFunction(_a___source);
 
-    return new {map.To.ToDisplayString()}
+    return new {map.To}
     (
 {map.ConstructorProperties.TwoTernarInterpolateAndJoin(
     one => one.IsSameTypes || one.IsProvidedByUser || one.HasImplicitConversion,

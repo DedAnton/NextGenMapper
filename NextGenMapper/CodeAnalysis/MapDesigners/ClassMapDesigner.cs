@@ -4,28 +4,31 @@ using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Type = NextGenMapper.CodeAnalysis.Type;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassMapDesigner
     {
-        private readonly List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory = new();
+        private readonly List<string> _referencesHistory = new();
 
         public ClassMapDesigner()
         { }
 
-        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        private string MapHistoryEntry(Type from, Type to) => $"{from}-{to}";
+
+        public List<ClassMap> DesignMapsForPlanner(Type from, Type to)
         {
-            if (from.IsPrivitive() || to.IsPrivitive())
+            if (from.SpecialType.IsPrimitive() || to.SpecialType.IsPrimitive())
             {
                 return new();
             }
-            if (_referencesHistory.Contains((from, to), new ReferencesEqualityComparer()))
+            if (_referencesHistory.Contains(MapHistoryEntry(from, to)))
             {
                 //add diagnostics
-                throw new ArgumentException("Circular reference was found." + string.Join(" => ", _referencesHistory.Select(x => $"{x.from} to {x.to}")));
+                throw new ArgumentException("Circular reference was found." + string.Join(" => ", _referencesHistory.Select(x => $"{x}")));
             }
-            _referencesHistory.Add((from, to));
+            _referencesHistory.Add(MapHistoryEntry(from, to));
 
             var constructor = from.GetOptimalConstructor(to, new List<string>());
             if (constructor == null)
@@ -37,13 +40,13 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetConstructorInitializerMembers(to);
             foreach (var member in toMembers)
             {
                 MemberMap? memberMap = member switch
                 {
-                    IParameterSymbol parameter => DesignConstructorParameterMap(from, parameter),
-                    IPropertySymbol property => DesignInitializerPropertyMap(from, property),
+                    Parameter parameter => DesignConstructorParameterMap(from, parameter),
+                    Property property => DesignInitializerPropertyMap(from, property),
                     _ => null
                 };
 
@@ -57,8 +60,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     maps.AddRange(DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 }
-
-                if (memberMap is { IsSameTypes: false })
+                else if (memberMap is { IsSameTypes: false })
                 {
                     maps.AddRange(DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }
@@ -69,7 +71,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return maps;
         }
 
-        public MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter)
+        public MemberMap? DesignConstructorParameterMap(Type from, Parameter constructorParameter)
         {
             var fromProperty = from.FindProperty(constructorParameter.Name);
             if (fromProperty != null)
@@ -92,7 +94,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return null;
         }
 
-        public MemberMap? DesignInitializerPropertyMap(ITypeSymbol from, IPropertySymbol initializerProperty)
+        public MemberMap? DesignInitializerPropertyMap(Type from, Property initializerProperty)
         {
             var fromProperty = from.FindProperty(initializerProperty.Name);
             if (fromProperty != null)
@@ -115,7 +117,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return null;
         }
 
-        private bool IsUnflattening(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
+        private bool IsUnflattening(Type from, string unflattingPropertyName, Type unflattingPropertyType)
         {
             var constructor = from.GetOptimalUnflatteningConstructor(unflattingPropertyType, unflattingPropertyName);
             if (constructor == null)
@@ -123,30 +125,30 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return false;
             }
 
-            var flattenProperties = unflattingPropertyType.GetProperties().Select(x => $"{unflattingPropertyName}{x.Name}");
+            var flattenProperties = unflattingPropertyType.Properties.Select(x => $"{unflattingPropertyName}{x.Name}");
             var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x, StringComparer.InvariantCultureIgnoreCase));
 
             return isUnflattening;
         }
 
-        public List<ClassMap> DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
+        public List<ClassMap> DesignUnflattingClassMap(Type from, string unflattingPropertyName, Type unflattingPropertyType)
         {
             var constructor = from.GetOptimalUnflatteningConstructor(unflattingPropertyType, unflattingPropertyName);
             if (constructor == null)
             {
                 return new();
             }
-            var toMembers = constructor.GetConstructorInitializerMembers();
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            foreach(var member in toMembers)
+            var toMembers = constructor.GetConstructorInitializerMembers(unflattingPropertyType);
+            foreach (var member in toMembers)
             {
                 var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
                 MemberMap? map = (fromProperty, member) switch
                 {
-                    ({ }, IParameterSymbol parameter) => MemberMap.Counstructor(fromProperty, parameter),
-                    ({ }, IPropertySymbol property) => MemberMap.Initializer(fromProperty, property),
+                    ({ }, Parameter parameter) => MemberMap.Counstructor(fromProperty, parameter),
+                    ({ }, Property property) => MemberMap.Initializer(fromProperty, property),
                     _ => null
                 };
                 membersMaps.AddIfNotNull(map);

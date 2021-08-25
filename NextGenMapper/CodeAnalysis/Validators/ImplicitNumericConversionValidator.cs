@@ -22,5 +22,8 @@ namespace NextGenMapper.CodeAnalysis.Validators
 
         public static bool HasImplicitConversion(ITypeSymbol from, ITypeSymbol to)
             => _implicitNumericConversions.TryGetValue(from.SpecialType, out var implicitTypes) && implicitTypes.Contains(to.SpecialType);
+
+        public static bool HasImplicitConversion(Type from, Type to)
+            => _implicitNumericConversions.TryGetValue(from.SpecialType, out var implicitTypes) && implicitTypes.Contains(to.SpecialType);
     }
 }

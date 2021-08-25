@@ -50,9 +50,7 @@ namespace NextGenMapper.CodeAnalysis
             MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Common)?.Remove(map);
         }
 
-        public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to) 
-            => MapGroups.SelectMany(x => x.Maps)
-            .Any(x => x.From.Equals(from, SymbolEqualityComparer.IncludeNullability) 
-                && x.To.Equals(to, SymbolEqualityComparer.IncludeNullability));
+        public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to)
+            => MapGroups.SelectMany(x => x.Maps).Any(x => x.From.Name == from.ToDisplayString() && x.To.Name == to.ToDisplayString());
     }
 }

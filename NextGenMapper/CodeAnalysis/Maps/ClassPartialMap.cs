@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public List<StatementSyntax> CustomStatements { get; }
         public string ParameterName { get; }
 
-        public ClassPartialMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, IEnumerable<StatementSyntax> customStatements, string customParameterName)
+        public ClassPartialMap(Type from, Type to, IEnumerable<MemberMap> properties, IEnumerable<StatementSyntax> customStatements, string customParameterName)
             : base(from, to, properties)
         {
             CustomStatements = customStatements.ToList();

@@ -6,7 +6,7 @@ using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using Type = NextGenMapper.CodeAnalysis.Type;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -23,9 +23,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _classMapDesigner = new();
         }
 
-        public List<ClassMap> DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public List<ClassMap> DesignMapsForPlanner(Type from, Type to, MethodDeclarationSyntax method)
         {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
             var objCreationExpression = method.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
@@ -52,19 +51,30 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 .OfType<InitializerExpressionSyntax>()
                 .Select(x => new { Initializer = x, PropertyName = x.GetInitializerLeft() })
                 .Where(x => x.PropertyName != null)
-                .ToDictionary(x => x.PropertyName, x => x.Initializer) ?? new();
+                .ToDictionary(x => x.PropertyName!, x => x.Initializer) ?? new();
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            //-----------
+            var byUser = objCreationExpression.ArgumentList?.Arguments.Where(x => !x.IsDefaultLiteralExpression()).Select(x => _semanticModel.GetConstructorParameter(x).Name) ?? new List<string>();
+            byUser = byUser.Concat(objCreationExpression.Initializer?.Expressions
+                .OfType<InitializerExpressionSyntax>()
+                .Select(x => x.GetInitializerLeft()!) ?? new List<string>());
+            var constructor1 = from.GetOptimalConstructor(to, byUser);
+            if (constructor1 == null)
+            {
+                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} does not have a suitable constructor");
+            }
+            //-----------
+            var toMembers = constructor1.GetConstructorInitializerMembers(to);
             foreach (var member in toMembers)
             {
                 MemberMap? memberMap = (member) switch
                 {
-                    IParameterSymbol parameter when argumentByParameterName.TryGetValue(member.Name, out var argument) => MemberMap.Argument(parameter, argument),
-                    IPropertySymbol property when initializerByPropertyName.TryGetValue(member.Name, out var initializer) => MemberMap.InitializerExpression(property, initializer),
-                    IParameterSymbol parameter => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
-                    IPropertySymbol property => _classMapDesigner.DesignInitializerPropertyMap(from, property),
+                    Parameter parameter when argumentByParameterName.TryGetValue(member.Name, out var argument) => MemberMap.Argument(parameter, argument),
+                    Property property when initializerByPropertyName.TryGetValue(member.Name, out var initializer) => MemberMap.InitializerExpression(property, initializer),
+                    Parameter parameter => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
+                    Property property => _classMapDesigner.DesignInitializerPropertyMap(from, property),
                     _ => null
                 };
 
@@ -77,9 +87,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
                 {
                     maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-                }
-
-                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                } 
+                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
                 {
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }

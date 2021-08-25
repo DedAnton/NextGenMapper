@@ -4,23 +4,24 @@ namespace NextGenMapper.CodeAnalysis.Maps
 {
     public sealed class CollectionMap : TypeMap
     {
-        public ITypeSymbol ItemFrom { get; }
-        public ITypeSymbol ItemTo { get; }
-        public CollectionType CollectionType { get; }
+        public Type ElementTypeFrom { get; }
+        public Type ElementTypeTo { get; }
+        public CollectionMapType CollectionMapType { get; }
 
-        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo,  CollectionType collectionType)
+        public CollectionMap(Collection from, Collection to, CollectionMapType collectionType)
             : base(from, to)
         {
-            ItemFrom = itemFrom;
-            ItemTo = itemTo;
-            CollectionType = collectionType;
+            ElementTypeFrom = from.ElementType;
+            ElementTypeTo = to.ElementType;
+            CollectionMapType = collectionType;
         }
     }
 
-    public enum CollectionType
+    public enum CollectionMapType
     {
-        Undefined,
-        List,
-        Array
+        ToList,
+        ToArray,
+        ToImmutableList,
+        ToImmutableArray
     }
 }

@@ -4,10 +4,10 @@ namespace NextGenMapper.CodeAnalysis.Maps
 {
     public abstract class TypeMap
     {
-        public ITypeSymbol From { get; }
-        public ITypeSymbol To { get; }
+        public Type From { get; }
+        public Type To { get; }
 
-        public TypeMap(ITypeSymbol from, ITypeSymbol to)
+        public TypeMap(Type from, Type to)
         {
             From = from;
             To = to;
@@ -21,13 +21,11 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public override int GetHashCode()
         {
             int hashCode = -1781160927;
-            hashCode = hashCode * -1521134295 + SymbolEqualityComparer.IncludeNullability.GetHashCode(From);
-            hashCode = hashCode * -1521134295 + SymbolEqualityComparer.IncludeNullability.GetHashCode(To);
+            hashCode = hashCode * -1521134295 + From.Name.GetHashCode();
+            hashCode = hashCode * -1521134295 + To.Name.GetHashCode();
             return hashCode;
         }
 
-        public bool Equals(ITypeSymbol from, ITypeSymbol to)
-            => From.Equals(from, SymbolEqualityComparer.IncludeNullability)
-            && To.Equals(to, SymbolEqualityComparer.IncludeNullability);
+        public bool Equals(Type from, Type to) => from.Name == to.Name;
     }
 }

@@ -32,7 +32,7 @@ namespace NextGenMapper
 
         private string GenerateCollectionMapFunction(CollectionMap map) => 
 $@"public static {map.To} Map<To>(this {map.From} sources)
-    => sources.Select(x => x.Map<{map.ItemTo}>()){(map.CollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
+    => sources.Select(x => x.Map<{map.ElementTypeTo}>()){(map.CollectionMapType == CollectionMapType.ToList ? ".ToList()" : ".ToArray()")};";
 
 
         private string GenerateEnumMapFunction(EnumMap map) =>

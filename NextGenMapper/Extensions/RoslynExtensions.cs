@@ -62,7 +62,7 @@ namespace NextGenMapper.Extensions
         public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
             => method?.Parameters.FirstOrDefault(x => x.Name.Equals(name, comparision));
 
-        public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)
+        public static List<IPropertySymbol> GetPublicProperties(this ITypeSymbol type)
             => type.GetMembers().OfType<IPropertySymbol>()
             .Where(x => x.CanBeReferencedByName && x.DeclaredAccessibility == Accessibility.Public)
             .ToList();
@@ -71,11 +71,11 @@ namespace NextGenMapper.Extensions
             => type?.GetSettableProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
 
         public static IPropertySymbol? FindProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
-            => type?.GetProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
+            => type?.GetPublicProperties().FirstOrDefault(x => x.Name.Equals(name, comparision));
 
-        public static List<IPropertySymbol> GetSettableProperties(this ITypeSymbol type) => type.GetProperties().Where(x => !x.IsReadOnly).ToList();
+        public static List<IPropertySymbol> GetSettableProperties(this ITypeSymbol type) => type.GetPublicProperties().Where(x => !x.IsReadOnly).ToList();
 
-        public static List<string> GetPropertiesNames(this ITypeSymbol type) => type.GetProperties().Select(x => x.Name).ToList();
+        public static List<string> GetPropertiesNames(this ITypeSymbol type) => type.GetPublicProperties().Select(x => x.Name).ToList();
 
         public static T? As<T>(this SyntaxNode node) where T : SyntaxNode => node is T tNode ? tNode : default;
 
@@ -103,7 +103,9 @@ namespace NextGenMapper.Extensions
         public static ReturnStatementSyntax GetReturnStatement(this BaseMethodDeclarationSyntax method)
             => method.GetStatements().OfType<ReturnStatementSyntax>().Single();
 
-        public static bool IsPrivitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
+        public static bool IsPrimitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
+
+        public static bool IsPrimitive(this SpecialType specialType) => (int)specialType is int and >= 7 and <= 20;
 
         public static bool IsDefaultLiteralExpression(this ArgumentSyntax argument)
             => argument.Expression is LiteralExpressionSyntax literal && literal.Kind() == SyntaxKind.DefaultLiteralExpression;

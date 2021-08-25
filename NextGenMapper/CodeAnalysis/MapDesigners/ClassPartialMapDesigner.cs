@@ -20,9 +20,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _classMapDesigner = new();
         }
 
-        public List<ClassMap> DesignMapsForPlanner(MethodDeclarationSyntax method)
+        public List<ClassMap> DesignMapsForPlanner(Type from, Type to, MethodDeclarationSyntax method)
         {
-            var (to, from) = _semanticModel.GetReturnAndParameterType(method);
             var objCreationExpression = method.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
@@ -39,16 +38,16 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetConstructorInitializerMembers(to);
             foreach (var member in toMembers)
             {
                 var isProvidedByUser = byUser.Contains(member.Name, StringComparer.InvariantCultureIgnoreCase);
                 MemberMap? memberMap = (member, isProvidedByUser) switch
                 {
-                    (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
-                    (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
-                    (IParameterSymbol parameter, true) => MemberMap.User(to.FindProperty(parameter.Name)!, parameter),//TODO: parameter must have same name as property
-                    (IPropertySymbol property, true) => MemberMap.User(property),
+                    (Parameter parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
+                    (Property property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
+                    (Parameter parameter, true) => MemberMap.User(to.FindProperty(parameter.Name)!, parameter),//TODO: parameter must have same name as property
+                    (Property property, true) => MemberMap.User(property),
                     _ => null
                 };
 
@@ -62,8 +61,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 }
-
-                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
                 {
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }

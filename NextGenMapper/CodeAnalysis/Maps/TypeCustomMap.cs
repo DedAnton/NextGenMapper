@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public MethodType MethodType { get; }
         public string ParameterName { get; }
 
-        public TypeCustomMap(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
+        public TypeCustomMap(Type from, Type to, MethodDeclarationSyntax method)
             :base(from, to)
         {
             ExpressionBody = method.ExpressionBody;

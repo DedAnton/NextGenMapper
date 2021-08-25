@@ -12,31 +12,22 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     {
         private readonly SemanticModel _semanticModel;
 
-        public EnumMapDesigner(SemanticModel semanticModel)
+        public EnumMapDesigner()
         {
-            _semanticModel = semanticModel;
         }
 
-        public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public EnumMap DesignMapsForPlanner(Enum from, Enum to)
         {
-            if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration 
-                || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
-            {
-                throw new ArgumentException("enum must have declaration");
-            }
-            var fromFields = fromDeclaration.GetFields(_semanticModel);
-            var toFields = toDeclaration.GetFields(_semanticModel);
-
             var valuesMappings = new List<MemberMap>();
-            foreach (var fromField in fromFields)
+            foreach (var fromField in from.Fields)
             {
-                var byName = toFields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
-                var byValue = toFields.FirstOrDefault(x => x.HasConstantValue && fromField.HasConstantValue 
-                    && x.ConstantValue.UnboxToLong() == fromField.ConstantValue.UnboxToLong());
+                var byName = to.Fields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
+                var byValue = to.Fields.FirstOrDefault(x => x.HasConstantValue && fromField.HasConstantValue 
+                    && x.ConstantValue!.UnboxToLong() == fromField.ConstantValue!.UnboxToLong());
                 var toField = byValue ?? byName;
                 if (toField is not null)
                 {
-                    valuesMappings.Add(MemberMap.Field(fromField, toField));
+                    valuesMappings.Add(MemberMap.Field(from, fromField, to, toField));
                 }
                 else
                 {
