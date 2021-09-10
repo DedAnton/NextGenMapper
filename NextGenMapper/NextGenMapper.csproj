@@ -4,10 +4,11 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>9.0</LangVersion>
         <PackageId>NextGenMapper</PackageId>
-        <Version>0.1.0-prerelease</Version>
+        <Version>0.1.0-alfa.1</Version>
         <Authors>Anton Ryabchikov</Authors>
         <Copyright>Copyright (c) Anton Ryabchikov 2021</Copyright>
-        <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+        <Title>NextGenMapper</Title>
+        <RepositoryUrl>https://github.com/DedAnton/NextGenMapper/tree/master</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
