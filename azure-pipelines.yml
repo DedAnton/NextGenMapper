@@ -6,7 +6,7 @@
 trigger:
 - master
 
-pool: Azure Pipelines
+pool: Default
 
 variables:
   solution: '**/*.sln'
