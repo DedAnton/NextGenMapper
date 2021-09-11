@@ -29,11 +29,11 @@ steps:
 
 - task: VSTest@2
   inputs:
-    testSelector: 'testRun'
-    searchFolder: '$(System.DefaultWorkingDirectory)'
+    testSelector: 'testAssemblies'
+    testAssemblyVer2: 'NextGenMapperTests.dll'
+    searchFolder: '**\NextGenMapperTests\bin\Release\net5.0'
     runInParallel: true
     codeCoverageEnabled: true
     testRunTitle: 'NextGenMapperTests'
-    diagnosticsEnabled: true
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
