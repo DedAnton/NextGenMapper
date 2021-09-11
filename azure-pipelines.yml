@@ -29,5 +29,11 @@ steps:
 
 - task: VSTest@2
   inputs:
+    testSelector: 'testRun'
+    searchFolder: '$(System.DefaultWorkingDirectory)'
+    runInParallel: true
+    codeCoverageEnabled: true
+    testRunTitle: 'NextGenMapperTests'
+    diagnosticsEnabled: true
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
