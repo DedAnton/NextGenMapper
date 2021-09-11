@@ -1,15 +1,21 @@
 name: .NET
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+trigger: 
+- master
 
-jobs:
-  build:
+pool: Default
 
-    runs-on: ubuntu-latest
+steps:
+
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '5.0.x'
+
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet build'
+  inputs:
+    command: 'build'
 
     steps:
     - uses: actions/checkout@v2
