@@ -31,7 +31,7 @@ steps:
   inputs:
     testSelector: 'testAssemblies'
     testAssemblyVer2: 'NextGenMapperTests.dll'
-    searchFolder: '**\NextGenMapperTests\bin\Release\net5.0'
+    searchFolder: 'NextGenMapperTests\bin\Release\net5.0'
     runInParallel: true
     codeCoverageEnabled: true
     testRunTitle: 'NextGenMapperTests'
