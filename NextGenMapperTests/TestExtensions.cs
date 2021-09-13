@@ -43,7 +43,7 @@ namespace NextGenMapperTests
         public static bool TestMapper(this Compilation compilation, out object source, out object destination, out string message, [CallerMemberName] string caller = "test")
         {
             var path = $@"..\..\..\Temp\{caller}.dll";
-            var result = compilation.Emit(path);
+            compilation.Emit(path);
             Assembly assembly = Assembly.LoadFrom(path);
             Type type = assembly.GetType("Test.Program");
             MethodInfo methodInfo = type.GetMethod("TestMethod");
