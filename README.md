@@ -395,4 +395,4 @@ You can follow the work on the [project board](https://github.com/DedAnton/NextG
 In order to help, it is enough to install the package and test it on your real projects, and then create an issue and describe how easy it was to use the mapper, what problems you had to face, and what could be improved.
 This information is now very valuable.
 
-You can also take tasks with the label `good first issue`. And also find mistakes in the readme.
+You can also take tasks with the label `good first issue` [here](https://github.com/DedAnton/NextGenMapper/projects/1?card_filter_query=label%3A%22good+first+issue%22). And also find mistakes in the readme.
