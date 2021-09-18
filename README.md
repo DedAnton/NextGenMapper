@@ -1,12 +1,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# Что такое Next Gen Mapper?
-Вы правильно поняли - это очередной маппер, который позволит писать ещё меньше кода, по сравнению с мапперами "предыдущего поколения", а также сравняться по производительности с мапперами, написанными вручную.
+# What is Next Gen Mapper?
+You understood correctly - this is another mapper that will allow you to write even less code compared to the "previous generation" mappers, as well as be equal in performance to hand-written mappers.
 
-# Идеология
-Мне хотелось создать инструмент, который даёт максимальную отдачу при минимальных усилиях. Не тратит много твоего времени на обучение и освоение синтаксиса. Не усложняет работу в случае нетривиальных задач. Не скрывает детали реализации.
+# Ideology
+I wanted to create a tool that gives you the most bang for your buck with the least amount of effort. Doesn't spend a lot of your time learning and mastering the syntax. Doesn't complicate work in case of non-trivial tasks. Doesn't hide implementation details.
 
-Пример:
+Example:
 
 ```C#
 using System;
@@ -31,9 +31,9 @@ namespace NextGenMapperDemo
 }
 ```
 
-Ни атрибутов, ни конфигурации, никаких лишних действий, просто подключил пакет и написал `source.Map<Destination>()`
+No attributes, no configuration, no unnecessary actions, just connected the package and wrote `source.Map <Destination> ()`
 
-И нет вопросов, а как это работает, а не смапит ли оно что-то не так, а не съест ли слишком много производительности, потому что можно просто посмотреть что за метод вызывается
+And there are no questions, but how exactly the mapping takes place, and not whether it will map something wrong, and whether it will eat too much performance, because you can just see what kind of method is called
 
 ```C#
 using NextGenMapper.Extensions;
@@ -56,20 +56,20 @@ namespace NextGenMapper
 }
 ```
 
-# Как это работает?
-Я использю новую фичу языка C# - [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/), она позволяет проанализировать написанный код и сгенерировань новые файлы, которые будут встроены в сборку.
-Вот так выглядит метод который вызывается изначально:
+# How it works?
+I am using a new feature of the C # language - [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/), it allows you to analyze the written code and generate new files that will be embedded in the assembly.
+This is how the method that is called initially looks like:
 ```C#
 public static partial class Mapper
 {
     public static To Map<To>(this object source) => throw new InvalidOperationException($""Error when mapping {source.GetType()} to {typeof(To)}, mapping function was not found. Create custom mapping function."");
 }
 ```
-Но когда мы его вызываем, генератор анализирует этот вызов, смотрит какие аргументы были переданы, и генерирует функцию для маппинга с сигнатурой `public static DestinationType Map<To>(this SourceType source)`. Хитрость в том, что сигнатуры методов идентичны, но у сгенерированного метода параметры более специфичны и подходят лучше, вызывается именно он ([такое поведение описано в спецификации](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member)). Такой подход создает некоторые проблемы, не все из которых решены, но я работаю над этим.
-Эта сгенерированная функция помещается в статический класс и мы можем использовать её где угодно.
+But when we call it, the generator analyzes this call, looks at what arguments were passed, and generates a function for mapping with the signature `public static DestinationType Map <To> (this SourceType source)`. The trick is that the method signatures are identical, but the parameters of the generated method are more specific and fit better, it is it that is called ([this behavior is described in the specification](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member)). This approach creates some problems, not all of which have been resolved, but I am working on it.
+This generated function is placed in a static class and we can use it anywhere.
 
-# Пример посложнее
-Если для мапинга необходима сложная логика, то придётся написать кастомную функцию
+# A more complex example
+If you need complex logic for mapping, then you have to write a custom function
 
 ```C#
 using System;
@@ -104,7 +104,7 @@ namespace NextGenMapperDemo
 }
 ```
 
-И вот что в итоге будет сгенерировано
+And this is what will eventually be generated
 
 ```C#
 using System;
@@ -137,9 +137,9 @@ namespace NextGenMapper
 }
 ```
 
-Но что если в классах будет только одно свойство, которое нужно смапить с особенной логикой, а остальные свойства идентичны, не писать же маппинг для каждого свойства вручную. Для этой ситуации есть решение, это так называемые частичные кастомные методы.
+But what if there is only one property in the classes that needs to be mapped with special logic, and the rest of the properties are identical, write the mapping for each property manually? There is a solution for this situation, these are the so-called partial custom methods.
 
-Изменим классы чтобы подходили для примера
+Let's change the classes to suit the example
 
 ```C#
 public record UserSource
@@ -158,7 +158,7 @@ public record UserDestination
     public string SameProperty3 { get; set; }
 }
 ```
-Напишем метод в котором укажем, как мапить FirstName и SecondName на Name и добавим к нему атрибут `[Partial]`
+Let's write a method in which we indicate how to map FirstName and SecondName to Name and add the attribute `[Partial]` to it
 
 ```C#
 [Mapper]
@@ -169,7 +169,7 @@ class CustomMaps
 }
 ```
 
-И теперь посмотрим, что же было сгенерированно
+And now let's see what was generated
 ```C#
 public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.UserSource _a___source)
 {
@@ -192,9 +192,9 @@ public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.U
 }
 ```
 
-Выглядит немного сложнее чем прошлый пример, но ничего сверхъестественного тут нет. Кастомная частичная функция, которую мы написали, преобразуется в локальную функцию, используя её мы создаём объект типа `DestinationType` с свойствами, которые мы инициализируем в кастомной функции. Затем мы создаем новый объект, подставляя в него свойства, инициализированные кастомной функцией, получая их из результата работы локальной функции, и мапим все оставшиеся свойства. После чего возвращаем этот объект как результат.
+It looks a little more complicated than the previous example, but there is nothing supernatural here. The custom partial function that we wrote is converted into a local function, using it we create an object of type `DestinationType` with properties that we initialize in the custom function. Then we create a new object, substituting into it the properties initialized by the custom function, getting them from the result of the local function, and map all the remaining properties. Then we return this object as a result.
 
-Как вы могли заметить в паследнем примере классы, а точнее записи (или рекорды), значительно изменились, мы сделали каждое свойство открытым для изменения, что не всегда хорошо. Если мы хотим сделать поля только для чтения, нам нужно будет сделать два конструктора, один мы будем использовать только для кастомной функции, а второй будет инициализировать все поля
+As you may have noticed in the past example, the classes, or rather the records, have changed significantly, we made each property open to change, which is not always good. If we want to make the fields read-only, we will need to make two constructors, one we will use only for the custom function, and the second will initialize all the fields.
 ```C#
 public record UserDestination
 {
@@ -217,7 +217,7 @@ public record UserDestination
 }
 ```
 
-Мне такой вариант не очень нравится. Другой способ, это используя новую фишку C#, пометить свойства как доступные для инициализации, то есть мы сможем инициализировать их при создании объекта, но не сможем их потом изменить, то что нужно (это не фишка рекордов, с классами это тоже работает)
+I don't really like this option. Another way is to use a new C # trick to mark properties as available for initialization, that is, we can initialize them when creating an object, but we cannot change them later, what is needed (this is not a record feature, this also works with classes)
 ```C#
 public class UserDestination
 {
@@ -228,9 +228,9 @@ public class UserDestination
 }
 ```
 
-Но это не всё, есть третий вариант, очень необычный, эксперементальный, не по назначению использующий синтаксис языка.
+But that's not all, there is a third option, a very unusual, experimental one that uses the syntax of the language inappropriately.
 
-Оставим в `UserDestination` только один конструктор с свойствами только для чтения
+Leave in `UserDestination` only one constructor with read-only properties
 ```C#
 public class UserDestination
 {
@@ -249,15 +249,15 @@ public class UserDestination
 }
 ```
 
-И теперь напишем кастомную функцию для маппинга
+And now let's write a custom mapping function
 ```C#
 [Partial]
 UserDestination MyMap(UserSource src) => new UserDestination($"{src.FirstName} {src.SecondName}", default, default, default);
 ```
 
-Да, мы просто передайм `default` в качестве аргументов, которые мы не хотим мапить вручную. Я понимаю, что не все это оценят, и тут есть о чем поспорить, хотя бы о том, что все равно нужно что-то писать, и если будет десять таких свойств, то десять раз придётся писать `default`, но мне всё равно нравится этот способ, и я лично буду использовать его иногда. 
+Yes, we just pass `default` as arguments, which we don't want to manually map. I understand that not everyone will appreciate this, and there is something to argue about, at least about the fact that you still need to write something, and if there are ten such properties, then ten times will have to write `default`, but I don't care like this way and I personally will use it sometimes.
 
-А вот что получается в сгенерированном файле
+And here is what happens in the generated file
 ```C#
 public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.UserSource src) => new NextGenMapperDemo.UserDestination
 (
@@ -271,24 +271,24 @@ public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.U
 };
 ```
 
-# Приемущества
-Говоря о приемуществах я буду сравнивать Next Gen Mapper с типичными мапперами, вроде AutoMapper.
+# Advantages
+I will be comparing Next Gen Mapper with typical mappers like AutoMapper.
 
-- Меньше объем кода
-- Проще научится пользоваться, нет множетсва специальных методов, особого синтаксиса для описания кофигурации маппинга
-- Производительность на уровне написанного вручную маппера
-- То, как будет проведен маппинг не скрывается, можно посмотреть на сгенерированный метод, нажав F12 (Go to definition), поставить точку останова, подебажить его в случае необходимости
-- Не тратится лишнее время при работе приложения, потому что функции для маппинга генерируются во время компиляции
-- Меньше ошибок в рантайме, например, если вы неправильно написали кастомный метод, или забыли добавить публичный конструктор к классу, вы узнаете об это на этапе компиляции. У мапперов обычно есть метод, который можно запускать в тестах, который проверяет, правильно ли был сконфигурирован маппинг, но я считаю, что это менее удобно чем диагностики в visual studio
-- Меньше библиотек на выходе, сгенерированные классы добавляются в сборку пользователя, а сама библиотека NextGenMapper для работы приложения не нужна
+- Less code size
+- Easier to learn to use, there are no many special methods, special syntax for describing the mapping configuration
+- Performance like a hand-written mapper
+- How the mapping will be carried out is not hidden, you can look at the generated method by pressing F12 (Go to definition), set a breakpoint, debug it if necessary
+- No extra time wasted when the application is running, because the mapping functions are generated at compile time
+- Fewer runtime errors, for example, if you wrote a custom method incorrectly, or forgot to add a public constructor to a class, you will find out about this at compile time. Mappers usually have a method that can be run in tests that checks if the mapping has been configured correctly, but I find it less convenient than diagnostics in visual studio
+- Fewer libraries in the output, generated classes are added to the user's assembly, and the NextGenMapper library itself is not needed for the application to work
 
-# Недостатки
-- Технология Source Generators всё ещё сыровата, например, приходится перезапускать студию чтобы IntelliSense начала работать с генератором (вроде только один раз при подключении пакета), также я испытывал некоторые проблемы при разработке, у меня несколько раз ломалась студи (позже я смог с этим справится)
-- Необходимо использовать .NET 5, не возможно использовать в старых проектах
-- Можно не заметить как что-то сломалось, достаточно изменить какие-то поля в классе, или его конструктор, и функция для маппига сгенерируется заного, и возможно с ошибками, хотя в идеале пользователю должна показаться ошибка в диагностиках, и я думаю, что от этой проблемы можно почти польностью избавится. (Подобная проблема может быть и в других мапперах) 
+# Disadvantages
+- The Source Generators technology is still damp, for example, you have to restart the studio for IntelliSense to start working with the generator (it seems like only once when connecting the package), I also experienced some problems during development, my studio broke several times (later I was able to cope with this )
+- It is necessary to use .NET 5, it is not possible to use in old projects
+- You may not notice how something is broken, it is enough to change some fields in the class, or its constructor, and the function for the mappig will be generated incorrectly, and possibly with errors, although ideally the user should see an error in diagnostics, and I think that this problem can be almost completely eliminated. (A similar problem may exist in other mappers)
 
-# Коллекции
-На данный момент поддерживается маппинг для следуюущих типов коллекций
+# Collections
+Currently, mapping is supported for the following collection types
 - List
 - Array
 - ICollection_T,
@@ -297,9 +297,9 @@ public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.U
 - IReadOnlyCollection_T,
 - IReadOnlyList_T
 
-В планах добавить поддержку иммутабельных коллекций
+Plans to add support for immutable collections
 
-Апи для маппинга коллекций ничем не отличается
+The api for mapping collections is no different
 ```C#
 class Program
 {
@@ -317,7 +317,7 @@ public record UserSource(string FirstName, string SecondName);
 public record UserDestination(string FirstName, string SecondName);
 ```
 
-При этом генерируется два метода, для маппинга `UserSource` в `UserDestination`, и для мапинга `UserSource[]` в `UserDestination[]`
+This generates two methods, for mapping `UserSource` to` UserDestination`, and for mapping `UserSource []` into `UserDestination []`
 ```C#
 public static NextGenMapperDemo.UserDestination Map<To>(this NextGenMapperDemo.UserSource source) => new NextGenMapperDemo.UserDestination
 (
@@ -332,8 +332,8 @@ public static NextGenMapperDemo.UserDestination[] Map<To>(this NextGenMapperDemo
     => sources.Select(x => x.Map<NextGenMapperDemo.UserDestination>()).ToArray();
 ```
 
-# Перечисления
-Перечисления мапятся по простому правилу, если есть заданное в коде значение, то мапится по нему, если нет, то по имени
+# Enumerations
+Enumerations are mapped according to a simple rule, if there is a value specified in the code, then it is mapped by it, if not, then by name
 ```C#
 class Program
 {
@@ -364,7 +364,7 @@ public enum DestinationEnum
 }
 ```
 
-и сгенерированная функция для маппинга
+and the generated mapping function
 ```C#
 public static NextGenMapperDemo.DestinationEnum Map<To>(this NextGenMapperDemo.SourceEnum source) => source switch
 {
@@ -376,21 +376,23 @@ public static NextGenMapperDemo.DestinationEnum Map<To>(this NextGenMapperDemo.S
 };
 ```
  
-# Как использовать
-Достаточно просто подключить пакет `NextGenMapper`. Для работы необходим .NET 5
+# How to use
+It is enough just to include the package `NextGenMapper`. .NET 5 is required to work
 ```
-dotnet add package NextGenMapper --prerelease
+PM> Install-Package NextGenMapper -prerelease
 ```
-:hammer_and_wrench: в данный момент это сделать невозможно, я не добавил пакет в nuget, но я скоро это исправлю
+add `using NextGenMapper;` in class where you want to use mapping.
 
-# Какая-то тактика которой я придерживаюсь
-В данный момент Next Gen Mapper нельзя использовать в серьёзный проектах, и первостепенная задача это довести его до состояния, когда его можно будет использовать в продакшене.
-Для этого необходимо добавить все базовые функции (большая чать уже добавлена), поработать над производительностью, а также обеспечить стабильность.
+You may need to restart Visual Studio for intelliSense to start working with the generator.
 
-Следить за работой можно на [доске проекта](https://github.com/DedAnton/NextGenMapper/projects/1)
+# Plans
+At the moment, Next Gen Mapper cannot be used in serious projects, and the primary task is to bring it to a state where it can be used in production.
+To do this, you need to add all the basic functions (a lot has already been added), work on performance, and also ensure stability.
 
-# Чем помочь
-Для того чтобы помочь достаточно установить пакет и опробовать его на своих реальных проектах, а затем создать issue и описать, насколько просто было использовать маппер, с какими проблемами пришлось столкнуться, и что можно улучшить.
-Эта информация сейчас очень ценна.
+You can follow the work on the [project board](https://github.com/DedAnton/NextGenMapper/projects/1)
 
-Также можно брать задачи с лейблом `good first issue`, подробнее [тут]()
+# How can I help
+In order to help, it is enough to install the package and test it on your real projects, and then create an issue and describe how easy it was to use the mapper, what problems you had to face, and what could be improved.
+This information is now very valuable.
+
+You can also take tasks with the label `good first issue`. And also find mistakes in the readme.
