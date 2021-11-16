@@ -12,10 +12,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     public class ClassPartialMapDesigner
     {
         private readonly ClassMapDesigner _classMapDesigner;
+        private readonly DiagnosticReporter _diagnosticReporter;
 
-        public ClassPartialMapDesigner()
+        public ClassPartialMapDesigner(DiagnosticReporter diagnosticReporter)
         {
-            _classMapDesigner = new();
+            _classMapDesigner = new(diagnosticReporter);
+            _diagnosticReporter = diagnosticReporter;
         }
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
@@ -23,7 +25,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var objCreationExpression = userMethod.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
-                throw new ArgumentException($"Error when create mapping for method \"{userMethod}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
+                _diagnosticReporter.ReportObjectCreationExpressionNotFoundError(userMethod.GetLocation(), from, to);
+                return new();
             }
             var byConstructor = userConstructor.GetParametersNames();
             var byInitialyzer = objCreationExpression.GetInitializersLeft();
@@ -31,7 +34,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var constructor = from.GetOptimalConstructor(to, byUser);
             if (constructor == null)
             {
-                throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} does not have a suitable constructor");
+                _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
+                return new();
             }
 
             var maps = new List<ClassMap>();
@@ -44,7 +48,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
                     (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
-                    (IParameterSymbol parameter, true) => MemberMap.User(to.FindProperty(parameter.Name)!, parameter),//TODO: parameter must have same name as property
+                    //TODO: parameter must have same name as property. try this "to.FindProperty(parameter.Name) is IPropertySymbol property ? MemberMap.User(property, parameter) : null"
+                    (IParameterSymbol parameter, true) => MemberMap.User(to.FindProperty(parameter.Name)!, parameter),
                     (IPropertySymbol property, true) => MemberMap.User(property),
                     _ => null
                 };

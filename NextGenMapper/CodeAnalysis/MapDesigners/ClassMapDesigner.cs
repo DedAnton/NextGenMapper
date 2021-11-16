@@ -10,9 +10,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     public class ClassMapDesigner
     {
         private readonly List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory = new();
+        private readonly DiagnosticReporter _diagnosticReporter;
 
-        public ClassMapDesigner()
-        { }
+        public ClassMapDesigner(DiagnosticReporter diagnosticReporter)
+        {
+            _diagnosticReporter = diagnosticReporter;
+        }
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
@@ -22,17 +25,17 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
             if (_referencesHistory.Contains((from, to), new ReferencesEqualityComparer()))
             {
-                //add diagnostics
-                throw new ArgumentException("Circular reference was found." + string.Join(" => ", _referencesHistory.Select(x => $"{x.from} to {x.to}")));
+                _diagnosticReporter.ReportCircularReferenceError(to.Locations, _referencesHistory.Select(x => x.from).Append(from));
+                return new();
             }
             _referencesHistory.Add((from, to));
 
             var constructor = from.GetOptimalConstructor(to, new List<string>());
             if (constructor == null)
             {
-                //TODO: diagnostics
+                //TODO: выяснить, когда и почему конструктор может быть не найден, для всех остальных случаев включить диагностику
+                //_diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
                 return new();
-                //throw new ArgumentException($"Error when create mapping from {from} to {to}, {to} does not have a suitable constructor");
             }
 
             var maps = new List<ClassMap>();

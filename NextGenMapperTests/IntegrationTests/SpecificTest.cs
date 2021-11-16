@@ -60,7 +60,7 @@ if (!isValid) throw new MapFailedException(sourceA, destinationA);";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
             var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
-            Assert.IsTrue(generatorDiagnostics.Any(x => x.GetMessage().Contains("Circular reference was found")));
+            Assert.IsTrue(generatorDiagnostics.Any(x => x.Id == "NGM001"));
         }
     }
 }

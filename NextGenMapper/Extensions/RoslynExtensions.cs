@@ -29,10 +29,6 @@ namespace NextGenMapper.Extensions
             .OfType<string>()
             .ToList() ?? new List<string>();
 
-        public static bool HasSingleParameterWithType(this MethodDeclarationSyntax node)
-            => node.ParameterList.Parameters.SingleOrDefault() is ParameterSyntax parameter
-            && parameter?.Type is not null;
-
         public static List<MethodDeclarationSyntax> GetMethodsDeclarations(this ClassDeclarationSyntax node)
             => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
 
@@ -102,7 +98,7 @@ namespace NextGenMapper.Extensions
             => method.Body?.Statements.ToList() ?? new();
 
         public static ReturnStatementSyntax GetReturnStatement(this BaseMethodDeclarationSyntax method)
-            => method.GetStatements().OfType<ReturnStatementSyntax>().Single();
+            => method.GetStatements().OfType<ReturnStatementSyntax>().Last();
 
         public static bool IsPrivitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
 

@@ -19,10 +19,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             SpecialType.System_Collections_Generic_IReadOnlyList_T
         };
         private readonly ClassMapDesigner _classMapDesigner;
+        private readonly DiagnosticReporter _diagnosticReporter;
 
-        public CollectionMapDesigner()
+        public CollectionMapDesigner(DiagnosticReporter diagnosticReporter)
         {
-            _classMapDesigner = new();
+            _classMapDesigner = new(diagnosticReporter);
+            _diagnosticReporter = diagnosticReporter;
         }
 
         public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
@@ -36,7 +38,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             };
             if (collectionType == CollectionType.Undefined)
             {
-                throw new ArgumentException($"Error when mappig {from} to {to}. Collection type was undefined. Use List<T> or interfaces implemented by List<T>");
+                _diagnosticReporter.ReportUndefinedCollectionTypeError(to.Locations);
+                return new();
             }
 
             var elementTypeFrom = GetCollectionElementType(from);
@@ -54,6 +57,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             {
                 IArrayTypeSymbol array => array.ElementType,
                 INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments.Single(),
+                //TODO: придумать, как нормально обработать такой случай, вывести диагностику и не свалиться
                 _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
             };
     }

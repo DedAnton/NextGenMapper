@@ -10,14 +10,19 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class EnumMapDesigner
     {
-        public EnumMapDesigner()
-        { }
+        private readonly DiagnosticReporter _diagnosticReporter;
+
+        public EnumMapDesigner(DiagnosticReporter diagnosticReporter)
+        {
+            _diagnosticReporter = diagnosticReporter;
+        }
 
         public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
             if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration 
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
+                //TODO: research: do this real case?
                 throw new ArgumentException("enum must have declaration");
             }
             var fromFields = fromDeclaration.GetFields();
@@ -36,9 +41,9 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
                 else
                 {
-                    //add diagnostic
+                    _diagnosticReporter.ReportUnmappedEnumValueError(from.Locations, from, to, fromField.Name);
                 }
-                //add diagnostic if 'to' has unmapped values 
+                //TODO: add warning diagnostic if 'to' has unmapped values 
             }
 
             return new EnumMap(from, to, valuesMappings);

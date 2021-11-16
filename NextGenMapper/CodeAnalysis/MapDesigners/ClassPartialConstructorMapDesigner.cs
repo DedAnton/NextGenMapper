@@ -12,10 +12,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     public class ClassPartialConstructorMapDesigner
     {
         private readonly ClassMapDesigner _classMapDesigner;
+        private readonly DiagnosticReporter _diagnosticReporter;
 
-        public ClassPartialConstructorMapDesigner()
+        public ClassPartialConstructorMapDesigner(DiagnosticReporter diagnosticReporter)
         {
-            _classMapDesigner = new();
+            _classMapDesigner = new(diagnosticReporter);
+            _diagnosticReporter = diagnosticReporter;
         }
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol constructor, MethodDeclarationSyntax methodSyntax)
@@ -23,7 +25,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var objCreationExpression = methodSyntax.GetObjectCreateionExpression();
             if (objCreationExpression == null)
             {
-                throw new ArgumentException($"Error when create mapping for method \"{methodSyntax}\", object creation expression was not found. Partial methods must end with object creation like \"return new Class()\"");
+                _diagnosticReporter.ReportObjectCreationExpressionNotFoundError(methodSyntax.GetLocation(), from, to);
+                return new();
             }
 
             var argumentByParameterName = objCreationExpression.ArgumentList?.Arguments
