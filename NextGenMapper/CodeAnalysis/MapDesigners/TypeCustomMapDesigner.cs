@@ -6,11 +6,9 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class TypeCustomMapDesigner
     {
-        private readonly SemanticModel _semanticModel;
-
-        public TypeCustomMapDesigner(SemanticModel semanticModel)
+        public TypeCustomMapDesigner()
         {
-            _semanticModel = semanticModel;
+
         }
 
         public TypeCustomMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)

@@ -43,7 +43,7 @@ namespace NextGenMapper
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
                 return;
 
-            foreach (var mapperClassDeclaration in receiver.mapperClassDeclarations)
+            foreach (var mapperClassDeclaration in receiver.MapperClassDeclarations)
             {
                 if (mapperClassDeclaration.SemanticModel.GetDeclaredSymbol(mapperClassDeclaration.Node).HasAttribute(Annotations.MapperAttributeFullName))
                 {
@@ -56,7 +56,7 @@ namespace NextGenMapper
                 }
             }
 
-            foreach (var mapMethodInvocation in receiver.mapMethodInvocations)
+            foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
             {
                 if (mapMethodInvocation.SemanticModel.GetSymbol(mapMethodInvocation.Node.Expression) is IMethodSymbol method
                     && method.MethodKind == MethodKind.ReducedExtension
@@ -144,7 +144,7 @@ namespace NextGenMapper
                 }
                 else
                 {
-                    var designer = new TypeCustomMapDesigner(semanticModel);
+                    var designer = new TypeCustomMapDesigner();
                     maps.Add(designer.DesignMapsForPlanner(from, to, method));
                 }
 

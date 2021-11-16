@@ -35,7 +35,7 @@ namespace Benchmark.Benchmarks
             var sw = new Stopwatch();
             sw.Start();
 
-            driver.RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out var diagnostics);
+            driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _);
 
             var elapsed = sw.Elapsed;
 

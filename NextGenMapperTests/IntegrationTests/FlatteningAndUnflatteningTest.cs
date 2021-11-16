@@ -707,8 +707,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
             Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
             var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
             Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
-
-            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            var testResult = userSourceCompilation.TestMapper(out _, out _, out var message);
             Assert.IsTrue(testResult == false && message == "Error when mapping Test.UserFlat to Test.User, mapping function was not found. Create custom mapping function.");
         }
 
