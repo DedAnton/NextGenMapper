@@ -30,7 +30,7 @@ namespace NextGenMapper
                 _ => throw new ArgumentOutOfRangeException(nameof(map))
             };
 
-        private string GenerateCollectionMapFunction(CollectionMap map) => 
+        private string GenerateCollectionMapFunction(CollectionMap map) =>
 $@"public static {map.To} Map<To>(this {map.From} sources)
     => sources.Select(x => x.Map<{map.ItemTo}>()){(map.CollectionType == CollectionType.List ? ".ToList()" : ".ToArray()")};";
 

@@ -1,6 +1,6 @@
 ﻿namespace NextGenMapper
 {
-    public enum  MethodType
+    public enum MethodType
     {
         Block,
         Expression

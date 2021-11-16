@@ -41,7 +41,9 @@ namespace NextGenMapper
         public void Execute(GeneratorExecutionContext context)
         {
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+            {
                 return;
+            }
 
             foreach (var mapperClassDeclaration in receiver.MapperClassDeclarations)
             {
@@ -49,7 +51,7 @@ namespace NextGenMapper
                 {
                     var usings = mapperClassDeclaration.Node.GetUsingsAndNamespace();
                     var maps = HandleCustomMapperClass(mapperClassDeclaration.SemanticModel, mapperClassDeclaration.Node);
-                    foreach(var map in maps)
+                    foreach (var map in maps)
                     {
                         AddMapToPlanner(map, usings);
                     }
@@ -70,7 +72,7 @@ namespace NextGenMapper
                     {
                         AddMapToPlanner(map, new());
                     }
-                } 
+                }
             }
 
             var commonMappers = GenerateCommonMapper();

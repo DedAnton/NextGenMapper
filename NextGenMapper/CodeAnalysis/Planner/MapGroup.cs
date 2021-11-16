@@ -9,7 +9,7 @@ namespace NextGenMapper.CodeAnalysis
         public List<string> Usings { get; } = new();
         public MapPriority Priority { get; }
 
-        public MapGroup(TypeMap map, List<string> usings, MapPriority priority) 
+        public MapGroup(TypeMap map, List<string> usings, MapPriority priority)
         {
             Maps.Add(map);
             Usings = usings;

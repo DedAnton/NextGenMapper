@@ -19,7 +19,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
-            if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration 
+            if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
                 //TODO: research: do this real case?

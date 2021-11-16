@@ -8,7 +8,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public ITypeSymbol ItemTo { get; }
         public CollectionType CollectionType { get; }
 
-        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo,  CollectionType collectionType)
+        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo, CollectionType collectionType)
             : base(from, to)
         {
             ItemFrom = itemFrom;

@@ -92,7 +92,7 @@ namespace NextGenMapper.CodeAnalysis
             => node.GetUsings().Append($"using {node.GetNamespace()};").ToList();
 
         public static (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
-            this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
+            this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => type
             .GetProperties()
             .SelectMany(flatten => flatten.Type

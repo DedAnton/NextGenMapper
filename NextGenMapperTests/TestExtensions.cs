@@ -29,9 +29,9 @@ namespace NextGenMapperTests
         );
 
         public static Compilation RunGenerators(
-            this string sourceCode, 
+            this string sourceCode,
             out ImmutableArray<Diagnostic> diagnostics,
-            [CallerMemberName] string caller = "test", 
+            [CallerMemberName] string caller = "test",
             params ISourceGenerator[] generators)
         {
             var compilation = sourceCode.CreateCompilation(caller);
@@ -70,7 +70,7 @@ namespace NextGenMapperTests
 
         public static string GetObjectsString(object source, object destination, string message)
         {
-            var sourceJson = JsonSerializer.Serialize(source, new JsonSerializerOptions{ WriteIndented = true });
+            var sourceJson = JsonSerializer.Serialize(source, new JsonSerializerOptions { WriteIndented = true });
             var destinationJson = JsonSerializer.Serialize(destination, new JsonSerializerOptions { WriteIndented = true });
 
             var sourceLines = sourceJson.Split("\r\n");
@@ -132,13 +132,13 @@ namespace Test
             MapDestination = destination;
         }
     }
-" 
+"
     + classes +
 @"
     [Mapper]
     public class CustomMapper
     {
-"   + customMapping +
+" + customMapping +
 @"
     }
 }

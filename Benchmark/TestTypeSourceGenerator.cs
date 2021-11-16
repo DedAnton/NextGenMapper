@@ -25,12 +25,12 @@ public enum DestinationEnum
         }
 
         public static string GenerateClassMapPair(
-            int propertiesCount, 
-            int byConstructorCount, 
-            int nestedTypesCount, 
-            int nestedTypesDepth, 
-            string nestedTypesPrefix = "Nested", 
-            string nameFrom = "Source", 
+            int propertiesCount,
+            int byConstructorCount,
+            int nestedTypesCount,
+            int nestedTypesDepth,
+            string nestedTypesPrefix = "Nested",
+            string nameFrom = "Source",
             string nameTo = "Destination")
         {
             var properties = Enumerable.Range(0, propertiesCount).Select(

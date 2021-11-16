@@ -49,14 +49,14 @@ namespace NextGenMapper.Extensions
         public static IReadOnlyList<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
             => type.As<INamedTypeSymbol>()?.Constructors.Where(x => x.DeclaredAccessibility == Accessibility.Public).ToList() ?? new();
 
-        public static IReadOnlyList<IMethodSymbol> OrderByParametersDesc(this IEnumerable<IMethodSymbol> methods) 
+        public static IReadOnlyList<IMethodSymbol> OrderByParametersDesc(this IEnumerable<IMethodSymbol> methods)
             => methods.OrderByDescending(x => x.Parameters.Length).ToList();
 
         public static List<IParameterSymbol> GetParameters(this IMethodSymbol method) => method.Parameters.ToList();
 
         public static List<string> GetParametersNames(this IMethodSymbol method) => method.Parameters.Select(x => x.Name).ToList();
 
-        public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase) 
+        public static IParameterSymbol? FindParameter(this IMethodSymbol method, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
             => method?.Parameters.FirstOrDefault(x => x.Name.Equals(name, comparision));
 
         public static List<IPropertySymbol> GetProperties(this ITypeSymbol type)

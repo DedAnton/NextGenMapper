@@ -11,7 +11,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public string ParameterName { get; }
 
         public TypeCustomMap(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
-            :base(from, to)
+            : base(from, to)
         {
             ExpressionBody = method.ExpressionBody;
             Body = method.Body;

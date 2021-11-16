@@ -16,7 +16,7 @@ namespace NextGenMapper.Extensions
 
         public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
         {
-            foreach(var item in collection)
+            foreach (var item in collection)
             {
                 action(item);
             }
@@ -27,7 +27,7 @@ namespace NextGenMapper.Extensions
         public static IEnumerable<T> Complement<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer) => first.Union(second, comparer).Except(second, comparer);
 
         public static IEnumerable<string> Complement(this IEnumerable<string> first, IEnumerable<string> second) => first.Union(second, StringComparer.InvariantCultureIgnoreCase).Except(second, StringComparer.InvariantCultureIgnoreCase);
-        
+
         public static void AddIfNotNull<T>(this List<T> list, T? item)
         {
             if (item is not null)
@@ -36,6 +36,6 @@ namespace NextGenMapper.Extensions
             }
         }
 
-        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> collectionWithNulls) => collectionWithNulls.OfType<T>(); 
+        public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> collectionWithNulls) => collectionWithNulls.OfType<T>();
     }
 }

@@ -20,7 +20,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
         public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
 
-        public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null) 
+        public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null)
             => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, false, flattenPropertyName);
 
         public static MemberMap Initializer(IPropertySymbol from, IPropertySymbol to, string? flattenPropertyName = null)

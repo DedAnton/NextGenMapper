@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace NextGenMapper
 {
-    partial class SyntaxReceiver : ISyntaxContextReceiver
+    internal partial class SyntaxReceiver : ISyntaxContextReceiver
     {
         private const string MAP_METHOD_NAME = "Map";
         public List<MapMethodInvocation> MapMethodInvocations { get; } = new();

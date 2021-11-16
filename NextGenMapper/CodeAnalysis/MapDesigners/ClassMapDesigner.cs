@@ -143,7 +143,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            foreach(var member in toMembers)
+            foreach (var member in toMembers)
             {
                 var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
                 MemberMap? map = (fromProperty, member) switch

@@ -71,8 +71,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            var customStatements = userMethod.Body != null 
-                ? userMethod.Body.Statements.ToList() 
+            var customStatements = userMethod.Body != null
+                ? userMethod.Body.Statements.ToList()
                 : new() { SyntaxFactory.ReturnStatement(objCreationExpression).NormalizeWhitespace() };
             var customParameterName = userMethod.ParameterList.Parameters.First().Identifier.Text;
 

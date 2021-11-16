@@ -3,9 +3,9 @@ using BenchmarkDotNet.Running;
 
 namespace Benchmark
 {
-    class Program
+    internal class Program
     {
-        static void Main()
+        private static void Main()
         {
             BenchmarkRunner.Run<MapDesignerBenchmark>();
             //BenchmarkRunner.Run<Experiments>();

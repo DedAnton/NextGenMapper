@@ -7,12 +7,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.Extensions;
 using NextGenMapperTests;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Benchmark.Benchmarks
 {
@@ -53,7 +49,7 @@ public namespace Test
         {
             var fields = new List<EnumField>(enumDeclaration.Members.Count);
 
-            foreach(var member in enumDeclaration.Members)
+            foreach (var member in enumDeclaration.Members)
             {
                 fields.Add(new EnumField(
                     member.Identifier.ValueText,
@@ -76,7 +72,7 @@ public namespace Test
         private string textFrom;
         private string textTo;
 
-        [GlobalSetup( Targets = new string[] { nameof(Symbol), nameof(Text), nameof(TextFromSymbol) })]
+        [GlobalSetup(Targets = new string[] { nameof(Symbol), nameof(Text), nameof(TextFromSymbol) })]
         public void SetumEqualabilityBenchmark()
         {
             var classes = TestTypeSourceGenerator.GenerateClassMapPair(10, 0, 0, 0, "Nested", "Source", "Destination");
