@@ -50,7 +50,7 @@ namespace NextGenMapper.Extensions
             => type.As<INamedTypeSymbol>()?.Constructors.Where(x => x.DeclaredAccessibility == Accessibility.Public).ToList() ?? new();
 
         public static IReadOnlyList<IMethodSymbol> OrderByParametersDesc(this IEnumerable<IMethodSymbol> methods) 
-            => methods.OrderByDescending(x => x.Parameters.Count()).ToList();
+            => methods.OrderByDescending(x => x.Parameters.Length).ToList();
 
         public static List<IParameterSymbol> GetParameters(this IMethodSymbol method) => method.Parameters.ToList();
 

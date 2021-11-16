@@ -14,7 +14,7 @@ namespace NextGenMapper.CodeAnalysis
         {
             byUser ??= new List<string>();
             var constructors = to.GetPublicConstructors().OrderByParametersDesc();
-            if (constructors.Count() == 0)
+            if (constructors.Count == 0)
             {
                 return null;
             }

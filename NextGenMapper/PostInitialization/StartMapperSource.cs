@@ -2,8 +2,8 @@
 {
     public static class StartMapperSource
     {
-        public static string FunctionFullName = "NextGenMapper.Mapper.Map<To>(object)";
-        public static string StartMapper =
+        public static string FunctionFullName { get; set; } = "NextGenMapper.Mapper.Map<To>(object)";
+        public static string StartMapper { get; set; } =
 @"using System;
 
 namespace NextGenMapper

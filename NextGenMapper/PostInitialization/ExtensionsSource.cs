@@ -2,7 +2,7 @@
 {
     public static class ExtensionsSource
     {
-        public static string Source =
+        public static string Source { get; set; } =
 
 @"using System;
 using System.Collections.Generic;

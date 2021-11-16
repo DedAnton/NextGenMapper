@@ -8,7 +8,7 @@ namespace NextGenMapper.Extensions
     {
         public static void ForEachIndex<T>(this List<T> list, Action<int, T> action)
         {
-            for (var i = 0; i < list.Count(); i++)
+            for (var i = 0; i < list.Count; i++)
             {
                 action(i, list[i]);
             }

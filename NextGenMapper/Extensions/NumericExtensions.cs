@@ -16,7 +16,7 @@ namespace NextGenMapper.Extensions
                 long => (long)number,
                 ulong => (long)number,
                 //TODO: handle this exception and add diagnostic
-                _ => throw new ArgumentOutOfRangeException($"{nameof(number)} must be sbyte, byte, short, ushort, int, uint or long. (ulong is supported but casting to long)")
+                _ => throw new ArgumentOutOfRangeException(nameof(number), $"{nameof(number)} must be sbyte, byte, short, ushort, int, uint or long. (ulong is supported but casting to long)")
             };
     }
 }

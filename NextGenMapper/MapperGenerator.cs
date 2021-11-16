@@ -113,7 +113,7 @@ namespace NextGenMapper
                 {
                     continue;
                 }
-                if (userMethod.Parameters.Count() != 1)
+                if (userMethod.Parameters.Length != 1)
                 {
                     _diagnosticReporter.ReportParameterNotFoundError(method.GetLocation());
                     continue;

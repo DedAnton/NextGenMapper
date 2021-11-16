@@ -27,7 +27,7 @@ namespace NextGenMapper
                 EnumMap enumMap => GenerateEnumMapFunction(enumMap),
                 ClassMap classMap when !classMap.IsUnflattening => GenerateClassMapFunction(classMap),
                 ClassMap unflattenClassMap when unflattenClassMap.IsUnflattening => GenerateUnflattenClassMapFunction(unflattenClassMap),
-                _ => throw new ArgumentOutOfRangeException()
+                _ => throw new ArgumentOutOfRangeException(nameof(map))
             };
 
         private string GenerateCollectionMapFunction(CollectionMap map) => 
