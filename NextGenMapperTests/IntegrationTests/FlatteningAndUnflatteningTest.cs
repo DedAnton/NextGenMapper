@@ -1,6 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
-
+using System.Linq;
 
 namespace NextGenMapperTests.IntegrationTests
 {
@@ -704,11 +704,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
             var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
-            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
-            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
-            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
-            var testResult = userSourceCompilation.TestMapper(out _, out _, out var message);
-            Assert.IsTrue(testResult == false && message == "Error when mapping Test.UserFlat to Test.User, mapping function was not found. Create custom mapping function.");
+            Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM002");
         }
 
     }

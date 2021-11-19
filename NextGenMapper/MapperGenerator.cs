@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
@@ -49,7 +50,10 @@ namespace NextGenMapper
             {
                 if (mapperClassDeclaration.SemanticModel.GetDeclaredSymbol(mapperClassDeclaration.Node).HasAttribute(Annotations.MapperAttributeFullName))
                 {
-                    var usings = mapperClassDeclaration.Node.GetUsingsAndNamespace();
+                    var usings = mapperClassDeclaration.Node
+                        .GetUsings()
+                        .Append($"using {mapperClassDeclaration.Node.GetNamespace()};")
+                        .ToList();
                     var maps = HandleCustomMapperClass(mapperClassDeclaration.SemanticModel, mapperClassDeclaration.Node);
                     foreach (var map in maps)
                     {
@@ -60,11 +64,11 @@ namespace NextGenMapper
 
             foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
             {
-                if (mapMethodInvocation.SemanticModel.GetSymbol(mapMethodInvocation.Node.Expression) is IMethodSymbol method
+                if (mapMethodInvocation.SemanticModel.GetSymbolInfo(mapMethodInvocation.Node.Expression).Symbol is IMethodSymbol method
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.FunctionFullName
                     && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapMethodInvocation.SemanticModel.GetSymbol(memberAccess.Expression) is ILocalSymbol invocatingVariable
+                    && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
                     && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
                 {
                     var maps = MapInvocation(invocatingVariable.Type, method.ReturnType);
@@ -109,7 +113,7 @@ namespace NextGenMapper
         private List<TypeMap> HandleCustomMapperClass(SemanticModel semanticModel, ClassDeclarationSyntax node)
         {
             var maps = new List<TypeMap>();
-            foreach (var method in node.GetMethodsDeclarations())
+            foreach (var method in GetMethodsDeclarations(node))
             {
                 if (semanticModel.GetDeclaredSymbol(method) is not IMethodSymbol userMethod)
                 {
@@ -131,7 +135,7 @@ namespace NextGenMapper
                 if (userMethod.Parameters.Length == 1
                     && userMethod.HasAttribute(Annotations.PartialAttributeName)
                     && method.GetObjectCreateionExpression() is { } objCreationExpression
-                    && semanticModel.GetSymbol(objCreationExpression) is IMethodSymbol constructor)
+                    && semanticModel.GetSymbolInfo(objCreationExpression).Symbol is IMethodSymbol constructor)
                 {
                     if (objCreationExpression.ArgumentList?.Arguments.Any(x => x.IsDefaultLiteralExpression()) == true)
                     {
@@ -184,5 +188,8 @@ namespace NextGenMapper
 
             return customMappers.ToList();
         }
+
+        private List<MethodDeclarationSyntax> GetMethodsDeclarations(ClassDeclarationSyntax node)
+            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
     }
 }

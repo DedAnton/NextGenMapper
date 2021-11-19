@@ -23,8 +23,8 @@ namespace NextGenMapper
         public string GenerateMappingFunction(TypeMap map)
             => map switch
             {
-                TypeCustomMap { MethodType: MethodType.Block } customBlockMap => GenerateCustomMapBlockFunction(customBlockMap),
-                TypeCustomMap { MethodType: MethodType.Expression } customExpressionMap => GenerateCustomMapExpressionFunction(customExpressionMap),
+                TypeCustomMap { MethodType: MethodBodyType.Block } customBlockMap => GenerateCustomMapBlockFunction(customBlockMap),
+                TypeCustomMap { MethodType: MethodBodyType.Expression } customExpressionMap => GenerateCustomMapExpressionFunction(customExpressionMap),
                 ClassPartialMap partialMap => GeneratePartialMapFunction(partialMap),
                 ClassPartialConstructorMap partialConstructorMap => GeneratePartialConstuctorMapFunction(partialConstructorMap),
                 _ => throw new ArgumentOutOfRangeException(map.GetType().ToString())

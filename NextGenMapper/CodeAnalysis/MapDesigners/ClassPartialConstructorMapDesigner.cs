@@ -31,18 +31,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var argumentByParameterName = objCreationExpression.ArgumentList?.Arguments
                 .Where(x => !x.IsDefaultLiteralExpression())
-                .Select(x => new { Argument = x, ParameterName = constructor.GetConstructorParameter(x).Name })
+                .Select(x => new { Argument = x, ParameterName = GetConstructorParameter(constructor, x).Name })
                 .ToDictionary(x => x.ParameterName, x => x.Argument, StringComparer.InvariantCultureIgnoreCase) ?? new();
 
             var initializerByPropertyName = objCreationExpression.Initializer?.Expressions
                 .OfType<InitializerExpressionSyntax>()
-                .Select(x => new { Initializer = x, PropertyName = x.GetInitializerLeft() })
+                .Select(x => new { Initializer = x, PropertyName = GetInitializerLeft(x) })
                 .Where(x => x.PropertyName != null)
                 .ToDictionary(x => x.PropertyName, x => x.Initializer) ?? new();
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
             {
                 MemberMap? memberMap = (member) switch
@@ -64,8 +64,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 }
-
-                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
                 {
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }
@@ -76,5 +75,22 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             return maps;
         }
+
+        private IParameterSymbol GetConstructorParameter(IMethodSymbol constructor, ArgumentSyntax argument)
+        {
+            //argument -> argumentList -> method
+            if (argument.Parent?.Parent is ObjectCreationExpressionSyntax methodDeclaration
+                && methodDeclaration?.ArgumentList?.Arguments.IndexOf(argument) is int index)
+            {
+                return constructor.Parameters[index];
+            }
+            else
+            {
+                throw new Exception($"Parameter for argument {argument} was not found");
+            }
+        }
+
+        private string? GetInitializerLeft(InitializerExpressionSyntax initializer)
+            => initializer.As<AssignmentExpressionSyntax>()?.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText;
     }
 }

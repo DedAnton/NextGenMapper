@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <LangVersion>9.0</LangVersion>
+        <LangVersion>10.0</LangVersion>
         <PackageId>NextGenMapper</PackageId>
         <Version>0.1.0-alfa.1</Version>
         <Authors>Anton Ryabchikov</Authors>
@@ -37,6 +37,10 @@
 	<ItemGroup>
 		<AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
 		<AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Exceptions\" />
 	</ItemGroup>
 
 </Project>

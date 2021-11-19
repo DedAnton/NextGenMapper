@@ -14,14 +14,6 @@ namespace NextGenMapper.Extensions
             }
         }
 
-        public static void ForEach<T>(this IEnumerable<T> collection, Action<T> action)
-        {
-            foreach (var item in collection)
-            {
-                action(item);
-            }
-        }
-
         public static bool IsEmpty<T>(this IEnumerable<T> collection) => !collection.Any();
 
         public static IEnumerable<T> Complement<T>(this IEnumerable<T> first, IEnumerable<T> second, IEqualityComparer<T> comparer) => first.Union(second, comparer).Except(second, comparer);

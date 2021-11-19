@@ -57,7 +57,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             {
                 IArrayTypeSymbol array => array.ElementType,
                 INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments.Single(),
-                //TODO: придумать, как нормально обработать такой случай, вывести диагностику и не свалиться
+                //TODO: figure out how to normally handle such a case, display diagnostics and not fall down with an exception
                 _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
             };
     }

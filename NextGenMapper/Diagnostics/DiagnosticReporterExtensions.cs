@@ -49,5 +49,11 @@ namespace NextGenMapper
             var diagnostic = Diagnostic.Create(Diagnostics.ReturnTypeNotFoundError, location, additionalLocations: null);
             diagnosticReporter.Report(diagnostic);
         }
+
+        public static void ReportPropertyAndParameterHasDifferentNamesError(this DiagnosticReporter diagnosticReporter, ImmutableArray<Location> locations, ITypeSymbol destinationType, string propertyName)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.PropertyAndParameterHasDifferentNamesError, locations.FirstOrDefault(), locations, destinationType, propertyName);
+            diagnosticReporter.Report(diagnostic);
+        }
     }
 }

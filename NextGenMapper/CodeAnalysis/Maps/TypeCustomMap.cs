@@ -7,7 +7,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public ArrowExpressionClauseSyntax? ExpressionBody { get; }
         public BlockSyntax? Body { get; }
-        public MethodType MethodType { get; }
+        public MethodBodyType MethodType { get; }
         public string ParameterName { get; }
 
         public TypeCustomMap(ITypeSymbol from, ITypeSymbol to, MethodDeclarationSyntax method)
@@ -15,7 +15,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         {
             ExpressionBody = method.ExpressionBody;
             Body = method.Body;
-            MethodType = method.Body is null ? MethodType.Expression : MethodType.Block;
+            MethodType = method.Body is null ? MethodBodyType.Expression : MethodBodyType.Block;
             ParameterName = method.ParameterList.Parameters.First().Identifier.Text;
         }
     }

@@ -9,17 +9,20 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassMapDesigner
     {
-        private readonly List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory = new();
+        private readonly List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory;
         private readonly DiagnosticReporter _diagnosticReporter;
+        private readonly ConstructorFinder _constructorFinder;
 
         public ClassMapDesigner(DiagnosticReporter diagnosticReporter)
         {
+            _referencesHistory = new();
             _diagnosticReporter = diagnosticReporter;
+            _constructorFinder = new();
         }
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
-            if (from.IsPrivitive() || to.IsPrivitive())
+            if (from.IsPrimitive() || to.IsPrimitive())
             {
                 return new();
             }
@@ -30,17 +33,16 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
             _referencesHistory.Add((from, to));
 
-            var constructor = from.GetOptimalConstructor(to, new List<string>());
+            var constructor = _constructorFinder.GetOptimalConstructor(from, to, new List<string>());
             if (constructor == null)
             {
-                //TODO: выяснить, когда и почему конструктор может быть не найден, для всех остальных случаев включить диагностику
-                //_diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
+                _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
                 return new();
             }
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
             {
                 MemberMap? memberMap = member switch
@@ -60,8 +62,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     maps.AddRange(DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 }
-
-                if (memberMap is { IsSameTypes: false })
+                else if (memberMap is { IsSameTypes: false })
                 {
                     maps.AddRange(DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }
@@ -80,7 +81,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return MemberMap.Counstructor(fromProperty, constructorParameter);
             }
 
-            var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(constructorParameter.Name);
+            var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, constructorParameter.Name);
             if (flattenProperty != null && mappedProperty != null)
             {
                 return MemberMap.Counstructor(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
@@ -103,7 +104,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return MemberMap.Initializer(fromProperty, initializerProperty);
             }
 
-            var (flattenProperty, mappedProperty) = from.FindFlattenMappedProperty(initializerProperty.Name);
+            var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, initializerProperty.Name);
             if (flattenProperty != null && mappedProperty != null)
             {
                 return MemberMap.Initializer(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
@@ -120,7 +121,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         private bool IsUnflattening(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
         {
-            var constructor = from.GetOptimalUnflatteningConstructor(unflattingPropertyType, unflattingPropertyName);
+            var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
             if (constructor == null)
             {
                 return false;
@@ -134,12 +135,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public List<ClassMap> DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
         {
-            var constructor = from.GetOptimalUnflatteningConstructor(unflattingPropertyType, unflattingPropertyName);
+            var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
             if (constructor == null)
             {
                 return new();
             }
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
@@ -166,6 +167,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             maps.Add(new ClassMap(from, unflattingPropertyType, membersMaps, isUnflattening: true));
 
             return maps;
+        }
+
+        private (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
+            ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        {
+            return type
+                .GetProperties()
+                    .SelectMany(flatten => flatten.Type
+                        .GetProperties()
+                        .Where(mapped => $"{flatten.Name}{mapped.Name}".Equals(name, comparision))
+                        .Select(mapped => (flatten, mapped)))
+                    .FirstOrDefault();
         }
     }
 }

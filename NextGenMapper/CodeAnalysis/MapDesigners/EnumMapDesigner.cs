@@ -22,9 +22,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
-                //TODO: research: do this real case?
+                //TODO: research: is this real case?
                 throw new ArgumentException("enum must have declaration");
             }
+
             var fromFields = fromDeclaration.GetFields();
             var toFields = toDeclaration.GetFields();
 
@@ -43,7 +44,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     _diagnosticReporter.ReportUnmappedEnumValueError(from.Locations, from, to, fromField.Name);
                 }
-                //TODO: add warning diagnostic if 'to' has unmapped values 
+                //TODO: add warning diagnostic if 'to' has unmapped values (is this necessary?)
             }
 
             return new EnumMap(from, to, valuesMappings);

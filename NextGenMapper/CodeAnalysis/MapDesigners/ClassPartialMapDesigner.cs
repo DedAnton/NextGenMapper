@@ -13,11 +13,13 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     {
         private readonly ClassMapDesigner _classMapDesigner;
         private readonly DiagnosticReporter _diagnosticReporter;
+        private readonly ConstructorFinder _constructorFinder;
 
         public ClassPartialMapDesigner(DiagnosticReporter diagnosticReporter)
         {
             _classMapDesigner = new(diagnosticReporter);
             _diagnosticReporter = diagnosticReporter;
+            _constructorFinder = new();
         }
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
@@ -29,9 +31,9 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return new();
             }
             var byConstructor = userConstructor.GetParametersNames();
-            var byInitialyzer = objCreationExpression.GetInitializersLeft();
+            var byInitialyzer = GetInitializersLeft(objCreationExpression);
             var byUser = byConstructor.Union(byInitialyzer);
-            var constructor = from.GetOptimalConstructor(to, byUser);
+            var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
             if (constructor == null)
             {
                 _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
@@ -40,7 +42,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();
-            var toMembers = constructor.GetConstructorInitializerMembers();
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
             {
                 var isProvidedByUser = byUser.Contains(member.Name, StringComparer.InvariantCultureIgnoreCase);
@@ -48,8 +50,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
                     (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
-                    //TODO: parameter must have same name as property. try this "to.FindProperty(parameter.Name) is IPropertySymbol property ? MemberMap.User(property, parameter) : null"
-                    (IParameterSymbol parameter, true) => MemberMap.User(to.FindProperty(parameter.Name)!, parameter),
+                    (IParameterSymbol parameter, true) => FindPropertyForParameterAndCreateMemberMap(from, to, parameter),
                     (IPropertySymbol property, true) => MemberMap.User(property),
                     _ => null
                 };
@@ -64,8 +65,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 }
-
-                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
                 {
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
                 }
@@ -79,6 +79,27 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             maps.Add(new ClassPartialMap(from, to, membersMaps, customStatements, customParameterName));
 
             return maps;
+        }
+
+        private List<string> GetInitializersLeft(ObjectCreationExpressionSyntax node)
+            => node.Initializer?
+                .Expressions
+                .OfType<AssignmentExpressionSyntax>()
+                .Select(x => x.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText)
+                .OfType<string>()
+                .ToList() ?? new List<string>();
+
+        private MemberMap? FindPropertyForParameterAndCreateMemberMap(ITypeSymbol from, ITypeSymbol to, IParameterSymbol parameter)
+        {
+            if (to.FindProperty(parameter.Name) is IPropertySymbol property)
+            {
+                return MemberMap.User(property, parameter);
+            }
+            else
+            {
+                _diagnosticReporter.ReportPropertyAndParameterHasDifferentNamesError(parameter.Locations, to, parameter.Name);
+                return null;
+            }
         }
     }
 }

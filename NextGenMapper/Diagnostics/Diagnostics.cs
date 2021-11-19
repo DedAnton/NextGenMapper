@@ -59,5 +59,13 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor PropertyAndParameterHasDifferentNamesError = new(
+            id: "NGM008",
+            title: "Constructor parameter and property has different names",
+            messageFormat: "Type {0} has not property with name {1}, when use custom mapping method (not partial constructor), for each parameter in constructor used by user, type must have property with same name",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
