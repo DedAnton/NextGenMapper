@@ -5,7 +5,7 @@ namespace NextGenMapper.CodeAnalysis.Validators
 {
     public static class ImplicitNumericConversionValidator
     {
-        private static readonly Dictionary<SpecialType, List<SpecialType>> _implicitNumericConversions =
+        private static readonly Dictionary<SpecialType, HashSet<SpecialType>> _implicitNumericConversions =
             new()
             {
                 { SpecialType.System_SByte, new() { SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_Single, SpecialType.System_Double, SpecialType.System_Decimal } },

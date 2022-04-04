@@ -55,8 +55,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 .Complement(from.GetPropertiesNames())
                 .IsEmpty());
 
-            var flattenProperties = to.GetPropertiesNames().Select(x => $"{unflattingPropertyName}{x}");
-            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x, StringComparer.InvariantCultureIgnoreCase));
+            var flattenProperties = to
+                .GetPropertiesNames()
+                .Select(x => $"{unflattingPropertyName}{x}")
+                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x));
             if (!isUnflattening)
             {
                 return null;

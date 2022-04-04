@@ -16,7 +16,7 @@ namespace NextGenMapper.Utils
         {
             _stopwatch.Stop();
             var ts = _stopwatch.Elapsed;
-            return $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds / 10:00}";
+            return $"{ts.Hours:00}:{ts.Minutes:00}:{ts.Seconds:00}.{ts.Milliseconds}";
         }
     }
 }

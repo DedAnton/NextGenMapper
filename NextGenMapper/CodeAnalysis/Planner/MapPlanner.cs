@@ -8,12 +8,15 @@ namespace NextGenMapper.CodeAnalysis
     public class MapPlanner
     {
         private readonly List<string> _commonGroupUsings = new() { "using NextGenMapper.Extensions;" };
+        private readonly HashSet<TypeMap> _typeMaps = new();
+        private readonly HashSet<TypeMap> _customTypeMap = new();
 
         public List<MapGroup> MapGroups { get; } = new();
 
+
         public void AddCommonMap(TypeMap map)
         {
-            if (MapGroups.SelectMany(x => x.Maps).Contains(map))
+            if (_typeMaps.Contains(map))
             {
                 //add diagnostic
                 return;
@@ -28,17 +31,18 @@ namespace NextGenMapper.CodeAnalysis
             {
                 MapGroups.Add(new MapGroup(map, _commonGroupUsings, MapPriority.Common));
             }
+            _typeMaps.Add(map);
         }
 
         public void AddCustomMap(TypeMap map, List<string> usings)
         {
-            if (MapGroups.Where(x => x.Priority == MapPriority.Custom).SelectMany(x => x.Maps).Contains(map))
+            if (_customTypeMap.Contains(map))
             {
                 //add diagnostic
                 return;
             }
 
-            var commonGroup = MapGroups.FirstOrDefault(x => x.Usings.SequenceEqual(usings));
+            var commonGroup = MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Custom && x.Usings.SequenceEqual(usings));
             if (commonGroup is not null)
             {
                 commonGroup.Add(map);
@@ -48,6 +52,8 @@ namespace NextGenMapper.CodeAnalysis
                 MapGroups.Add(new MapGroup(map, usings, MapPriority.Custom));
             }
             MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Common)?.Remove(map);
+            _typeMaps.Add(map);
+            _customTypeMap.Add(map);
         }
 
         public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to)

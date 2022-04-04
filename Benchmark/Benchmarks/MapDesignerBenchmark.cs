@@ -15,11 +15,11 @@ namespace Benchmark.Benchmarks
     {
         [BenchmarkCategory("Properties"), Benchmark]
         [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-        public List<ClassMap> Properties(TypesMapPair mapPair) => new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
+        public List<ClassMap> Properties(TypesMapPair mapPair) => new (new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To).ToArray());
 
         [BenchmarkCategory("NestedClasses"), Benchmark]
         [ArgumentsSource(nameof(GenerateNestedClassesMapPairs))]
-        public List<ClassMap> Nested(TypesMapPair mapPair) => new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
+        public List<ClassMap> Nested(TypesMapPair mapPair) => new (new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To).ToArray());
 
         [BenchmarkCategory("Enums"), Benchmark]
         [ArgumentsSource(nameof(GenerateEnumsMapPairs))]

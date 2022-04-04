@@ -59,7 +59,7 @@ var isValid = sourceA.Id == destinationA.Id && sourceB.Id == destinationB.Id && 
 if (!isValid) throw new MapFailedException(sourceA, destinationA);";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            _ = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
             Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM001");
         }
     }

@@ -1,5 +1,10 @@
 ﻿using Benchmark.Benchmarks;
+using Benchmark.Benchmarks.Experiments;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Loggers;
 using BenchmarkDotNet.Running;
+using BenchmarkDotNet.Validators;
+using NextGenMapper.Utils;
 
 namespace Benchmark
 {
@@ -8,13 +13,19 @@ namespace Benchmark
         private static void Main()
         {
             BenchmarkRunner.Run<MapDesignerBenchmark>();
-            //BenchmarkRunner.Run<Experiments>();
+            //BenchmarkRunner.Run<CircleReferencesList>();
+            //BenchmarkRunner.Run<ListStringEquality>();
 
-            //OldBigBanchmark.Run(1000);
-            // 1    - 1.2225642
-            // 10   - 1.3913829
-            // 100  - 2.0936369
-            // 1000 - 13.1445635
+            //new CircleReferencesList
+            //{
+            //    ReferencesCount = 10
+            //}
+            //.SetupEqualabilityBenchmark();
+            //OldBigBanchmark.Run(100);
+            // 1    - 00:00:00.9161159 -> 00:00:00.8977854
+            // 10   - 00:00:00.9511389 -> 00:00:00.9611821
+            // 100  - 00:00:01.6390826 -> 00:00:01.5233820
+            // 1000 - 00:00:13.1432450 -> 00:00:08.8775675
         }
     }
 }

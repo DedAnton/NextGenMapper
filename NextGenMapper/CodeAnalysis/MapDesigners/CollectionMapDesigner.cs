@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     {
         private const string LIST_NAME = "List";
         private const string LIST_FULL_NAME = "System.Collections.Generic.List<T>";
-        private readonly List<SpecialType> _listInterfacesSpecislTypes = new()
+        private readonly HashSet<SpecialType> _listInterfacesSpecislTypes = new()
         {
             SpecialType.System_Collections_Generic_ICollection_T,
             SpecialType.System_Collections_Generic_IEnumerable_T,

@@ -20,11 +20,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public static List<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
         {
-            IEnumerable<ISymbol> constructorParameters = constructor.GetParameters();
+            var constructorParametersNames = constructor.GetParametersNames().ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var initializerProperties = constructor.ContainingType
                 .GetProperties()
-                .Where(x => !x.IsReadOnly && !constructor.GetParametersNames().Contains(x.Name, StringComparer.InvariantCultureIgnoreCase));
-            var members = constructorParameters.Concat(initializerProperties).ToList();
+                .Where(x => !x.IsReadOnly && !constructorParametersNames.Contains(x.Name));
+            var members = constructor.GetParameters().Cast<ISymbol>().Concat(initializerProperties).ToList();
 
             return members;
         }

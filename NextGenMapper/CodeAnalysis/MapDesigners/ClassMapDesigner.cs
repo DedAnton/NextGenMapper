@@ -9,13 +9,13 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassMapDesigner
     {
-        private readonly List<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory;
+        private readonly HashSet<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly ConstructorFinder _constructorFinder;
 
         public ClassMapDesigner(DiagnosticReporter diagnosticReporter)
         {
-            _referencesHistory = new();
+            _referencesHistory = new(new ReferencesEqualityComparer());
             _diagnosticReporter = diagnosticReporter;
             _constructorFinder = new();
         }
@@ -26,7 +26,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             {
                 return new();
             }
-            if (_referencesHistory.Contains((from, to), new ReferencesEqualityComparer()))
+            if (_referencesHistory.Contains((from, to)))
             {
                 _diagnosticReporter.ReportCircularReferenceError(to.Locations, _referencesHistory.Select(x => x.from).Append(from));
                 return new();
@@ -127,8 +127,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return false;
             }
 
-            var flattenProperties = unflattingPropertyType.GetProperties().Select(x => $"{unflattingPropertyName}{x.Name}");
-            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x, StringComparer.InvariantCultureIgnoreCase));
+            var flattenProperties = unflattingPropertyType
+                .GetProperties()
+                .Select(x => $"{unflattingPropertyName}{x.Name}")
+                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x));
 
             return isUnflattening;
         }

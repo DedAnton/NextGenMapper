@@ -32,7 +32,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
             var byConstructor = userConstructor.GetParametersNames();
             var byInitialyzer = GetInitializersLeft(objCreationExpression);
-            var byUser = byConstructor.Union(byInitialyzer);
+            var byUser = byConstructor.Union(byInitialyzer).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
             var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
             if (constructor == null)
             {
@@ -45,7 +45,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
             {
-                var isProvidedByUser = byUser.Contains(member.Name, StringComparer.InvariantCultureIgnoreCase);
+                var isProvidedByUser = byUser.Contains(member.Name);
                 MemberMap? memberMap = (member, isProvidedByUser) switch
                 {
                     (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),

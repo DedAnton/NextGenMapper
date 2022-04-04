@@ -11,6 +11,6 @@ namespace NextGenMapper.CodeAnalysis
 
         public int GetHashCode((ITypeSymbol, ITypeSymbol) obj)
             => SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item1)
-            + SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item2);
+            ^ SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item2);
     }
 }

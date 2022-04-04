@@ -7,7 +7,7 @@ namespace NextGenMapperTests.IntegrationTests
     public class InitializeAndCleanup
     {
         [AssemblyInitialize]
-#pragma warning disable IDE0060 // Удалите неиспользуемый параметр
+#pragma warning disable IDE0060
         public static void Initialize(TestContext context)
 #pragma warning restore IDE0060
         {
