@@ -33,7 +33,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
             _referencesHistory.Add((from, to));
 
-            var constructor = _constructorFinder.GetOptimalConstructor(from, to, new List<string>());
+            var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
             if (constructor == null)
             {
                 _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
@@ -127,13 +127,21 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return false;
             }
 
-            var flattenProperties = unflattingPropertyType
-                .GetProperties()
-                .Select(x => $"{unflattingPropertyName}{x.Name}")
-                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x));
+            var flattenProperties = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var property in unflattingPropertyType.GetProperties())
+            {
+                flattenProperties.Add($"{unflattingPropertyName}{property.Name}");
+            }
 
-            return isUnflattening;
+            foreach (var property in from.GetProperties())
+            {
+                if (flattenProperties.Contains(property.Name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public List<ClassMap> DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
@@ -156,14 +164,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     ({ }, IPropertySymbol property) => MemberMap.Initializer(fromProperty, property),
                     _ => null
                 };
-                membersMaps.AddIfNotNull(map);
+
+                if (map is not null)
+                {
+                    membersMaps.Add(map);
+                }
 
                 if (map is { IsSameTypes: false })
                 {
                     maps.AddRange(DesignMapsForPlanner(map.FromType, map.ToType));
                 }
             }
-            if (membersMaps.IsEmpty())
+            if (membersMaps.Count == 0)
             {
                 return new();
             }
@@ -175,13 +187,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         private (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
             ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
         {
-            return type
-                .GetProperties()
-                    .SelectMany(flatten => flatten.Type
-                        .GetProperties()
-                        .Where(mapped => $"{flatten.Name}{mapped.Name}".Equals(name, comparision))
-                        .Select(mapped => (flatten, mapped)))
-                    .FirstOrDefault();
+            foreach (var flattenProperty in type.GetProperties())
+            {
+                foreach (var mappedProperty in flattenProperty.Type.GetProperties())
+                {
+                    if ($"{flattenProperty.Name}{mappedProperty.Name}".Equals(name, comparision))
+                    {
+                        return (flattenProperty, mappedProperty);
+                    }
+                }
+            }
+
+            return default;
         }
     }
 }

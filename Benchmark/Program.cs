@@ -15,13 +15,19 @@ namespace Benchmark
             BenchmarkRunner.Run<MapDesignerBenchmark>();
             //BenchmarkRunner.Run<CircleReferencesList>();
             //BenchmarkRunner.Run<ListStringEquality>();
+            //BenchmarkRunner.Run<WhereSelect>();
+            //BenchmarkRunner.Run<Iterate>();
+            //BenchmarkRunner.Run<Sorting>();
+            //BenchmarkRunner.Run<FirstOrDefault>();
+            //BenchmarkRunner.Run<SpanTests>();
 
-            //new CircleReferencesList
+            //var benchmark = new LinqExp
             //{
-            //    ReferencesCount = 10
-            //}
-            //.SetupEqualabilityBenchmark();
-            //OldBigBanchmark.Run(100);
+            //    ItemsCount = 10
+            //};
+            //benchmark.SetupBenchmark();
+            //benchmark.ImmutableArrays();
+            //OldBigBanchmark.Run(1000);
             // 1    - 00:00:00.9161159 -> 00:00:00.8977854
             // 10   - 00:00:00.9511389 -> 00:00:00.9611821
             // 100  - 00:00:01.6390826 -> 00:00:01.5233820

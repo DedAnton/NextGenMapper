@@ -4,7 +4,6 @@ using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
@@ -29,16 +28,33 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return new();
             }
 
-            var argumentByParameterName = objCreationExpression.ArgumentList?.Arguments
-                .Where(x => !x.IsDefaultLiteralExpression())
-                .Select(x => new { Argument = x, ParameterName = GetConstructorParameter(constructor, x).Name })
-                .ToDictionary(x => x.ParameterName, x => x.Argument, StringComparer.InvariantCultureIgnoreCase) ?? new();
+            var argumentByParameterName = new Dictionary<string, ArgumentSyntax>(StringComparer.InvariantCultureIgnoreCase);
+            if (objCreationExpression.ArgumentList != null)
+            {
+                foreach (var argument in objCreationExpression.ArgumentList.Arguments)
+                {
+                    if (!argument.IsDefaultLiteralExpression())
+                    {
+                        argumentByParameterName.Add(GetConstructorParameter(constructor, argument).Name, argument);
+                    }
+                }
+            }
 
-            var initializerByPropertyName = objCreationExpression.Initializer?.Expressions
-                .OfType<InitializerExpressionSyntax>()
-                .Select(x => new { Initializer = x, PropertyName = GetInitializerLeft(x) })
-                .Where(x => x.PropertyName != null)
-                .ToDictionary(x => x.PropertyName, x => x.Initializer) ?? new();
+            var initializerByPropertyName = new Dictionary<string, InitializerExpressionSyntax>(StringComparer.InvariantCultureIgnoreCase);
+            if (objCreationExpression.Initializer != null)
+            {
+                foreach(var expression in objCreationExpression.Initializer.Expressions)
+                {
+                    if (expression is InitializerExpressionSyntax initializerExpression)
+                    {
+                        var propertyName = GetInitializerLeft(initializerExpression);
+                        if (propertyName != null)
+                        {
+                            initializerByPropertyName.Add(propertyName, initializerExpression);
+                        }
+                    }
+                }
+            }
 
             var maps = new List<ClassMap>();
             var membersMaps = new List<MemberMap>();

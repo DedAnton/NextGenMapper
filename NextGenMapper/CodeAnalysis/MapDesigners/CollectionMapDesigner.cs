@@ -2,7 +2,6 @@
 using NextGenMapper.CodeAnalysis.Maps;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -56,7 +55,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             => collection switch
             {
                 IArrayTypeSymbol array => array.ElementType,
-                INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments.Single(),
+                INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments[0],
                 //TODO: figure out how to normally handle such a case, display diagnostics and not fall down with an exception
                 _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
             };

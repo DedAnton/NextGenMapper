@@ -12,7 +12,7 @@ public class ListStringEquality
     private string testUnit;
 
     [GlobalSetup(Targets = new string[] { nameof(HashSet), nameof(ListWithComparer), nameof(ListWithoutComparer) })]
-    public void SetupEqualabilityBenchmark()
+    public void SetupBenchmark()
     {
         var strings = Enumerable.Range(0, StringsCount).Select(x => $"string{x}").ToArray();
 

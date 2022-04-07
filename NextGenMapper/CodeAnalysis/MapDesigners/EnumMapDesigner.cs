@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -32,10 +32,30 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var valuesMappings = new List<MemberMap>();
             foreach (var fromField in fromFields)
             {
-                var byName = toFields.FirstOrDefault(x => x.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant());
-                var byValue = toFields.FirstOrDefault(x => x.Value != null && fromField.Value != null
-                    && x.Value == fromField.Value);
-                var toField = byValue ?? byName;
+                EnumField? toField = null;
+                foreach (var field in toFields)
+                {
+                    //field.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant()
+                    if (field.Value != null && fromField.Value != null
+                        && field.Value == fromField.Value)
+                    {
+                        toField = field;
+                        break;
+                    }
+                }
+                if (toField == null)
+                {
+                    foreach (var field in toFields)
+                    {
+                        //field.Name.ToUpperInvariant() == fromField.Name.ToUpperInvariant()
+                        if (field.Name.Equals(fromField.Name, StringComparison.InvariantCultureIgnoreCase))
+                        {
+                            toField = field;
+                            break;
+                        }
+                    }
+                }
+
                 if (toField is not null)
                 {
                     valuesMappings.Add(MemberMap.EnumField(from, fromField, to, toField));

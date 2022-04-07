@@ -2,8 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.Extensions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -11,20 +10,39 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
     {
         public static ObjectCreationExpressionSyntax? GetObjectCreateionExpression(this BaseMethodDeclarationSyntax method)
         {
-            var objCreationExpression = method.ExpressionBody != null
-                ? method.ExpressionBody?.Expression as ObjectCreationExpressionSyntax
-                : method.Body?.Statements.OfType<ReturnStatementSyntax>().Last().Expression as ObjectCreationExpressionSyntax;
-
-            return objCreationExpression;
+            if (method.ExpressionBody != null)
+            {
+                return method.ExpressionBody?.Expression as ObjectCreationExpressionSyntax;
+            }
+            else if (method.Body != null)
+            {
+                for(var i = method.Body.Statements.Count - 1; i >= 0; i--)
+                {
+                    if (method.Body.Statements[i] is ReturnStatementSyntax returnStatement)
+                    {
+                        return returnStatement.Expression as ObjectCreationExpressionSyntax;
+                    }
+                }
+            }
+            //TODO: add diagnostic
+            throw new ArgumentException($"Return statement not found for method {method}");
         }
 
-        public static List<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
+        public static ImmutableArray<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
         {
-            var constructorParametersNames = constructor.GetParametersNames().ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var initializerProperties = constructor.ContainingType
-                .GetProperties()
-                .Where(x => !x.IsReadOnly && !constructorParametersNames.Contains(x.Name));
-            var members = constructor.GetParameters().Cast<ISymbol>().Concat(initializerProperties).ToList();
+            var constructorParametersNames = constructor.GetParametersNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var members = ImmutableArray.Create<ISymbol>();
+            foreach (var parameter in constructor.Parameters)
+            {
+                members = members.Add(parameter);
+            }
+            foreach (var constructorTypeProperty in constructor.ContainingType.GetProperties())
+            {
+                if (!constructorTypeProperty.IsReadOnly && !constructorParametersNames.Contains(constructorTypeProperty.Name))
+                {
+                    members = members.Add(constructorTypeProperty);
+                }
+            }
 
             return members;
         }

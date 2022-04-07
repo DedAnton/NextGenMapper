@@ -2,75 +2,144 @@
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ConstructorFinder
     {
-        public ConstructorFinder() 
-        {
+        private readonly ConstructorComparer _constructorComparer = new();
 
-        }
-
-        public IMethodSymbol? GetOptimalConstructor(ITypeSymbol from, ITypeSymbol to, IEnumerable<string>? byUser = null)
+        public IMethodSymbol? GetOptimalConstructor(ITypeSymbol from, ITypeSymbol to, HashSet<string> byUser)
         {
-            byUser ??= new List<string>();
-            var constructors = to.GetPublicConstructors().OrderByDescending(x => x.Parameters.Length);
-            if (constructors.IsEmpty())
+            var constructors = to.GetPublicConstructors();
+            constructors.Sort(_constructorComparer);
+            if (constructors.Length == 0)
             {
                 return null;
             }
 
-            var constructor = constructors.FirstOrDefault(x => x
-                .GetParametersNames()
-                .Complement(byUser)
-                .Complement(from.GetPropertiesNames())
-                .Complement(GetFlattenPropertiesNames(from))
-                .IsEmpty());
+            var fromPropertiesNames = from.GetPropertiesNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var flattenPropertiesNames = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach (var property in from.GetProperties())
+            {
+                foreach (var flattenProperty in property.Type.GetProperties())
+                {
+                    flattenPropertiesNames.Add($"{property.Name}{flattenProperty.Name}");
+                }
+            }
 
-            var unflattenConstructor = constructors.FirstOrDefault(x => x
-                .Parameters.Where(y => GetOptimalUnflatteningConstructor(from, y.Type, y.Name) == null)
-                .Select(x => x.Name)
-                .Complement(byUser)
-                .Complement(from.GetPropertiesNames())
-                .IsEmpty());
+            bool ValidateCommonCostructor(IMethodSymbol constructor)
+            {
+                foreach (var parameter in constructor.Parameters)
+                {
+                    if (!byUser.Contains(parameter.Name)
+                        && !fromPropertiesNames.Contains(parameter.Name)
+                        && !flattenPropertiesNames.Contains(parameter.Name))
+                    {
+                        return false;
+                    }
+                }
 
-            return GetParametersCount(constructor) > GetParametersCount(unflattenConstructor)
-                ? constructor
+                return true;
+            }
+
+            IMethodSymbol? commonConstructor = null;
+            foreach (var constructor in constructors)
+            {
+                if (ValidateCommonCostructor(constructor))
+                {
+                    commonConstructor = constructor;
+                    break;
+                }
+            }
+
+            bool ValidateUnflattenCostructor(IMethodSymbol constructor)
+            {
+                foreach (var parameter in constructor.Parameters)
+                {
+                    if (GetOptimalUnflatteningConstructor(from, parameter.Type, parameter.Name) == null
+                        && !byUser.Contains(parameter.Name)
+                        && !fromPropertiesNames.Contains(parameter.Name))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            IMethodSymbol? unflattenConstructor = null;
+            foreach (var constructor in constructors)
+            {
+                if (ValidateUnflattenCostructor(constructor))
+                {
+                    unflattenConstructor = constructor;
+                    break;
+                }
+            }
+
+            return GetParametersCount(commonConstructor) > GetParametersCount(unflattenConstructor)
+                ? commonConstructor
                 : unflattenConstructor;
         }
 
         public IMethodSymbol? GetOptimalUnflatteningConstructor(ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName)
         {
-            var constructors = to.GetPublicConstructors().OrderByDescending(x => x.Parameters.Length);
-            if (constructors.IsEmpty())
+            var constructors = to.GetPublicConstructors();
+            constructors.Sort(_constructorComparer);
+            if (constructors.Length == 0)
             {
                 return null;
             }
 
-            var constructor = constructors.FirstOrDefault(x => x
-                .GetParametersNames()
-                .Select(y => $"{unflattingPropertyName}{y}")
-                .Complement(from.GetPropertiesNames())
-                .IsEmpty());
+            var fromPropertiesNames = from.GetPropertiesNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
 
-            var flattenProperties = to
-                .GetPropertiesNames()
-                .Select(x => $"{unflattingPropertyName}{x}")
-                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var isUnflattening = from.GetPropertiesNames().Any(x => flattenProperties.Contains(x));
-            if (!isUnflattening)
+            bool ValidateCommonCostructor(IMethodSymbol constructor)
             {
-                return null;
+                foreach (var parameter in constructor.Parameters)
+                {
+                    if (!fromPropertiesNames.Contains($"{unflattingPropertyName}{parameter.Name}"))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
             }
 
-            return constructor;
+            IMethodSymbol? commonConstructor = null;
+            foreach (var constructor in constructors)
+            {
+                if (ValidateCommonCostructor(constructor))
+                {
+                    commonConstructor = constructor;
+                    break;
+                }
+            }
+
+            var flattenProperties = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach(var property in to.GetProperties())
+            {
+                flattenProperties.Add($"{unflattingPropertyName}{property.Name}");
+            }
+
+            foreach(var property in from.GetProperties())
+            {
+                if (flattenProperties.Contains(property.Name))
+                {
+                    return commonConstructor;
+                }
+            }
+
+            return null;
         }
 
-        private List<string> GetFlattenPropertiesNames(ITypeSymbol type)
-            => type.GetProperties().SelectMany(x => x.Type.GetProperties().Select(y => $"{x.Name}{y.Name}")).ToList();
-
         private int GetParametersCount(IMethodSymbol? method) => method?.Parameters.Length ?? -1;
+
+        class ConstructorComparer : IComparer<IMethodSymbol>
+        {
+            public int Compare(IMethodSymbol? x, IMethodSymbol? y) => x!.Parameters.Length.CompareTo(y!.Parameters.Length) * -1;
+        }
     }
 }

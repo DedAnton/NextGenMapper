@@ -5,7 +5,6 @@ using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -31,8 +30,27 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return new();
             }
             var byConstructor = userConstructor.GetParametersNames();
-            var byInitialyzer = GetInitializersLeft(objCreationExpression);
-            var byUser = byConstructor.Union(byInitialyzer).ToHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var byInitialyzer = new List<string>();
+            if (objCreationExpression.Initializer != null)
+            {
+                foreach (var expression in objCreationExpression.Initializer.Expressions)
+                {
+                    if (expression is AssignmentExpressionSyntax assignmentExpression
+                        && assignmentExpression.Left is IdentifierNameSyntax identifierNameSyntax)
+                    {
+                        byInitialyzer.Add(identifierNameSyntax.Identifier.ValueText);
+                    }
+                }
+            }
+            var byUser = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            foreach(var parameter in byConstructor)
+            {
+                byUser.Add(parameter);
+            }
+            foreach (var initializer in byInitialyzer)
+            {
+                byUser.Add(initializer);
+            }
             var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
             if (constructor == null)
             {
@@ -50,7 +68,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
                     (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
-                    (IParameterSymbol parameter, true) => FindPropertyForParameterAndCreateMemberMap(from, to, parameter),
+                    (IParameterSymbol parameter, true) => FindPropertyForParameterAndCreateMemberMap(to, parameter),
                     (IPropertySymbol property, true) => MemberMap.User(property),
                     _ => null
                 };
@@ -71,9 +89,15 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            var customStatements = userMethod.Body != null
-                ? userMethod.Body.Statements.ToList()
-                : new() { SyntaxFactory.ReturnStatement(objCreationExpression).NormalizeWhitespace() };
+            var customStatements = new List<StatementSyntax>();
+            if (userMethod.Body != null)
+            {
+                customStatements.AddRange(userMethod.Body.Statements);
+            }
+            else
+            {
+                customStatements.Add(SyntaxFactory.ReturnStatement(objCreationExpression).NormalizeWhitespace());
+            }
             var customParameterName = userMethod.ParameterList.Parameters.First().Identifier.Text;
 
             maps.Add(new ClassPartialMap(from, to, membersMaps, customStatements, customParameterName));
@@ -81,15 +105,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return maps;
         }
 
-        private List<string> GetInitializersLeft(ObjectCreationExpressionSyntax node)
-            => node.Initializer?
-                .Expressions
-                .OfType<AssignmentExpressionSyntax>()
-                .Select(x => x.Left.As<IdentifierNameSyntax>()?.Identifier.ValueText)
-                .OfType<string>()
-                .ToList() ?? new List<string>();
-
-        private MemberMap? FindPropertyForParameterAndCreateMemberMap(ITypeSymbol from, ITypeSymbol to, IParameterSymbol parameter)
+        private MemberMap? FindPropertyForParameterAndCreateMemberMap(ITypeSymbol to, IParameterSymbol parameter)
         {
             if (to.FindProperty(parameter.Name) is IPropertySymbol property)
             {

@@ -10,7 +10,7 @@ public class SymbolEquality
     private string textTo;
 
     [GlobalSetup(Targets = new string[] { nameof(Symbol), nameof(Text), nameof(TextFromSymbol) })]
-    public void SetumEqualabilityBenchmark()
+    public void SetupBenchmark()
     {
         var classes = TestTypeSourceGenerator.GenerateClassMapPair(10, 0, 0, 0, "Nested", "Source", "Destination");
         var source = TestTypeSourceGenerator.GenerateClassesSource(classes);

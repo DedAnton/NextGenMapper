@@ -14,7 +14,7 @@ public class EnumFieldsParsing
     private SemanticModel enumSemanticModel;
 
     [GlobalSetup(Targets = new string[] { nameof(FromSyntaxOptimized), nameof(FromSyntax), nameof(FromSymbols) })]
-    public void SetupEnumFieldBenchmarks()
+    public void SetupBenchmark()
     {
         var source = @"
 public namespace Test

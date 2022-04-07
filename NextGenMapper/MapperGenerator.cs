@@ -9,7 +9,6 @@ using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace NextGenMapper
@@ -28,6 +27,7 @@ namespace NextGenMapper
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            //var sw1 = new OneOffStopwatch();
             context.RegisterForPostInitialization(i =>
             {
                 i.AddSource("MapperExtensions", ExtensionsSource.Source);
@@ -37,10 +37,12 @@ namespace NextGenMapper
             });
 
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+            //Console.WriteLine($"initialize: {sw1.Stop()}");
         }
 
         public void Execute(GeneratorExecutionContext context)
         {
+            //var sw2 = new OneOffStopwatch();
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
             {
                 return;
@@ -50,10 +52,9 @@ namespace NextGenMapper
             {
                 if (mapperClassDeclaration.SemanticModel.GetDeclaredSymbol(mapperClassDeclaration.Node).HasAttribute(Annotations.MapperAttributeFullName))
                 {
-                    var usings = mapperClassDeclaration.Node
-                        .GetUsings()
-                        .Append($"using {mapperClassDeclaration.Node.GetNamespace()};")
-                        .ToList();
+                    var usings = mapperClassDeclaration.Node.GetUsings();
+                    usings.Add($"using {mapperClassDeclaration.Node.GetNamespace()};");
+
                     var maps = HandleCustomMapperClass(mapperClassDeclaration.SemanticModel, mapperClassDeclaration.Node);
                     foreach (var map in maps)
                     {
@@ -79,13 +80,20 @@ namespace NextGenMapper
                 }
             }
 
+            //Console.WriteLine($"prepare maps for mappers: {sw2.Stop()}");
+
+            //var sw3 = new OneOffStopwatch();
+
             var commonMappers = GenerateCommonMapper();
             commonMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CommonMapper", SourceText.From(mapper, Encoding.UTF8)));
 
             var customMappers = GenerateCustomMappers();
             customMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CustomMapper", SourceText.From(mapper, Encoding.UTF8)));
 
+            //Console.WriteLine($"generate mappers: {sw3.Stop()}");
+
             _diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
+
         }
 
         private List<TypeMap> MapInvocation(ITypeSymbol from, ITypeSymbol to)
@@ -113,53 +121,67 @@ namespace NextGenMapper
         private List<TypeMap> HandleCustomMapperClass(SemanticModel semanticModel, ClassDeclarationSyntax node)
         {
             var maps = new List<TypeMap>();
-            foreach (var method in GetMethodsDeclarations(node))
+            foreach (var member in node.Members)
             {
-                if (semanticModel.GetDeclaredSymbol(method) is not IMethodSymbol userMethod)
+                if (member is MethodDeclarationSyntax method)
                 {
-                    continue;
-                }
-                if (userMethod.Parameters.Length != 1)
-                {
-                    _diagnosticReporter.ReportParameterNotFoundError(method.GetLocation());
-                    continue;
-                }
-                if (userMethod.ReturnsVoid)
-                {
-                    _diagnosticReporter.ReportReturnTypeNotFoundError(method.GetLocation());
-                    continue;
-                }
-                var from = userMethod.Parameters.Single().Type;
-                var to = userMethod.ReturnType;
-
-                if (userMethod.Parameters.Length == 1
-                    && userMethod.HasAttribute(Annotations.PartialAttributeName)
-                    && method.GetObjectCreateionExpression() is { } objCreationExpression
-                    && semanticModel.GetSymbolInfo(objCreationExpression).Symbol is IMethodSymbol constructor)
-                {
-                    if (objCreationExpression.ArgumentList?.Arguments.Any(x => x.IsDefaultLiteralExpression()) == true)
+                    if (semanticModel.GetDeclaredSymbol(method) is not IMethodSymbol userMethod)
                     {
-                        var designer = new ClassPartialConstructorMapDesigner(_diagnosticReporter);
-                        maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                        continue;
+                    }
+                    if (userMethod.Parameters.Length != 1)
+                    {
+                        _diagnosticReporter.ReportParameterNotFoundError(method.GetLocation());
+                        continue;
+                    }
+                    if (userMethod.ReturnsVoid)
+                    {
+                        _diagnosticReporter.ReportReturnTypeNotFoundError(method.GetLocation());
+                        continue;
+                    }
+                    var from = userMethod.Parameters[0].Type;
+                    var to = userMethod.ReturnType;
+
+                    if (userMethod.Parameters.Length == 1
+                        && userMethod.HasAttribute(Annotations.PartialAttributeName)
+                        && method.GetObjectCreateionExpression() is { } objCreationExpression
+                        && semanticModel.GetSymbolInfo(objCreationExpression).Symbol is IMethodSymbol constructor)
+                    {
+                        var isPartialConstructorMap = false;
+                        if (objCreationExpression.ArgumentList != null)
+                        {
+                            foreach (var argument in objCreationExpression.ArgumentList.Arguments)
+                            {
+                                if (argument.IsDefaultLiteralExpression())
+                                {
+                                    isPartialConstructorMap = true;
+                                }
+                            }
+                        }
+
+                        if (isPartialConstructorMap)
+                        {
+                            var designer = new ClassPartialConstructorMapDesigner(_diagnosticReporter);
+                            maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                        }
+                        else
+                        {
+                            var designer = new ClassPartialMapDesigner(_diagnosticReporter);
+                            maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                        }
                     }
                     else
                     {
-                        var designer = new ClassPartialMapDesigner(_diagnosticReporter);
-                        maps.AddRange(designer.DesignMapsForPlanner(from, to, constructor, method));
+                        var designer = new TypeCustomMapDesigner();
+                        maps.Add(designer.DesignMapsForPlanner(from, to, method));
                     }
                 }
-                else
-                {
-                    var designer = new TypeCustomMapDesigner();
-                    maps.Add(designer.DesignMapsForPlanner(from, to, method));
-                }
-
             }
 
             return maps;
         }
 
-        private void AddMapToPlanner(TypeMap map, List<string> usings)
+        private void AddMapToPlanner(TypeMap map, HashSet<string> usings)
         {
             if (map is ClassPartialConstructorMap or ClassPartialMap or TypeCustomMap)
             {
@@ -174,22 +196,31 @@ namespace NextGenMapper
         private List<string> GenerateCommonMapper()
         {
             var commonMapperGenerator = new CommonMapperGenerator();
-            var commonMapGroups = _mapPlanner.MapGroups.Where(x => x.Priority == MapPriority.Common);
-            var commonMappers = commonMapGroups.Select(x => commonMapperGenerator.Generate(x));
+            var commonMappers = new List<string>();
+            foreach (var mapGroup in _mapPlanner.MapGroups)
+            {
+                if (mapGroup.Priority == MapPriority.Common)
+                {
+                    commonMappers.Add(commonMapperGenerator.Generate(mapGroup));
+                }
+            }
 
-            return commonMappers.ToList();
+            return commonMappers;
         }
 
         private List<string> GenerateCustomMappers()
         {
             var customMapperGenerator = new CustomMapperGenerator();
-            var customMapGroups = _mapPlanner.MapGroups.Where(x => x.Priority == MapPriority.Custom);
-            var customMappers = customMapGroups.Select(x => customMapperGenerator.Generate(x));
+            var customMappers = new List<string>();
+            foreach (var mapGroup in _mapPlanner.MapGroups)
+            {
+                if (mapGroup.Priority == MapPriority.Custom)
+                {
+                    customMappers.Add(customMapperGenerator.Generate(mapGroup));
+                }
+            }
 
-            return customMappers.ToList();
+            return customMappers;
         }
-
-        private List<MethodDeclarationSyntax> GetMethodsDeclarations(ClassDeclarationSyntax node)
-            => node.Members.Where(x => x.Kind() == SyntaxKind.MethodDeclaration).Cast<MethodDeclarationSyntax>().ToList();
     }
 }

@@ -1,15 +1,10 @@
-﻿using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Configs;
-using BenchmarkDotNet.Jobs;
-using Microsoft.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.MapDesigners;
+﻿using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapperTests;
-using System.Collections.Generic;
 
 namespace Benchmark.Benchmarks
 {
     [SimpleJob(RuntimeMoniker.Net50)]
+    [MemoryDiagnoser]
     [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
     public class MapDesignerBenchmark
     {

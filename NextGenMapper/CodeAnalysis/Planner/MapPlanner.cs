@@ -1,15 +1,17 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis
 {
     public class MapPlanner
     {
-        private readonly List<string> _commonGroupUsings = new() { "using NextGenMapper.Extensions;" };
+        private readonly HashSet<string> _commonGroupUsings = new() { "using NextGenMapper.Extensions;" };
         private readonly HashSet<TypeMap> _typeMaps = new();
         private readonly HashSet<TypeMap> _customTypeMap = new();
+        private readonly HashSet<(ITypeSymbol from, ITypeSymbol to)> _allMapsTypes = new(new ReferencesEqualityComparer());
+
+        private MapGroup? commonMapGroup;
 
         public List<MapGroup> MapGroups { get; } = new();
 
@@ -22,19 +24,21 @@ namespace NextGenMapper.CodeAnalysis
                 return;
             }
 
-            var commonGroup = MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Common);
-            if (commonGroup is not null)
+            if (commonMapGroup != null)
             {
-                commonGroup.Add(map);
+                commonMapGroup.Add(map);
             }
             else
             {
-                MapGroups.Add(new MapGroup(map, _commonGroupUsings, MapPriority.Common));
+                commonMapGroup = new MapGroup(map, _commonGroupUsings, MapPriority.Common);
+                MapGroups.Add(commonMapGroup);
             }
+
             _typeMaps.Add(map);
+            _allMapsTypes.Add((map.From, map.To));
         }
 
-        public void AddCustomMap(TypeMap map, List<string> usings)
+        public void AddCustomMap(TypeMap map, HashSet<string> usings)
         {
             if (_customTypeMap.Contains(map))
             {
@@ -42,23 +46,30 @@ namespace NextGenMapper.CodeAnalysis
                 return;
             }
 
-            var commonGroup = MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Custom && x.Usings.SequenceEqual(usings));
-            if (commonGroup is not null)
+            MapGroup? customGroup = null;
+            foreach (var group in MapGroups)
             {
-                commonGroup.Add(map);
+                if (group.Priority == MapPriority.Custom
+                    && group.Usings.SetEquals(usings))
+                {
+                    customGroup = group;
+                }
+            }
+            if (customGroup is not null)
+            {
+                customGroup.Add(map);
             }
             else
             {
                 MapGroups.Add(new MapGroup(map, usings, MapPriority.Custom));
             }
-            MapGroups.FirstOrDefault(x => x.Priority == MapPriority.Common)?.Remove(map);
+            commonMapGroup?.Remove(map);
+
             _typeMaps.Add(map);
             _customTypeMap.Add(map);
+            _allMapsTypes.Add((map.From, map.To));
         }
 
-        public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to)
-            => MapGroups.SelectMany(x => x.Maps)
-            .Any(x => x.From.Equals(from, SymbolEqualityComparer.IncludeNullability)
-                && x.To.Equals(to, SymbolEqualityComparer.IncludeNullability));
+        public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to) => _allMapsTypes.Contains((from, to));
     }
 }

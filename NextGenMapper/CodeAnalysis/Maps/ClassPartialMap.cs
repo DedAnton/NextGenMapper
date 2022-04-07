@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
@@ -10,10 +9,10 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public List<StatementSyntax> CustomStatements { get; }
         public string ParameterName { get; }
 
-        public ClassPartialMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, IEnumerable<StatementSyntax> customStatements, string customParameterName)
+        public ClassPartialMap(ITypeSymbol from, ITypeSymbol to, List<MemberMap> properties, List<StatementSyntax> customStatements, string customParameterName)
             : base(from, to, properties)
         {
-            CustomStatements = customStatements.ToList();
+            CustomStatements = customStatements;
             ParameterName = customParameterName;
         }
     }

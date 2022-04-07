@@ -14,7 +14,7 @@ public class CircleReferencesList
     private (ITypeSymbol, ITypeSymbol) testUnit;
 
     [GlobalSetup(Targets = new string[] { nameof(HashSet), nameof(List) })]
-    public void SetupEqualabilityBenchmark()
+    public void SetupBenchmark()
     {
         var classes = Enumerable.Range(0, ReferencesCount)
             .Select(x => TestTypeSourceGenerator.GenerateClassMapPair(1, 0, 0, 0, "Nested", $"Source{x}", $"Destination{x}"));
