@@ -1,4 +1,5 @@
-﻿using NextGenMapper.CodeAnalysis;
+﻿using Benchmark.Utils;
+using NextGenMapper.CodeAnalysis;
 
 namespace Benchmark.Benchmarks.Experiments;
 

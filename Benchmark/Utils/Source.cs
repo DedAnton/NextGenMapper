@@ -1,8 +1,8 @@
-﻿namespace Benchmark
+﻿namespace Benchmark.Utils;
+
+public static class Source
 {
-    public static class Source
-    {
-        public static string GetSourceCode(int number) => $@"
+    public static string GetSourceCode(int number) => $@"
 
 using System;
 using System.Collections.Generic;
@@ -196,5 +196,4 @@ namespace Benchmark{number}
 }}
 
 ";
-    }
 }

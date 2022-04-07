@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.Extensions;
+using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -13,7 +14,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         public IMethodSymbol? GetOptimalConstructor(ITypeSymbol from, ITypeSymbol to, HashSet<string> byUser)
         {
             var constructors = to.GetPublicConstructors();
-            constructors.Sort(_constructorComparer);
+            BubbleSort.SortSpan(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
             {
                 return null;
@@ -87,7 +88,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         public IMethodSymbol? GetOptimalUnflatteningConstructor(ITypeSymbol from, ITypeSymbol to, string unflattingPropertyName)
         {
             var constructors = to.GetPublicConstructors();
-            constructors.Sort(_constructorComparer);
+            BubbleSort.SortSpan(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
             {
                 return null;

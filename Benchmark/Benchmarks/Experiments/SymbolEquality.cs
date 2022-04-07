@@ -1,4 +1,6 @@
-﻿namespace Benchmark.Benchmarks.Experiments;
+﻿using Benchmark.Utils;
+
+namespace Benchmark.Benchmarks.Experiments;
 
 [SimpleJob(RuntimeMoniker.Net50)]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
