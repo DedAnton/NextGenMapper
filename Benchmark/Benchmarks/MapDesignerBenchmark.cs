@@ -27,6 +27,10 @@ public class MapDesignerBenchmark
     [ArgumentsSource(nameof(GeneratePartialMapPairs))]
     public List<ClassMap> Partial(TypesMapPair mapPair) => new ClassPartialMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
 
+    [BenchmarkCategory("PartialConstructor"), Benchmark]
+    [ArgumentsSource(nameof(GeneratePartialMapPairs))]
+    public List<ClassMap> PartialConstructor(TypesMapPair mapPair) => new ClassPartialConstructorMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
+
     public IEnumerable<TypesMapPair> GenerateCommonClassesMapPairs()
     {
         var groups = new List<(string Description, string Classes)>()
@@ -101,6 +105,29 @@ public class MapDesignerBenchmark
             ("partial_1", c1.SourceCode, c1.Method),
             ("partial_10", c10.SourceCode, c10.Method),
             ("partial_100", c100.SourceCode, c100.Method)
+        };
+
+        foreach (var (Description, SourceCode, Method) in groups)
+        {
+            var compilation = SourceCode.CreateCompilation("test");
+            var from = compilation.GetTypeByMetadataName("Test.Source");
+            var to = compilation.GetTypeByMetadataName("Test.Destination");
+            var constructor = to.GetPublicConstructors().ToArray().First();
+
+            yield return (new TypesMapPair(Description, from, to) { Constructor = constructor, Method = Method });
+        }
+    }
+
+    public IEnumerable<TypesMapPair> GeneratePartialConstructorMapPairs()
+    {
+        var c1 = SyntaxGenerator.GeneratePartialConstructorMapMethodAndSourceCode(1);
+        var c10 = SyntaxGenerator.GeneratePartialConstructorMapMethodAndSourceCode(10);
+        var c100 = SyntaxGenerator.GeneratePartialConstructorMapMethodAndSourceCode(100);
+        var groups = new List<(string Description, string Classes, MethodDeclarationSyntax Method)>()
+        {
+            ("partial_ctr_1", c1.SourceCode, c1.Method),
+            ("partial_ctr_10", c10.SourceCode, c10.Method),
+            ("partial_ctr_100", c100.SourceCode, c100.Method)
         };
 
         foreach (var (Description, SourceCode, Method) in groups)

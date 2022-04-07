@@ -21,12 +21,6 @@ namespace Benchmark
             //BenchmarkRunner.Run<FirstOrDefault>();
             //BenchmarkRunner.Run<SpanTests>();
 
-            //var benchmark = new LinqExp
-            //{
-            //    ItemsCount = 10
-            //};
-            //benchmark.SetupBenchmark();
-            //benchmark.ImmutableArrays();
             //OldBigBanchmark.Run(1000);
             // 1    - 00:00:00.9161159 -> 00:00:00.8977854
             // 10   - 00:00:00.9511389 -> 00:00:00.9611821
