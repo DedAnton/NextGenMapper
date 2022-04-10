@@ -79,14 +79,14 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
                 membersMaps.Add(memberMap);
 
-                if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
-                {
-                    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-                }
-                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
-                {
-                    maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
-                }
+                //if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
+                //{
+                //    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
+                //}
+                //else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                //{
+                   maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
+                //}
             }
 
             var customStatements = new List<StatementSyntax>();
@@ -107,7 +107,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         private MemberMap? FindPropertyForParameterAndCreateMemberMap(ITypeSymbol to, IParameterSymbol parameter)
         {
-            if (to.FindProperty(parameter.Name) is IPropertySymbol property)
+            if (to.FindPublicProperty(parameter.Name) is IPropertySymbol property)
             {
                 return MemberMap.User(property, parameter);
             }

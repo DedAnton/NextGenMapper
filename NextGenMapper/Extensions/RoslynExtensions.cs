@@ -67,7 +67,7 @@ namespace NextGenMapper.Extensions
                 return Array.Empty<IMethodSymbol>();
             }
 
-            var publicConstructors = new IMethodSymbol[namedTypeSymbol.Constructors.Length];
+            Span<IMethodSymbol> publicConstructors = new IMethodSymbol[namedTypeSymbol.Constructors.Length];
             var count = 0;
             foreach (var constructor in namedTypeSymbol.Constructors)
             {
@@ -78,12 +78,12 @@ namespace NextGenMapper.Extensions
                 }
             }
 
-            return publicConstructors.AsSpan(0, count);
+            return publicConstructors.Slice(0, count);
         }
 
-        public static string[] GetParametersNames(this IMethodSymbol method)
+        public static Span<string> GetParametersNames(this IMethodSymbol method)
         {
-            var names = new string[method.Parameters.Length];
+            Span<string> names = new string[method.Parameters.Length];
             for (int i = 0; i < method.Parameters.Length; i++)
             {
                 names[i] = method.Parameters[i].Name;
@@ -92,10 +92,10 @@ namespace NextGenMapper.Extensions
             return names;
         }
 
-        public static Span<IPropertySymbol> GetProperties(this ITypeSymbol type)
+        public static Span<IPropertySymbol> GetPublicProperties(this ITypeSymbol type)
         {
-            var members = type.GetMembers();
-            var properties = new IPropertySymbol[members.Length];
+            var members = type.GetMembers().AsSpan();
+            Span<IPropertySymbol> properties = new IPropertySymbol[members.Length];
             var count = 0;
             foreach (var member in members)
             {
@@ -108,13 +108,13 @@ namespace NextGenMapper.Extensions
                 }
             }
 
-            return properties.AsSpan(0, count);
+            return properties.Slice(0, count);
         }
 
-        public static string[] GetPropertiesNames(this ITypeSymbol type)
+        public static Span<string> GetPublicPropertiesNames(this ITypeSymbol type)
         {
-            var properties = type.GetProperties();
-            var names = new string[properties.Length];
+            var properties = type.GetPublicProperties();
+            Span<string> names = new string[properties.Length];
             for (int i = 0; i < properties.Length; i++)
             {
                 names[i] = properties[i].Name;
@@ -123,9 +123,9 @@ namespace NextGenMapper.Extensions
             return names;
         }
 
-        public static IPropertySymbol? FindProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
         {
-            foreach(var property in type.GetProperties())
+            foreach(var property in type.GetPublicProperties())
             {
                 if (property.Name.Equals(name, comparision))
                 {

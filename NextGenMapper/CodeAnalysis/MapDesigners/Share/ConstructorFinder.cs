@@ -20,15 +20,15 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return null;
             }
 
-            var fromPropertiesNames = from.GetPropertiesNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var flattenPropertiesNames = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            foreach (var property in from.GetProperties())
-            {
-                foreach (var flattenProperty in property.Type.GetProperties())
-                {
-                    flattenPropertiesNames.Add($"{property.Name}{flattenProperty.Name}");
-                }
-            }
+            var fromPropertiesNames = from.GetPublicPropertiesNames().ToArray().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            //var flattenPropertiesNames = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            //foreach (var property in from.GetProperties())
+            //{
+            //    foreach (var flattenProperty in property.Type.GetProperties())
+            //    {
+            //        flattenPropertiesNames.Add($"{property.Name}{flattenProperty.Name}");
+            //    }
+            //}
 
             bool ValidateCommonCostructor(IMethodSymbol constructor)
             {
@@ -36,7 +36,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     if (!byUser.Contains(parameter.Name)
                         && !fromPropertiesNames.Contains(parameter.Name)
-                        && !flattenPropertiesNames.Contains(parameter.Name))
+                        )//&& !flattenPropertiesNames.Contains(parameter.Name))
                     {
                         return false;
                     }
@@ -55,30 +55,30 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            bool ValidateUnflattenCostructor(IMethodSymbol constructor)
-            {
-                foreach (var parameter in constructor.Parameters)
-                {
-                    if (GetOptimalUnflatteningConstructor(from, parameter.Type, parameter.Name) == null
-                        && !byUser.Contains(parameter.Name)
-                        && !fromPropertiesNames.Contains(parameter.Name))
-                    {
-                        return false;
-                    }
-                }
+            //bool ValidateUnflattenCostructor(IMethodSymbol constructor)
+            //{
+            //    foreach (var parameter in constructor.Parameters)
+            //    {
+            //        if (GetOptimalUnflatteningConstructor(from, parameter.Type, parameter.Name) == null
+            //            && !byUser.Contains(parameter.Name)
+            //            && !fromPropertiesNames.Contains(parameter.Name))
+            //        {
+            //            return false;
+            //        }
+            //    }
 
-                return true;
-            }
+            //    return true;
+            //}
 
             IMethodSymbol? unflattenConstructor = null;
-            foreach (var constructor in constructors)
-            {
-                if (ValidateUnflattenCostructor(constructor))
-                {
-                    unflattenConstructor = constructor;
-                    break;
-                }
-            }
+            //foreach (var constructor in constructors)
+            //{
+            //    if (ValidateUnflattenCostructor(constructor))
+            //    {
+            //        unflattenConstructor = constructor;
+            //        break;
+            //    }
+            //}
 
             return GetParametersCount(commonConstructor) > GetParametersCount(unflattenConstructor)
                 ? commonConstructor
@@ -94,7 +94,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return null;
             }
 
-            var fromPropertiesNames = from.GetPropertiesNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var fromPropertiesNames = from.GetPublicPropertiesNames().ToArray().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
 
             bool ValidateCommonCostructor(IMethodSymbol constructor)
             {
@@ -120,12 +120,12 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             }
 
             var flattenProperties = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            foreach(var property in to.GetProperties())
+            foreach(var property in to.GetPublicProperties())
             {
                 flattenProperties.Add($"{unflattingPropertyName}{property.Name}");
             }
 
-            foreach(var property in from.GetProperties())
+            foreach(var property in from.GetPublicProperties())
             {
                 if (flattenProperties.Contains(property.Name))
                 {

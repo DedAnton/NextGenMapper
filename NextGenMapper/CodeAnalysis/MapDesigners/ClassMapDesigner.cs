@@ -58,14 +58,15 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
                 membersMaps.Add(memberMap);
 
-                if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
-                {
-                    maps.AddRange(DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-                }
-                else if (memberMap is { IsSameTypes: false })
-                {
-                    maps.AddRange(DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
-                }
+                //if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
+                //{
+                //    maps.AddRange(DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
+                //}
+                //else if (memberMap is { IsSameTypes: false })
+                //{
+                //    maps.AddRange(DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
+                //}
+                maps.AddRange(DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
             }
 
             maps.Add(new ClassMap(from, to, membersMaps));
@@ -75,130 +76,130 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter)
         {
-            var fromProperty = from.FindProperty(constructorParameter.Name);
+            var fromProperty = from.FindPublicProperty(constructorParameter.Name);
             if (fromProperty != null)
             {
                 return MemberMap.Counstructor(fromProperty, constructorParameter);
             }
 
-            var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, constructorParameter.Name);
-            if (flattenProperty != null && mappedProperty != null)
-            {
-                return MemberMap.Counstructor(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
-            }
+            //var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, constructorParameter.Name);
+            //if (flattenProperty != null && mappedProperty != null)
+            //{
+            //    return MemberMap.Counstructor(mappedProperty, constructorParameter, flattenPropertyName: flattenProperty.Name);
+            //}
 
-            var isUnflattening = IsUnflattening(from, constructorParameter.Name, constructorParameter.Type);
-            if (isUnflattening)
-            {
-                return MemberMap.CounstructorUnflatten(from, constructorParameter);
-            }
+            //var isUnflattening = IsUnflattening(from, constructorParameter.Name, constructorParameter.Type);
+            //if (isUnflattening)
+            //{
+            //    return MemberMap.CounstructorUnflatten(from, constructorParameter);
+            //}
 
             return null;
         }
 
         public MemberMap? DesignInitializerPropertyMap(ITypeSymbol from, IPropertySymbol initializerProperty)
         {
-            var fromProperty = from.FindProperty(initializerProperty.Name);
+            var fromProperty = from.FindPublicProperty(initializerProperty.Name);
             if (fromProperty != null)
             {
                 return MemberMap.Initializer(fromProperty, initializerProperty);
             }
 
-            var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, initializerProperty.Name);
-            if (flattenProperty != null && mappedProperty != null)
-            {
-                return MemberMap.Initializer(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
-            }
+            //var (flattenProperty, mappedProperty) = FindFlattenMappedProperty(from, initializerProperty.Name);
+            //if (flattenProperty != null && mappedProperty != null)
+            //{
+            //    return MemberMap.Initializer(mappedProperty, initializerProperty, flattenPropertyName: flattenProperty.Name);
+            //}
 
-            var isUnflattening = IsUnflattening(from, initializerProperty.Name, initializerProperty.Type);
-            if (isUnflattening)
-            {
-                return MemberMap.InitializerUnflatten(from, initializerProperty);
-            }
+            //var isUnflattening = IsUnflattening(from, initializerProperty.Name, initializerProperty.Type);
+            //if (isUnflattening)
+            //{
+            //    return MemberMap.InitializerUnflatten(from, initializerProperty);
+            //}
 
             return null;
         }
 
-        private bool IsUnflattening(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
-        {
-            var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
-            if (constructor == null)
-            {
-                return false;
-            }
+        //private bool IsUnflattening(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
+        //{
+        //    var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
+        //    if (constructor == null)
+        //    {
+        //        return false;
+        //    }
 
-            var flattenProperties = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            foreach (var property in unflattingPropertyType.GetProperties())
-            {
-                flattenProperties.Add($"{unflattingPropertyName}{property.Name}");
-            }
+        //    var flattenProperties = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+        //    foreach (var property in unflattingPropertyType.GetProperties())
+        //    {
+        //        flattenProperties.Add($"{unflattingPropertyName}{property.Name}");
+        //    }
 
-            foreach (var property in from.GetProperties())
-            {
-                if (flattenProperties.Contains(property.Name))
-                {
-                    return true;
-                }
-            }
+        //    foreach (var property in from.GetProperties())
+        //    {
+        //        if (flattenProperties.Contains(property.Name))
+        //        {
+        //            return true;
+        //        }
+        //    }
 
-            return false;
-        }
+        //    return false;
+        //}
 
-        public List<ClassMap> DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
-        {
-            var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
-            if (constructor == null)
-            {
-                return new();
-            }
-            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+        //public List<ClassMap> DesignUnflattingClassMap(ITypeSymbol from, string unflattingPropertyName, ITypeSymbol unflattingPropertyType)
+        //{
+        //    var constructor = _constructorFinder.GetOptimalUnflatteningConstructor(from, unflattingPropertyType, unflattingPropertyName);
+        //    if (constructor == null)
+        //    {
+        //        return new();
+        //    }
+        //    var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
 
-            var maps = new List<ClassMap>();
-            var membersMaps = new List<MemberMap>();
-            foreach (var member in toMembers)
-            {
-                var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
-                MemberMap? map = (fromProperty, member) switch
-                {
-                    ({ }, IParameterSymbol parameter) => MemberMap.Counstructor(fromProperty, parameter),
-                    ({ }, IPropertySymbol property) => MemberMap.Initializer(fromProperty, property),
-                    _ => null
-                };
+        //    var maps = new List<ClassMap>();
+        //    var membersMaps = new List<MemberMap>();
+        //    foreach (var member in toMembers)
+        //    {
+        //        var fromProperty = from.FindProperty($"{unflattingPropertyName}{member.Name}");
+        //        MemberMap? map = (fromProperty, member) switch
+        //        {
+        //            ({ }, IParameterSymbol parameter) => MemberMap.Counstructor(fromProperty, parameter),
+        //            ({ }, IPropertySymbol property) => MemberMap.Initializer(fromProperty, property),
+        //            _ => null
+        //        };
 
-                if (map is not null)
-                {
-                    membersMaps.Add(map);
-                }
+        //        if (map is not null)
+        //        {
+        //            membersMaps.Add(map);
+        //        }
 
-                if (map is { IsSameTypes: false })
-                {
-                    maps.AddRange(DesignMapsForPlanner(map.FromType, map.ToType));
-                }
-            }
-            if (membersMaps.Count == 0)
-            {
-                return new();
-            }
-            maps.Add(new ClassMap(from, unflattingPropertyType, membersMaps, isUnflattening: true));
+        //        if (map is { IsSameTypes: false })
+        //        {
+        //            maps.AddRange(DesignMapsForPlanner(map.FromType, map.ToType));
+        //        }
+        //    }
+        //    if (membersMaps.Count == 0)
+        //    {
+        //        return new();
+        //    }
+        //    maps.Add(new ClassMap(from, unflattingPropertyType, membersMaps, isUnflattening: true));
 
-            return maps;
-        }
+        //    return maps;
+        //}
 
-        private (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
-            ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
-        {
-            foreach (var flattenProperty in type.GetProperties())
-            {
-                foreach (var mappedProperty in flattenProperty.Type.GetProperties())
-                {
-                    if ($"{flattenProperty.Name}{mappedProperty.Name}".Equals(name, comparision))
-                    {
-                        return (flattenProperty, mappedProperty);
-                    }
-                }
-            }
+        //private (IPropertySymbol flattenProperty, IPropertySymbol mappedProperty) FindFlattenMappedProperty(
+        //    ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        //{
+        //    foreach (var flattenProperty in type.GetProperties())
+        //    {
+        //        foreach (var mappedProperty in flattenProperty.Type.GetProperties())
+        //        {
+        //            if ($"{flattenProperty.Name}{mappedProperty.Name}".Equals(name, comparision))
+        //            {
+        //                return (flattenProperty, mappedProperty);
+        //            }
+        //        }
+        //    }
 
-            return default;
-        }
+        //    return default;
+        //}
     }
 }

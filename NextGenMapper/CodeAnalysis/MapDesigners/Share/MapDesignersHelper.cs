@@ -30,13 +30,13 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public static ImmutableArray<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
         {
-            var constructorParametersNames = constructor.GetParametersNames().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var constructorParametersNames = constructor.GetParametersNames().ToArray().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
             var members = ImmutableArray.Create<ISymbol>();
             foreach (var parameter in constructor.Parameters)
             {
                 members = members.Add(parameter);
             }
-            foreach (var constructorTypeProperty in constructor.ContainingType.GetProperties())
+            foreach (var constructorTypeProperty in constructor.ContainingType.GetPublicProperties())
             {
                 if (!constructorTypeProperty.IsReadOnly && !constructorParametersNames.Contains(constructorTypeProperty.Name))
                 {

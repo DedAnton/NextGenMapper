@@ -12,14 +12,20 @@ namespace Benchmark
     {
         private static void Main()
         {
-            BenchmarkRunner.Run<MapDesignerBenchmark>();
+            //BenchmarkRunner.Run<MapDesignerBenchmark>();
             //BenchmarkRunner.Run<CircleReferencesList>();
             //BenchmarkRunner.Run<ListStringEquality>();
             //BenchmarkRunner.Run<WhereSelect>();
             //BenchmarkRunner.Run<Iterate>();
             //BenchmarkRunner.Run<Sorting>();
             //BenchmarkRunner.Run<FirstOrDefault>();
-            //BenchmarkRunner.Run<SpanTests>();
+            BenchmarkRunner.Run<SpanTests>();
+
+            //var benchmark = new MapDesignerBenchmark();
+            //var mapPair = benchmark.GenerateCommonClassesMapPairs().ToArray().First(x => x.Name == "props_100_init");
+            //GC.Collect();
+
+            //var asd = benchmark.Properties(mapPair);
 
             //OldBigBanchmark.Run(1000);
             // 1    - 00:00:00.9161159 -> 00:00:00.8977854

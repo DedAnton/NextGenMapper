@@ -76,14 +76,14 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
                 membersMaps.Add(memberMap);
 
-                if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
-                {
-                    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-                }
-                else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
-                {
+                //if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
+                //{
+                //    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
+                //}
+                //else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                //{
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
-                }
+                //}
             }
 
             var customParameterName = methodSyntax.ParameterList.Parameters.First().Identifier.Text;
