@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NextGenMapperTests.IntegrationTests
 {
-    [TestClass]
+    //[TestClass]
     public class FlatteningAndUnflatteningTest
     {
         [TestMethod]
