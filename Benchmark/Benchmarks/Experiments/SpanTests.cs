@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using Benchmark.Utils;
+using System.Collections.Immutable;
 
 namespace Benchmark.Benchmarks.Experiments;
 
@@ -12,6 +13,7 @@ public class SpanTests
 
     private int[] array;
     private ImmutableHashSet<string> immutableHashSet;
+    private FastHashSet<string> fastHashSet;
     private HashSet<string> hashSet;
     private string[] stringArray;
     private string testString;
@@ -22,10 +24,12 @@ public class SpanTests
         var collection = Enumerable.Range(0, Length).Select(x => x).ToArray();
         immutableHashSet = ImmutableHashSet.Create<string>(StringComparer.InvariantCultureIgnoreCase);
         stringArray = new string[collection.Length];
-        for(int i = 0; i < collection.Length; i++)
+        fastHashSet = new FastHashSet<string>();
+        for (int i = 0; i < collection.Length; i++)
         {
             immutableHashSet.Add(collection[i].ToString());
             stringArray[i] = collection[i].ToString();
+            fastHashSet.Add(collection[i].ToString());
         }
         testString = (Length - 1).ToString();
 
@@ -51,6 +55,17 @@ public class SpanTests
     public bool Contains_HashSet_WithCreating()
     {
         var localHashSet = new HashSet<string>(stringArray, StringComparer.InvariantCultureIgnoreCase);
+
+        return localHashSet.Contains(testString);
+    }
+
+    [BenchmarkCategory("Contains"), Benchmark]
+    public bool Contains_FastHashSet() => fastHashSet.Contains(testString);
+
+    [BenchmarkCategory("Contains"), Benchmark]
+    public bool Contains_FastHashSet_WithCreating()
+    {
+        var localHashSet = new FastHashSet<string>(stringArray, StringComparer.InvariantCultureIgnoreCase);
 
         return localHashSet.Contains(testString);
     }

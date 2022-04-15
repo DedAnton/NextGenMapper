@@ -19,7 +19,9 @@ namespace Benchmark
             //BenchmarkRunner.Run<Iterate>();
             //BenchmarkRunner.Run<Sorting>();
             //BenchmarkRunner.Run<FirstOrDefault>();
-            BenchmarkRunner.Run<SpanTests>();
+            //BenchmarkRunner.Run<SpanTests>();
+            BenchmarkRunner.Run<StringComparision>();
+            //BenchmarkRunner.Run<CharComparision>();
 
             //var benchmark = new MapDesignerBenchmark();
             //var mapPair = benchmark.GenerateCommonClassesMapPairs().ToArray().First(x => x.Name == "props_100_init");
