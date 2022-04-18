@@ -84,12 +84,14 @@ namespace NextGenMapper
 
             //var sw3 = new OneOffStopwatch();
 
-            var commonMappers = GenerateCommonMapper();
-            commonMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CommonMapper", SourceText.From(mapper, Encoding.UTF8)));
-
-            var customMappers = GenerateCustomMappers();
-            customMappers.ForEachIndex((index, mapper) => context.AddSource($"{index}_CustomMapper", SourceText.From(mapper, Encoding.UTF8)));
-
+            var prefix = 1;
+            foreach (var mapGroup in _mapPlanner.MapGroups)
+            {
+                var mapperClassBuilder = new MapperClassBuilder();
+                var mapperSourceCode = mapperClassBuilder.Generate(mapGroup);
+                context.AddSource($"{prefix}_Mapper", mapperSourceCode);
+                prefix++;
+            }
             //Console.WriteLine($"generate mappers: {sw3.Stop()}");
 
             _diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
@@ -191,36 +193,6 @@ namespace NextGenMapper
             {
                 _mapPlanner.AddCommonMap(map);
             }
-        }
-
-        private List<string> GenerateCommonMapper()
-        {
-            var commonMapperGenerator = new CommonMapperGenerator();
-            var commonMappers = new List<string>();
-            foreach (var mapGroup in _mapPlanner.MapGroups)
-            {
-                if (mapGroup.Priority == MapPriority.Common)
-                {
-                    commonMappers.Add(commonMapperGenerator.Generate(mapGroup));
-                }
-            }
-
-            return commonMappers;
-        }
-
-        private List<string> GenerateCustomMappers()
-        {
-            var customMapperGenerator = new CustomMapperGenerator();
-            var customMappers = new List<string>();
-            foreach (var mapGroup in _mapPlanner.MapGroups)
-            {
-                if (mapGroup.Priority == MapPriority.Custom)
-                {
-                    customMappers.Add(customMapperGenerator.Generate(mapGroup));
-                }
-            }
-
-            return customMappers;
         }
     }
 }
