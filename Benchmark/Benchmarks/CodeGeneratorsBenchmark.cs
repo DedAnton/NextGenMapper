@@ -11,10 +11,6 @@ namespace Benchmark.Benchmarks;
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class CodeGeneratorsBenchmark
 {
-    [BenchmarkCategory("Common"), Benchmark(Baseline = true)]
-    [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-    public string Old(BenchmarkInput input) => new CommonMapperGenerator().Generate(input.MapGroup);
-
     [BenchmarkCategory("Common"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
     public string New(BenchmarkInput input) => new MapperClassBuilder().Generate(input.MapGroup);
