@@ -4,7 +4,7 @@ using System.IO;
 namespace NextGenMapperTests.IntegrationTests
 {
     [TestClass]
-    public class InitializeAndCleanup
+    public class SetupAndCleanup
     {
         [AssemblyInitialize]
 #pragma warning disable IDE0060
