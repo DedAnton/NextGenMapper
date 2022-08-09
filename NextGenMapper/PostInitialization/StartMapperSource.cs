@@ -8,7 +8,7 @@
 
 namespace NextGenMapper
 {
-    public static partial class Mapper
+    internal static partial class Mapper
     {
         public static To Map<To>(this object source) => throw new InvalidOperationException($""Error when mapping {source.GetType()} to {typeof(To)}, mapping function was not found. Create custom mapping function."");
     }

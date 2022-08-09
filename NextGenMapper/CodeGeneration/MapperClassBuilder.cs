@@ -9,7 +9,7 @@ public class MapperClassBuilder
     private const int TabWidth = 4;
 
     private const string Namespace = "namespace NextGenMapper";
-    private const string Class = "public static partial class Mapper";
+    private const string Class = "internal static partial class Mapper";
 
     private const string NewLine = "\r\n";
     private const char OpenBracket = '(';
@@ -28,7 +28,7 @@ public class MapperClassBuilder
     private const string Lambda = "=>";
     private const char X = 'x';
 
-    private const string Public = "public";
+    private const string Internal = "internal";
     private const string Static = "static";
     private const string Source = "source";
     private const string Map = "Map";
@@ -154,7 +154,7 @@ public class MapperClassBuilder
         var to = map.To.ToString().AsSpan();
 
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
@@ -314,7 +314,7 @@ public class MapperClassBuilder
         var to = map.To.ToString().AsSpan();
 
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
@@ -449,7 +449,7 @@ public class MapperClassBuilder
     private void AppendTypeCustomMapMethod(ref ValueStringBuilder builder, TypeCustomMap map)
     {
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
@@ -533,7 +533,7 @@ public class MapperClassBuilder
     private void AppendCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
     {
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
@@ -603,7 +603,7 @@ public class MapperClassBuilder
         var to = map.To.ToString().AsSpan();
 
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
@@ -684,7 +684,7 @@ public class MapperClassBuilder
         var to = map.To.ToString().AsSpan();
 
         AppendTabs(ref builder, 2);
-        builder.Append(Public);
+        builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
