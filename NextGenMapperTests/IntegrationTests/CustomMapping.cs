@@ -164,7 +164,7 @@ namespace Test
 
             var destination = source.Map<DestinationAlias>();
 
-            var isValid = destination.Name == ""Anton Ryabchikov"" && destination.Birthday == ""20.05.1997"";
+            var isValid = destination.Name == ""Anton Ryabchikov"" && destination.Birthday == source.Birthday.ToShortDateString();
 
             if (!isValid) throw new MapFailedException(source, destination);
         }
