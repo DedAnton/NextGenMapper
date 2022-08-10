@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.IO;
 
 namespace NextGenMapperTests.IntegrationTests
@@ -11,7 +12,7 @@ namespace NextGenMapperTests.IntegrationTests
         public static void Initialize(TestContext context)
 #pragma warning restore IDE0060
         {
-            Directory.CreateDirectory(@"..\..\..\Temp");
+            Directory.CreateDirectory(Path.Combine("..", "..", "..", "Temp"));
         }
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -42,7 +43,7 @@ namespace NextGenMapperTests
 
         public static bool TestMapper(this Compilation compilation, out object source, out object destination, out string message, [CallerMemberName] string caller = "test")
         {
-            var path = $@"..\..\..\Temp\{caller}.dll";
+            var path = Path.Combine("..", "..", "..", "Temp", $"{caller}.dll");
             compilation.Emit(path);
             Assembly assembly = Assembly.LoadFrom(path);
             Type type = assembly.GetType("Test.Program");
