@@ -7,6 +7,15 @@ namespace NextGenMapper.Extensions
 {
     public static class StringExtensions
     {
+        public static string ToCamelCase(this string source)
+        {
+            var sourceSpan = source.AsSpan();
+            Span<char> resultSpan = new char[sourceSpan.Length];
+            sourceSpan.CopyTo(resultSpan);
+            resultSpan[0] = char.ToLowerInvariant(sourceSpan[0]);
+            return resultSpan.ToString();
+        }
+
         public static string LeadingSpace(this string source, int addLeadingSpacesCount)
         {
             var splittedLines = source.Split(new string[] { "\r\n" }, StringSplitOptions.None);

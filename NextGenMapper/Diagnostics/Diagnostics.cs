@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Specialized;
 
 namespace NextGenMapper
 {
@@ -67,5 +68,22 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapWithMethodWithoutArgumentsError = new(
+            id: "NGM009",
+            title: "'MapWith' method without arguments",
+            messageFormat: "Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor ToManyArgumentsForMapWithError = new(
+            id: "NGM010",
+            title: "To many arguments for 'MapWith' method",
+            messageFormat: "Method 'MapWith' must not pass all arguments for each parameter. At least one argument must not be passed",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
     }
 }

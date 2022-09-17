@@ -10,7 +10,14 @@ namespace NextGenMapper.CodeAnalysis
             && SymbolEqualityComparer.IncludeNullability.Equals(x.Item2, y.Item2);
 
         public int GetHashCode((ITypeSymbol, ITypeSymbol) obj)
-            => SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item1)
-            ^ SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item2);
+        {
+            unchecked
+            {
+                var hash = 17;
+                hash = hash * 23 + SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item1);
+                hash = hash * 23 + SymbolEqualityComparer.IncludeNullability.GetHashCode(obj.Item2);
+                return hash;
+            }
+        }
     }
 }

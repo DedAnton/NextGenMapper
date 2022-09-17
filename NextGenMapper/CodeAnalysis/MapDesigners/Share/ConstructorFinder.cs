@@ -3,7 +3,6 @@ using NextGenMapper.Extensions;
 using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -20,7 +19,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return null;
             }
 
-            var fromPropertiesNames = from.GetPublicPropertiesNames().ToArray().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
+            var fromPropertiesNames = new HashSet<string>(from.GetPublicPropertiesNames().ToArray(), StringComparer.InvariantCultureIgnoreCase);
 
             bool ValidateCommonCostructor(IMethodSymbol constructor)
             {

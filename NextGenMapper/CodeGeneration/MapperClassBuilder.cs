@@ -1,6 +1,9 @@
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.Extensions;
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace NextGenMapper.CodeGeneration;
 
@@ -32,6 +35,7 @@ public class MapperClassBuilder
     private const string Static = "static";
     private const string Source = "source";
     private const string Map = "Map";
+    private const string MapWith = "MapWith";
     private const string To = "To";
     private const string This = "this";
     private const string New = "new";
@@ -73,6 +77,16 @@ public class MapperClassBuilder
             else if (map is ClassPartialConstructorMap partialConstructorMap)
             {
                 AppendClassPartialConstructorMapMethod(ref builder, partialConstructorMap);
+            }
+            else if (map is ClassMapWith classMapWith)
+            {
+                AppendPlaceholderClassMapWith(ref builder, classMapWith);
+                if (classMapWith.Arguments.Count > 0)
+                {
+                    builder.Append(NewLine);
+                    builder.Append(NewLine);
+                    AppendClassMapWith(ref builder, classMapWith);
+                }
             }
             else if (map is ClassMap classMap)
             {
@@ -432,6 +446,208 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 2);
         builder.Append(CloseCurlyBracket);
         builder.Append(Semicolon);
+    }
+
+    private void AppendClassMapWith(ref ValueStringBuilder builder, ClassMapWith map)
+    {
+        AppendTabs(ref builder, 2);
+        builder.Append(Internal);
+        builder.Append(WhiteSpace);
+        builder.Append(Static);
+        builder.Append(WhiteSpace);
+        builder.Append(map.To.ToString());
+        builder.Append(WhiteSpace);
+        builder.Append(MapWith);
+        builder.Append(OpenAngleBracket);
+        builder.Append(To);
+        builder.Append(CloseAngleBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(This);
+        builder.Append(WhiteSpace);
+        builder.Append(map.From.ToString());
+        builder.Append(WhiteSpace);
+        builder.Append(Source);
+        builder.Append(Comma);
+        builder.Append(NewLine);
+        var counter = 1;
+        foreach (var argument in map.Arguments)
+        {
+            AppendTabs(ref builder, 3);
+            builder.Append(argument.Type.ToString());
+            builder.Append(WhiteSpace);
+            builder.Append(argument.Name);
+
+            if (counter < map.Arguments.Count)
+            {
+                builder.Append(Comma);
+            }
+            builder.Append(NewLine);
+            counter++;
+        }
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(Lambda);
+        builder.Append(WhiteSpace);
+        builder.Append(New);
+        builder.Append(WhiteSpace);
+        builder.Append(map.To.ToString());
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenBracket);
+        counter = 1;
+        foreach (var property in map.ConstructorProperties)
+        {
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 3);
+            var argument = map.Arguments.FirstOrDefault(x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (argument is not null)
+            {
+                builder.Append(argument.Name);
+            }
+            else
+            {
+                builder.Append(Source);
+                builder.Append(Dot);
+                builder.Append(property.FromName);
+                if (!(property.IsSameTypes || property.HasImplicitConversion))
+                {
+                    builder.Append(Dot);
+                    builder.Append(Map);
+                    builder.Append(OpenAngleBracket);
+                    builder.Append(property.ToType.ToString());
+                    builder.Append(CloseAngleBracket);
+                    builder.Append(OpenBracket);
+                    builder.Append(CloseBracket);
+                }
+            }
+            if (counter < map.ConstructorProperties.Count)
+            {
+                builder.Append(Comma);
+            }
+            counter++;
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2); ;
+        builder.Append(OpenCurlyBracket);
+        counter = 1;
+        foreach (var property in map.InitializerProperties)
+        {
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 3);
+            builder.Append(property.ToName);
+            builder.Append(WhiteSpace);
+            builder.Append(Equal);
+            builder.Append(WhiteSpace);
+            var argument = map.Arguments.FirstOrDefault(x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+            if (argument is not null)
+            {
+                builder.Append(argument.Name);
+            }
+            else
+            {
+                builder.Append(Source);
+                builder.Append(Dot);
+                builder.Append(property.FromName);
+                if (!(property.IsSameTypes || property.HasImplicitConversion))
+                {
+                    builder.Append(Dot);
+                    builder.Append(Map);
+                    builder.Append(OpenAngleBracket);
+                    builder.Append(property.ToType.ToString());
+                    builder.Append(CloseAngleBracket);
+                    builder.Append(OpenBracket);
+                    builder.Append(CloseBracket);
+                }
+            }
+            if (counter < map.InitializerProperties.Count)
+            {
+                builder.Append(Comma);
+            }
+            counter++;
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseCurlyBracket);
+        builder.Append(Semicolon);
+    }
+
+    //public static UserSettingsDestination MapWith<To>(
+    //    this UserSettingsSource source,
+    //    int themeId,
+    //    int timeZoneId)
+    //{
+    //    return new UserSettingsDestination(themeId, timeZoneId, source.IsNotificationsEnabled);
+    //}
+    private void AppendPlaceholderClassMapWith(ref ValueStringBuilder builder, ClassMapWith map)
+    {
+        AppendTabs(ref builder, 2);
+        builder.Append(Internal);
+        builder.Append(WhiteSpace);
+        builder.Append(Static);
+        builder.Append(WhiteSpace);
+        builder.Append(map.To.ToString());
+        builder.Append(WhiteSpace);
+        builder.Append(MapWith);
+        builder.Append(OpenAngleBracket);
+        builder.Append(To);
+        builder.Append(CloseAngleBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(This);
+        builder.Append(WhiteSpace);
+        builder.Append(map.From.ToString());
+        builder.Append(WhiteSpace);
+        builder.Append(Source);
+        builder.Append(Comma);
+        builder.Append(NewLine);
+        var counter = 1;
+        foreach (var property in map.PublicPropertiesForParameters)
+        {
+            AppendTabs(ref builder, 3);
+            builder.Append(property.Type.ToString());
+            builder.Append(WhiteSpace);
+            builder.Append(property.Name.ToCamelCase());
+            builder.Append(WhiteSpace);
+            builder.Append(Equal);
+            builder.Append(WhiteSpace);
+            builder.Append("default");
+
+            if (counter < map.PublicPropertiesForParameters.Length)
+            {
+                builder.Append(Comma);
+            }
+            counter++;
+            builder.Append(NewLine);
+        }
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(Throw);
+        builder.Append(WhiteSpace);
+        builder.Append(New);
+        builder.Append(WhiteSpace);
+        //TODO: add diagnostic for prevent calling stub method
+        builder.Append("System.NotImplementedException(\"This method is a stub and is not intended to be called\")");
+        builder.Append(Semicolon);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseCurlyBracket);
     }
 
     //public static {map.To} Map<To>(this {map.From} {map.ParameterName}) => new {map.To}

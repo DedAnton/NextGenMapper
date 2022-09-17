@@ -35,6 +35,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
+                if (SymbolEqualityComparer.IncludeNullability.Equals(from, to))
+                {
+                    continue;
+                }
+
                 if (_referencesHistory.Contains((from, to)))
                 {
                     _diagnosticReporter.ReportCircularReferenceError(to.Locations, _referencesHistory.Select(x => x.from).Append(from));

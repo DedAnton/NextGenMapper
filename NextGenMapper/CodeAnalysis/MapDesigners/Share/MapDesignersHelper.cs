@@ -2,13 +2,13 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.Extensions;
 using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public static class MapDesignersHelper
     {
-        public static ObjectCreationExpressionSyntax? GetObjectCreateionExpression(this BaseMethodDeclarationSyntax method)
+        public static ObjectCreationExpressionSyntax? GetObjectCreationExpression(this BaseMethodDeclarationSyntax method)
         {
             if (method.ExpressionBody != null)
             {
@@ -28,19 +28,19 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             throw new ArgumentException($"Return statement not found for method {method}");
         }
 
-        public static ImmutableArray<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
+        public static List<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
         {
-            var constructorParametersNames = constructor.GetParametersNames().ToArray().ToImmutableHashSet(StringComparer.InvariantCultureIgnoreCase);
-            var members = ImmutableArray.Create<ISymbol>();
+            var constructorParametersNames = new HashSet<string>(constructor.GetParametersNames().ToArray(), StringComparer.InvariantCultureIgnoreCase);
+            var members = new List<ISymbol>();
             foreach (var parameter in constructor.Parameters)
             {
-                members = members.Add(parameter);
+                members.Add(parameter);
             }
             foreach (var constructorTypeProperty in constructor.ContainingType.GetPublicProperties())
             {
                 if (!constructorTypeProperty.IsReadOnly && !constructorParametersNames.Contains(constructorTypeProperty.Name))
                 {
-                    members = members.Add(constructorTypeProperty);
+                    members.Add(constructorTypeProperty);
                 }
             }
 

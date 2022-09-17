@@ -5,8 +5,6 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenMapper", "NextGenMapper\NextGenMapper.csproj", "{26FA8901-6E52-4361-B240-5CD28E4DA2C8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapperSample", "MapperSample\MapperSample.csproj", "{9CB7C034-23B3-4759-93D8-1A967163E5C8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NextGenMapperTests", "NextGenMapperTests\NextGenMapperTests.csproj", "{7147B828-86F5-4D5C-BBFA-B552B775EA52}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmark", "Benchmark\Benchmark.csproj", "{9C388D18-FF9D-4332-B45A-CD21581F834B}"
@@ -26,10 +24,6 @@ Global
 		{26FA8901-6E52-4361-B240-5CD28E4DA2C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26FA8901-6E52-4361-B240-5CD28E4DA2C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26FA8901-6E52-4361-B240-5CD28E4DA2C8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9CB7C034-23B3-4759-93D8-1A967163E5C8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7147B828-86F5-4D5C-BBFA-B552B775EA52}.Release|Any CPU.ActiveCfg = Release|Any CPU

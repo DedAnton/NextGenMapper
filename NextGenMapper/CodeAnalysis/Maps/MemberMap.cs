@@ -40,6 +40,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
 
         public static MemberMap User(IPropertySymbol to)
             => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Initializer, true, null);
+        public static MemberMap User(IParameterSymbol to)
+            => new(to.Type, to.Name, to.Type, to.Name, MemberMapType.Constructor, true, null);
 
         public static MemberMap Argument(IParameterSymbol parameter, ArgumentSyntax argument)
             => new(parameter.Type, parameter.Name, parameter.Type, parameter.Name, MemberMapType.Constructor, true, null) { ArgumentSyntax = argument };

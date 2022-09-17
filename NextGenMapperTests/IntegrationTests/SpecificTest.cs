@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 
 namespace NextGenMapperTests.IntegrationTests
 {
@@ -61,6 +62,47 @@ if (!isValid) throw new MapFailedException(sourceA, destinationA);";
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
             _ = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
             Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM001");
+        }
+
+        [TestMethod]
+        public void MultipleRunsOneGenerator()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+
+var destination = source.Map<Destination>();
+
+var isValid = source.Name == destination.Name && source.Birthday == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var generator = new MapperGenerator();
+            //first run
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            //second run
+            userSourceCompilation = userSource.RunGenerators(out generatorDiagnostics, generators: generator);
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
     }
 }

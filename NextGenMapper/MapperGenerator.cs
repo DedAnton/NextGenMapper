@@ -8,7 +8,9 @@ using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace NextGenMapper
@@ -16,17 +18,22 @@ namespace NextGenMapper
     [Generator]
     public class MapperGenerator : ISourceGenerator
     {
-        private readonly MapPlanner _mapPlanner;
-        private readonly DiagnosticReporter _diagnosticReporter;
+        private MapPlanner _mapPlanner;
+        private DiagnosticReporter _diagnosticReporter;
 
         public MapperGenerator()
         {
-            _mapPlanner = new();
-            _diagnosticReporter = new();
         }
 
         public void Initialize(GeneratorInitializationContext context)
         {
+//#if DEBUG
+//            if (!System.Diagnostics.Debugger.IsAttached)
+//            {
+//                System.Diagnostics.Debugger.Launch();
+//            }
+//#endif 
+
             //var sw1 = new OneOffStopwatch();
             context.RegisterForPostInitialization(i =>
             {
@@ -42,6 +49,9 @@ namespace NextGenMapper
 
         public void Execute(GeneratorExecutionContext context)
         {
+            _mapPlanner = new();
+            _diagnosticReporter = new();
+
             //var sw2 = new OneOffStopwatch();
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
             {
@@ -67,7 +77,7 @@ namespace NextGenMapper
             {
                 if (mapMethodInvocation.SemanticModel.GetSymbolInfo(mapMethodInvocation.Node.Expression).Symbol is IMethodSymbol method
                     && method.MethodKind == MethodKind.ReducedExtension
-                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.FunctionFullName
+                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
                     && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
                     && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
                     && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
@@ -80,14 +90,66 @@ namespace NextGenMapper
                 }
             }
 
+            foreach (var mapWithMethodInvocation in receiver.MapWithMethodInvocations)
+            {
+                var invocationMethodSymbolInfo = mapWithMethodInvocation.SemanticModel.GetSymbolInfo(mapWithMethodInvocation.Node.Expression);
+                var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
+                var isStubMethod = true;
+                if (invocationMethodSymbol is null
+                    && invocationMethodSymbolInfo.CandidateSymbols.Length == 1
+                    && invocationMethodSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
+                    && mapWithMethodInvocation.Arguments.Length > 0)
+                {
+                    invocationMethodSymbol = invocationMethodSymbolInfo.CandidateSymbols[0];
+                    isStubMethod = false;
+                }
+
+                if (invocationMethodSymbol is IMethodSymbol method
+                    && method.MethodKind == MethodKind.ReducedExtension
+                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithFunctionFullName
+                    && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
+                    && mapWithMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
+                    && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType)
+                    && invocatingVariable.Type.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
+                {
+                    if (isStubMethod)
+                    {
+                        _diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
+                    }
+
+                    var designer = new ClassMapWithDesigner(_diagnosticReporter);
+                    var publicProperties = method.ReturnType.GetPublicProperties().ToArray();
+                    var arguments = mapWithMethodInvocation.Arguments.Select(x =>
+                    {
+                        var propertyAsParamter = publicProperties
+                            .FirstOrDefault(y => y.Name.Equals(x.NameColon?.Name.Identifier.Text, StringComparison.InvariantCultureIgnoreCase))
+                            ?? publicProperties[Array.IndexOf(mapWithMethodInvocation.Arguments, x)];
+
+                        return new MapWithInvocationAgrument(propertyAsParamter.Name.ToCamelCase(), propertyAsParamter.Type);
+                    }).ToList();
+
+                    if (arguments.Count == publicProperties.Length)
+                    {
+                        //TODO: create only stub method if this happened
+                        _diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());
+                    }
+
+                    var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType, arguments);
+                    foreach (var map in maps)
+                    {
+                        AddMapToPlanner(map, new());
+                    }
+                }
+            }
+
             //Console.WriteLine($"prepare maps for mappers: {sw2.Stop()}");
 
             //var sw3 = new OneOffStopwatch();
 
             var prefix = 1;
+            var mapperClassBuilder = new MapperClassBuilder();
             foreach (var mapGroup in _mapPlanner.MapGroups)
             {
-                var mapperClassBuilder = new MapperClassBuilder();
                 var mapperSourceCode = mapperClassBuilder.Generate(mapGroup);
                 context.AddSource($"{prefix}_Mapper", mapperSourceCode);
                 prefix++;
@@ -146,7 +208,7 @@ namespace NextGenMapper
 
                     if (userMethod.Parameters.Length == 1
                         && userMethod.HasAttribute(Annotations.PartialAttributeName)
-                        && method.GetObjectCreateionExpression() is { } objCreationExpression
+                        && method.GetObjectCreationExpression() is { } objCreationExpression
                         && semanticModel.GetSymbolInfo(objCreationExpression).Symbol is IMethodSymbol constructor)
                     {
                         var isPartialConstructorMap = false;
@@ -185,7 +247,7 @@ namespace NextGenMapper
 
         private void AddMapToPlanner(TypeMap map, HashSet<string> usings)
         {
-            if (map is ClassPartialConstructorMap or ClassPartialMap or TypeCustomMap)
+            if (map is ClassPartialConstructorMap or ClassPartialMap or TypeCustomMap or ClassMapWith)
             {
                 _mapPlanner.AddCustomMap(map, usings);
             }

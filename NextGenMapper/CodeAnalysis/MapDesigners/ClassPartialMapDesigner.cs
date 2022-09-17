@@ -23,7 +23,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
         {
-            var objCreationExpression = userMethod.GetObjectCreateionExpression();
+            var objCreationExpression = userMethod.GetObjectCreationExpression();
             if (objCreationExpression == null)
             {
                 _diagnosticReporter.ReportObjectCreationExpressionNotFoundError(userMethod.GetLocation(), from, to);
