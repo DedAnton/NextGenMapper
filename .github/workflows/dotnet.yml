@@ -31,5 +31,4 @@ jobs:
           PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           NUGET_SOURCE: https://api.nuget.org
-          INCLUDE_SYMBOLS: true
     
