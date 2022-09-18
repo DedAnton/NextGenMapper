@@ -97,7 +97,7 @@ class Action {
 
         console.log(`Package Name: ${this.packageName}`)
 
-        if (this.nugetSource.indexOf("github") >= 0) {
+        if (this.nugetSource.indexOf("nuget.pkg.github.com") >= 0) {
             var headers = {
                 Accept: 'application/vnd.github+json',
                 Authorization: 'Bearer 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'
@@ -121,8 +121,8 @@ class Action {
                 this._printErrorAndExit(`error: ${e.message}`)
             })
         }
-        else {
-            https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
+        else if (this.nugetSource.indexOf("api.nuget.org") >= 0) {
+            https.get(`https://api.nuget.org/v3-flatcontainer/${this.packageName}/index.json`, res => {
                 let body = ""
     
                 if (res.statusCode == 404)
@@ -140,6 +140,9 @@ class Action {
             }).on("error", e => {
                 this._printErrorAndExit(`error: ${e.message}`)
             })
+        }
+        else {
+            this._printErrorAndExit(`only nuget.org and github.com package registry supported`)
         }
     }
 
