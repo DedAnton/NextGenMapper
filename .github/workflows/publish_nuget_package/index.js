@@ -99,14 +99,14 @@ class Action {
 
         if (this.nugetSource.indexOf("nuget.pkg.github.com") >= 0) {
             var headers = {
-                Accept: 'application/vnd.github+json',
-                Authorization: `Bearer ${this.nugetKey}`
+                'User-Agent': 'DedAnton',
+                'Accept': 'application/vnd.github+json',
+                'Authorization': `Bearer ${this.nugetKey}`
             }
             console.log("DEBUG: this is github");
             https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions/`, { headers: headers},  res => {
                 let body = ""
     
-                console.log("DEBUG: this is github");
                 console.log(`DEBUG: ${res.statusCode}`);
                 if (res.statusCode == 404) {
                     console.log(`Version ${this.version} was not found in github registry`);
