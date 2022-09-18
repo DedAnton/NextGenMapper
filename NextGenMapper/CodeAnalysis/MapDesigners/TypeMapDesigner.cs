@@ -7,25 +7,29 @@ using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
-    public class ClassMapDesigner
+    public class TypeMapDesigner
     {
         private readonly HashSet<(ITypeSymbol from, ITypeSymbol to)> _referencesHistory;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly ConstructorFinder _constructorFinder;
+        private readonly EnumMapDesigner _enumMapDesigner;
+        private readonly CollectionMapDesigner _collectionMapDesigner;
 
-        public ClassMapDesigner(DiagnosticReporter diagnosticReporter)
+        public TypeMapDesigner(DiagnosticReporter diagnosticReporter)
         {
             _referencesHistory = new(new ReferencesEqualityComparer());
             _diagnosticReporter = diagnosticReporter;
             _constructorFinder = new();
+            _enumMapDesigner = new(diagnosticReporter);
+            _collectionMapDesigner = new(diagnosticReporter, this);
         }
 
-        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
         {
             var mapTypes = new Stack<(ITypeSymbol From, ITypeSymbol To)>();
             mapTypes.Push((from, to));
 
-            var maps = new List<ClassMap>();
+            var maps = new List<TypeMap>();
             while (mapTypes.Count > 0)
             {
                 (from, to) = mapTypes.Pop();
@@ -40,12 +44,26 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
+                if (MapDesignersHelper.IsEnumMapping(from, to))
+                {
+                    maps.Add(_enumMapDesigner.DesignMapsForPlanner(from, to));
+                    continue;
+                }
+
+                if (MapDesignersHelper.IsCollectionMapping(from, to))
+                {
+                    maps.AddRange(_collectionMapDesigner.DesignMapsForPlanner(from, to));
+                    continue;
+                }
+
                 if (_referencesHistory.Contains((from, to)))
                 {
                     _diagnosticReporter.ReportCircularReferenceError(to.Locations, _referencesHistory.Select(x => x.from).Append(from));
                     return maps;
                 }
                 _referencesHistory.Add((from, to));
+
+
 
                 var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)

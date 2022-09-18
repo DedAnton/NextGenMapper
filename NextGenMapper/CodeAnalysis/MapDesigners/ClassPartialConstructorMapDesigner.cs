@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassPartialConstructorMapDesigner
     {
-        private readonly ClassMapDesigner _classMapDesigner;
+        private readonly TypeMapDesigner _classMapDesigner;
         private readonly DiagnosticReporter _diagnosticReporter;
 
         public ClassPartialConstructorMapDesigner(DiagnosticReporter diagnosticReporter)
@@ -19,7 +19,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _diagnosticReporter = diagnosticReporter;
         }
 
-        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol constructor, MethodDeclarationSyntax methodSyntax)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol constructor, MethodDeclarationSyntax methodSyntax)
         {
             var objCreationExpression = methodSyntax.GetObjectCreationExpression();
             if (objCreationExpression == null)
@@ -56,7 +56,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
             }
 
-            var maps = new List<ClassMap>();
+            var maps = new List<TypeMap>();
             var membersMaps = new List<MemberMap>();
             var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
@@ -80,10 +80,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 //{
                 //    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
                 //}
-                //else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
-                //{
+                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                {
                     maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
-                //}
+                }
             }
 
             var customParameterName = methodSyntax.ParameterList.Parameters.First().Identifier.Text;

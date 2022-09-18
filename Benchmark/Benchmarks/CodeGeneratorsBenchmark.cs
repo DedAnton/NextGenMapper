@@ -33,7 +33,7 @@ public class CodeGeneratorsBenchmark
             var compilation = source.CreateCompilation("test");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
-            var maps = new ClassMapDesigner(new()).DesignMapsForPlanner(from, to);
+            var maps = new TypeMapDesigner(new()).DesignMapsForPlanner(from, to);
             var mapGroup = new MapGroup(maps[0], new() { "using NextGenMapper.Extensions;" }, MapPriority.Common);
             for(var i = 1; i < maps.Count; i++)
             {

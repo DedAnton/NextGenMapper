@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
     public class ClassPartialMapDesigner
     {
-        private readonly ClassMapDesigner _classMapDesigner;
+        private readonly TypeMapDesigner _classMapDesigner;
         private readonly DiagnosticReporter _diagnosticReporter;
         private readonly ConstructorFinder _constructorFinder;
 
@@ -21,7 +21,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _constructorFinder = new();
         }
 
-        public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, IMethodSymbol userConstructor, MethodDeclarationSyntax userMethod)
         {
             var objCreationExpression = userMethod.GetObjectCreationExpression();
             if (objCreationExpression == null)
@@ -58,7 +58,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 return new();
             }
 
-            var maps = new List<ClassMap>();
+            var maps = new List<TypeMap>();
             var membersMaps = new List<MemberMap>();
             var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
             foreach (var member in toMembers)
@@ -82,11 +82,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 //if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
                 //{
                 //    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-                //}
-                //else if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
-                //{
+                //} else
+                if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
+                {
                    maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
-                //}
+                }
             }
 
             var customStatements = new List<StatementSyntax>();

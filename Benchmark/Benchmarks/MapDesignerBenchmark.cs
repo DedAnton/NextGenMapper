@@ -13,11 +13,11 @@ public class MapDesignerBenchmark
 {
     [BenchmarkCategory("Properties"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-    public List<ClassMap> Properties(TypesMapPair mapPair) => new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
+    public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
 
     [BenchmarkCategory("NestedClasses"), Benchmark]
     [ArgumentsSource(nameof(GenerateNestedClassesMapPairs))]
-    public List<ClassMap> Nested(TypesMapPair mapPair) => new ClassMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
+    public List<TypeMap> Nested(TypesMapPair mapPair) => new TypeMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To);
 
     [BenchmarkCategory("Enums"), Benchmark]
     [ArgumentsSource(nameof(GenerateEnumsMapPairs))]
@@ -25,11 +25,11 @@ public class MapDesignerBenchmark
 
     [BenchmarkCategory("Partial"), Benchmark]
     [ArgumentsSource(nameof(GeneratePartialMapPairs))]
-    public List<ClassMap> Partial(TypesMapPair mapPair) => new ClassPartialMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
+    public List<TypeMap> Partial(TypesMapPair mapPair) => new ClassPartialMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
 
     [BenchmarkCategory("PartialConstructor"), Benchmark]
     [ArgumentsSource(nameof(GeneratePartialMapPairs))]
-    public List<ClassMap> PartialConstructor(TypesMapPair mapPair) => new ClassPartialConstructorMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
+    public List<TypeMap> PartialConstructor(TypesMapPair mapPair) => new ClassPartialConstructorMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, mapPair.Constructor, mapPair.Method);
 
     public IEnumerable<TypesMapPair> GenerateCommonClassesMapPairs()
     {

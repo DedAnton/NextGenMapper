@@ -17,12 +17,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             SpecialType.System_Collections_Generic_IReadOnlyCollection_T,
             SpecialType.System_Collections_Generic_IReadOnlyList_T
         };
-        private readonly ClassMapDesigner _classMapDesigner;
+        private readonly TypeMapDesigner _classMapDesigner;
         private readonly DiagnosticReporter _diagnosticReporter;
 
         public CollectionMapDesigner(DiagnosticReporter diagnosticReporter)
         {
             _classMapDesigner = new(diagnosticReporter);
+            _diagnosticReporter = diagnosticReporter;
+        }
+
+        public CollectionMapDesigner(DiagnosticReporter diagnosticReporter, TypeMapDesigner classMapDesigner)
+        {
+            _classMapDesigner = classMapDesigner;
             _diagnosticReporter = diagnosticReporter;
         }
 
@@ -45,6 +51,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             var elementTypeTo = GetCollectionElementType(to);
 
             var maps = new List<TypeMap>();
+
             maps.AddRange(_classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo));
             maps.Add(new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionType));
 

@@ -82,7 +82,8 @@ namespace NextGenMapper
                     && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
                     && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
                 {
-                    var maps = MapInvocation(invocatingVariable.Type, method.ReturnType);
+                    var designer = new TypeMapDesigner(_diagnosticReporter);
+                    var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType);
                     foreach (var map in maps)
                     {
                         AddMapToPlanner(map, new());
@@ -117,7 +118,7 @@ namespace NextGenMapper
                         _diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
                     }
 
-                    var designer = new ClassMapWithDesigner(_diagnosticReporter);
+                    var designer = new TypeMapWithDesigner(_diagnosticReporter);
                     var publicProperties = method.ReturnType.GetPublicProperties().ToArray();
                     var arguments = mapWithMethodInvocation.Arguments.Select(x =>
                     {
@@ -158,28 +159,6 @@ namespace NextGenMapper
 
             _diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
 
-        }
-
-        private List<TypeMap> MapInvocation(ITypeSymbol from, ITypeSymbol to)
-        {
-            var maps = new List<TypeMap>();
-            if (from.TypeKind == TypeKind.Enum && to.TypeKind == TypeKind.Enum)
-            {
-                var designer = new EnumMapDesigner(_diagnosticReporter);
-                maps.Add(designer.DesignMapsForPlanner(from, to));
-            }
-            else if (from.IsGenericEnumerable() && to.IsGenericEnumerable())
-            {
-                var designer = new CollectionMapDesigner(_diagnosticReporter);
-                maps.AddRange(designer.DesignMapsForPlanner(from, to));
-            }
-            else if (from.TypeKind == TypeKind.Class && to.TypeKind == TypeKind.Class)
-            {
-                var designer = new ClassMapDesigner(_diagnosticReporter);
-                maps.AddRange(designer.DesignMapsForPlanner(from, to));
-            }
-
-            return maps;
         }
 
         private List<TypeMap> HandleCustomMapperClass(SemanticModel semanticModel, ClassDeclarationSyntax node)

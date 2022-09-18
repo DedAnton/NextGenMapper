@@ -119,5 +119,41 @@ if (!isValid) throw new MapFailedException(source, null);";
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void MappingCollectionOfEnum()
+        {
+            var classes = @"
+public enum EnumFrom   
+{   ValueA,
+    ValueB,
+    ValueC
+}
+
+public enum EnumTo
+{
+    valueA = 10,
+    valueB = 20,
+    valueC = 30
+}";
+
+            var validateFunction = @"
+var source = new List<EnumFrom> { EnumFrom.ValueA, EnumFrom.ValueB, EnumFrom.ValueC };
+
+var destination = source.Map<List<EnumTo>>();
+
+var isValid = destination[0] == EnumTo.valueA && destination[1] == EnumTo.valueB && destination[2] == EnumTo.valueC;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }

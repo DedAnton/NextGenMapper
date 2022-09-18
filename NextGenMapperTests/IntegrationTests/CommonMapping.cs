@@ -546,5 +546,87 @@ if (!isValid) throw new MapFailedException(source, destination);";
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void MappingEnumInClass()
+        {
+            var classes = @"
+public class Source
+{
+    public EnumFrom Property { get; set; }
+}
+
+public class Destination
+{
+    public EnumTo Property { get; set; }
+}
+
+public enum EnumFrom   
+{   ValueA,
+    ValueB,
+    ValueC
+}
+
+public enum EnumTo
+{
+    valueA = 10,
+    valueB = 20,
+    valueC = 30
+}";
+
+            var validateFunction = @"
+var source = new Source { Property = EnumFrom.ValueA };
+
+var destination = source.Map<Destination>();
+
+var isValid = destination.Property == EnumTo.valueA;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void MappingCollectionInClass()
+        {
+            var classes = @"
+public class Source
+{
+    public List<int> Collection { get; set; }
+}
+
+public class Destination
+{
+    public List<int> Collection { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Collection = new List<int> { 1, 2, 3, 4 } };
+
+var destination = source.Map<Destination>();
+
+var isValid = source.Collection[0] == destination.Collection[0] 
+    && source.Collection[1] == destination.Collection[1]
+    && source.Collection[2] == destination.Collection[2] 
+    && source.Collection[3] == destination.Collection[3];
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }

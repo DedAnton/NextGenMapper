@@ -10,20 +10,20 @@ using System.Text;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners;
 
-public class ClassMapWithDesigner
+public class TypeMapWithDesigner
 {
-    private readonly ClassMapDesigner _classMapDesigner;
+    private readonly TypeMapDesigner _classMapDesigner;
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly ConstructorFinder _constructorFinder;
 
-    public ClassMapWithDesigner(DiagnosticReporter diagnosticReporter)
+    public TypeMapWithDesigner(DiagnosticReporter diagnosticReporter)
     {
         _classMapDesigner = new(diagnosticReporter);
         _diagnosticReporter = diagnosticReporter;
         _constructorFinder = new();
     }
 
-    public List<ClassMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, List<MapWithInvocationAgrument> arguments)
+    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, List<MapWithInvocationAgrument> arguments)
     {
         var byUser = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         foreach (var argument in arguments)
@@ -38,7 +38,7 @@ public class ClassMapWithDesigner
             return new();
         }
 
-        var maps = new List<ClassMap>();
+        var maps = new List<TypeMap>();
         var membersMaps = new List<MemberMap>();
         var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
         foreach (var member in toMembers)
