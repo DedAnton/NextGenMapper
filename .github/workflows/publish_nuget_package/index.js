@@ -98,16 +98,16 @@ class Action {
         console.log(`Package Name: ${this.packageName}`)
 
         if (this.nugetSource.indexOf("nuget.pkg.github.com") >= 0) {
+            
             var headers = {
                 'User-Agent': 'DedAnton',
                 'Accept': 'application/vnd.github+json',
                 'Authorization': `Bearer ${this.nugetKey}`
             }
-            console.log("DEBUG: this is github");
-            https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions/`, { headers: headers},  res => {
+
+            https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions`, { headers: headers},  res => {
                 let body = ""
     
-                console.log(`DEBUG: ${res.statusCode}`);
                 if (res.statusCode == 404) {
                     console.log(`Version ${this.version} was not found in github registry`);
                     this._pushPackage(this.version, this.packageName);
@@ -118,7 +118,6 @@ class Action {
                     res.on("data", chunk => body += chunk)
                     res.on("end", () => {
                         const existingVersions = JSON.parse(body)
-                        console.log(`DEBUG: ${existingVersions}`);
                         if (existingVersions.findIndex(item => item.name == this.version) < 0) {
                             console.log(`Version ${this.version} was not found in github registry`);
                             this._pushPackage(this.version, this.packageName);
