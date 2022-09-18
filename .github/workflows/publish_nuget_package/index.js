@@ -133,7 +133,7 @@ class Action {
             const versionFileContent = fs.readFileSync(this.versionFile, { encoding: "utf-8" }),
                 parsedVersion = this.versionRegex.exec(versionFileContent)
 
-            if (!parsedVersion || parsedVersion == "")
+            if (!parsedVersion)
                 this._printErrorAndExit("unable to extract version info!")
 
             this.version = parsedVersion[1]
