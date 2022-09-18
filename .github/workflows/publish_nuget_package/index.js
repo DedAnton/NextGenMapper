@@ -97,24 +97,50 @@ class Action {
 
         console.log(`Package Name: ${this.packageName}`)
 
-        https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
-            let body = ""
-
-            if (res.statusCode == 404)
-                this._pushPackage(this.version, this.packageName)
-
-            if (res.statusCode == 200) {
-                res.setEncoding("utf8")
-                res.on("data", chunk => body += chunk)
-                res.on("end", () => {
-                    const existingVersions = JSON.parse(body)
-                    if (existingVersions.versions.indexOf(this.version) < 0)
-                        this._pushPackage(this.version, this.packageName)
-                })
+        if (this.nugetSource.indexOf("github") >= 0) {
+            var headers = {
+                Accept: 'application/vnd.github+json',
+                Authorization: 'Bearer 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'
             }
-        }).on("error", e => {
-            this._printErrorAndExit(`error: ${e.message}`)
-        })
+            https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions`, { headers: headers},  res => {
+                let body = ""
+    
+                if (res.statusCode == 404)
+                    this._pushPackage(this.version, this.packageName)
+    
+                if (res.statusCode == 200) {
+                    res.setEncoding("utf8")
+                    res.on("data", chunk => body += chunk)
+                    res.on("end", () => {
+                        const existingVersions = JSON.parse(body)
+                        if (existingVersions.findIndex(item => item.name === this.version) < 0)
+                            this._pushPackage(this.version, this.packageName)
+                    })
+                }
+            }).on("error", e => {
+                this._printErrorAndExit(`error: ${e.message}`)
+            })
+        }
+        else {
+            https.get(`${this.nugetSource}/v3-flatcontainer/${this.packageName}/index.json`, res => {
+                let body = ""
+    
+                if (res.statusCode == 404)
+                    this._pushPackage(this.version, this.packageName)
+    
+                if (res.statusCode == 200) {
+                    res.setEncoding("utf8")
+                    res.on("data", chunk => body += chunk)
+                    res.on("end", () => {
+                        const existingVersions = JSON.parse(body)
+                        if (existingVersions.versions.indexOf(this.version) < 0)
+                            this._pushPackage(this.version, this.packageName)
+                    })
+                }
+            }).on("error", e => {
+                this._printErrorAndExit(`error: ${e.message}`)
+            })
+        }
     }
 
     run() {
