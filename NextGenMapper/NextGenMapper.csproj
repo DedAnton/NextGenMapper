@@ -8,7 +8,7 @@
         <Authors>Anton Ryabchikov</Authors>
         <Copyright>Copyright (c) Anton Ryabchikov 2021</Copyright>
         <Title>NextGenMapper</Title>
-        <RepositoryUrl>https://github.com/DedAnton/NextGenMapper/tree/master</RepositoryUrl>
+        <RepositoryUrl>https://github.com/DedAnton/NextGenMapper</RepositoryUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
 
