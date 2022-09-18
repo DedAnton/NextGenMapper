@@ -128,6 +128,11 @@ class Action {
                         }
                     })
                 }
+
+                if (res.statusCode != 404 && res.statusCode != 200) {
+                    this._printErrorAndExit(`error: request to github api failed. status: ${res.statusCode}. message: ${res.statusMessage}`)
+                }
+
             }).on("error", e => {
                 this._printErrorAndExit(`error: ${e.message}`)
             })
@@ -155,6 +160,11 @@ class Action {
                         }
                     })
                 }
+
+                if (res.statusCode != 404 && res.statusCode != 200) {
+                    this._printErrorAndExit(`error: request to nuget api failed. status: ${res.statusCode}. message: ${res.statusMessage}`)
+                }
+
             }).on("error", e => {
                 this._printErrorAndExit(`error: ${e.message}`)
             })
