@@ -22,8 +22,6 @@
         <DebugType>embedded</DebugType>
         <EnableNETAnalyzers>True</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-        <PackageOutputPath>$(MSBuildThisFileDirectory)nupkgs</PackageOutputPath>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
 	<PropertyGroup>
