@@ -24,12 +24,18 @@ jobs:
       run: dotnet build --no-restore --configuration Release
     - name: Test
       run: dotnet test --no-build --verbosity normal --configuration Release
-    - name: Publish nuget package
-      id: publish_nuget
+    - name: Publish package to nuget
       uses: ./.github/workflows/publish_nuget_package
       with: 
           PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
           NUGET_SOURCE: https://api.nuget.org
+          VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
+    - name: Publish package to github
+      uses: ./.github/workflows/publish_nuget_package
+      with: 
+          PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
+          NUGET_KEY: ${{secrets.GH_API_KEY}}
+          NUGET_SOURCE: https://nuget.pkg.github.com/${{ github.repository_owner }}
           VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
     
