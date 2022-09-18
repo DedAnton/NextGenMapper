@@ -628,5 +628,46 @@ if (!isValid) throw new MapFailedException(source, destination);";
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        //[TestMethod]
+        public void MappingInheritanceProperty()
+        {
+            var classes = @"
+public class SourceBase
+{
+    public int InheritedProperty { get;set; }
+}
+public class Source : SourceBase
+{
+    public string Name { get; set; }
+}
+
+public class DestinationBase
+{
+    public int InheritedProperty { get;set; }
+}
+public class Destination : DestinationBase
+{
+    public string Name { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", InheritedProperty = 10 };
+
+var destination = source.Map<Destination>();
+
+var isValid = source.Name == destination.Name && source.InheritedProperty == destination.InheritedProperty;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }
