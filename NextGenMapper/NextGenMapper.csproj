@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <PackageId>NextGenMapper</PackageId>
-        <Version>0.1.0-alfa.3</Version>
+        <Version>0.1.0-alpha.3</Version>
         <Authors>Anton Ryabchikov</Authors>
         <Copyright>Copyright (c) Anton Ryabchikov 2021</Copyright>
         <Title>NextGenMapper</Title>
