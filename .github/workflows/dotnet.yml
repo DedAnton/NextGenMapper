@@ -24,7 +24,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish nuget package
-      uses: ./publish_nuget_package
+      uses: ./../.github/workflows/publish_nuget_package
       with: 
           PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
