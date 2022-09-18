@@ -100,21 +100,28 @@ class Action {
         if (this.nugetSource.indexOf("nuget.pkg.github.com") >= 0) {
             var headers = {
                 Accept: 'application/vnd.github+json',
-                Authorization: 'Bearer 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'
+                Authorization: `Bearer ${this.nugetKey}`
             }
-            https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions`, { headers: headers},  res => {
+            https.get(`https://api.github.com/users/DedAnton/packages/nuget/${this.packageName}/versions/`, { headers: headers},  res => {
                 let body = ""
     
-                if (res.statusCode == 404)
-                    this._pushPackage(this.version, this.packageName)
+                if (res.statusCode == 404) {
+                    console.log(`Version ${this.version} was not found in github registry`);
+                    this._pushPackage(this.version, this.packageName);
+                }
     
                 if (res.statusCode == 200) {
                     res.setEncoding("utf8")
                     res.on("data", chunk => body += chunk)
                     res.on("end", () => {
                         const existingVersions = JSON.parse(body)
-                        if (existingVersions.findIndex(item => item.name === this.version) < 0)
-                            this._pushPackage(this.version, this.packageName)
+                        if (existingVersions.findIndex(item => item.name == this.version) < 0) {
+                            console.log(`Version ${this.version} was not found in github registry`);
+                            this._pushPackage(this.version, this.packageName);
+                        }
+                        else {
+                            console.log(`Version ${this.version} already published in github registry`);
+                        }
                     })
                 }
             }).on("error", e => {
@@ -125,16 +132,23 @@ class Action {
             https.get(`https://api.nuget.org/v3-flatcontainer/${this.packageName}/index.json`, res => {
                 let body = ""
     
-                if (res.statusCode == 404)
-                    this._pushPackage(this.version, this.packageName)
+                if (res.statusCode == 404) {
+                    console.log(`Version ${this.version} was not found in nuget registry`);
+                    this._pushPackage(this.version, this.packageName);
+                }
     
                 if (res.statusCode == 200) {
                     res.setEncoding("utf8")
                     res.on("data", chunk => body += chunk)
                     res.on("end", () => {
                         const existingVersions = JSON.parse(body)
-                        if (existingVersions.versions.indexOf(this.version) < 0)
-                            this._pushPackage(this.version, this.packageName)
+                        if (existingVersions.versions.indexOf(this.version) < 0) {
+                            console.log(`Version ${this.version} was not found in nuget registry`);
+                            this._pushPackage(this.version, this.packageName);
+                        }
+                        else {
+                            console.log(`Version ${this.version} already published in nuget registry`);
+                        }
                     })
                 }
             }).on("error", e => {
