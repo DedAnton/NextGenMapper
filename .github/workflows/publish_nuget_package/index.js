@@ -67,7 +67,7 @@ class Action {
         const packages = fs.readdirSync(".").filter(fn => fn.endsWith("nupkg"))
         console.log(`Generated Package(s): ${packages.join(", ")}`)
 
-        const pushCmd = `dotnet nuget push *.nupkg --source ${this.nugetSource}/v3/index.json --api-key ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "--no-symbols" : ""}`,
+        const pushCmd = `dotnet nuget push *.nupkg --source ${this.nugetSource} --api-key ${this.nugetKey} --skip-duplicate ${!this.includeSymbols ? "--no-symbols" : ""}`,
             pushOutput = this._executeCommand(pushCmd, { encoding: "utf-8" }).stdout
 
         console.log(pushOutput)

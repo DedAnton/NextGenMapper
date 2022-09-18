@@ -29,13 +29,13 @@ jobs:
       with: 
           PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
           NUGET_KEY: ${{secrets.NUGET_API_KEY}}
-          NUGET_SOURCE: https://api.nuget.org
+          NUGET_SOURCE: https://api.nuget.org/v3/index.json
           VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
     - name: Publish package to github
       uses: ./.github/workflows/publish_nuget_package
       with: 
           PROJECT_FILE_PATH: NextGenMapper/NextGenMapper.csproj
           NUGET_KEY: ${{secrets.GH_API_KEY}}
-          NUGET_SOURCE: https://nuget.pkg.github.com/${{ github.repository_owner }}
+          NUGET_SOURCE: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
           VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
     

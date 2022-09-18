@@ -45,7 +45,7 @@ inputs:
     NUGET_SOURCE:
         description: NuGet server uri hosting the packages, defaults to https://api.nuget.org
         required: false
-        default: https://api.nuget.org
+        default: https://api.nuget.org/v3/index.json
     INCLUDE_SYMBOLS:
         description: Flag to toggle pushing symbols along with nuget package to the server, disabled by default
         required: false
