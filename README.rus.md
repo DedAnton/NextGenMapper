@@ -1,4 +1,18 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/36799941/191375272-27b0034d-0418-44a6-95c6-802b863de2b3.svg" width="242" height="242">
+</p>
+<p align="center">
+    <a href="https://opensource.org/licenses/MIT">
+        <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT">
+    </a>
+    <img alt="GitHub release (latest by date including pre-releases)" src="https://img.shields.io/github/v/release/DedAnton/NextGenMapper?include_prereleases">
+    <a href="https://vk.com/away.php?utf=1&to=https%3A%2F%2Fwww.tinkoff.ru%2Fcf%2F3ySZ9DEsxfL">
+        <img src="https://img.shields.io/badge/%24-donate-9cf" alt="donate">
+    </a>
+    <h4 align="center">Чрезвычайно быстрый и легкий, минималистичный объектный маппер, генерируемый на лету</h4>
+</p>
+
+https://user-images.githubusercontent.com/36799941/191618500-31f7e179-3510-49dc-ad13-18e07de8309b.mov
 
 # Что такое Next Gen Mapper?
 Вы правильно поняли - это очередной маппер, который позволит писать ещё меньше кода, по сравнению с мапперами "предыдущего поколения", а также сравняться по производительности с мапперами, написанными вручную.
