@@ -9,8 +9,10 @@
     <a href="https://vk.com/away.php?utf=1&to=https%3A%2F%2Fwww.tinkoff.ru%2Fcf%2F3ySZ9DEsxfL">
         <img src="https://img.shields.io/badge/%24-donate-9cf" alt="donate">
     </a>
+    <h4 align="center">Extremely fast and lightweight, minimalistic object-to-object mapper, generated on the fly</h4>
 </p>
 
+https://user-images.githubusercontent.com/36799941/191618500-31f7e179-3510-49dc-ad13-18e07de8309b.mov
 
 # What is Next Gen Mapper?
 You understood correctly - this is another mapper that will allow you to write even less code compared to the "previous generation" mappers, as well as be equal in performance to hand-written mappers.
