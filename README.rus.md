@@ -29,7 +29,34 @@ https://user-images.githubusercontent.com/36799941/191618500-31f7e179-3510-49dc-
 
 # Использование
 Добавьте `using NextGenMapper` и просто вызовите метод расширения `Map` на объекте, который в хотите смаппить
+```c#
+using NextGenMapper;
 
+var source = new Source("Anton", 25);
+
+var destination = source.Map<Destination>();
+
+Console.WriteLine(destination);
+
+record Source(string Name, int Age);
+record Destination(string Name, int Age);
+```
+
+Для того, чтобы настроить маппинг определённых свойств, вместо метода `Map`, вызовите метод `MapWith`, передав значение переопределяемого свойтсва в качестве аргумента
+```c#
+using NextGenMapper;
+
+var source = new Source("Anton", "Ryabchikov", 25);
+
+var destination = source.MapWith<Destination>(name: source.FirstName + ' ' + source.LastName);
+
+Console.WriteLine(destination);
+
+record Source(string FirstName, string LastName, int Age);
+record Destination(string Name, int Age);
+```
+> **Note**: 
+> Из-за использования новой технологии, на некоторых версиях Visual Studio иногда могут возникать проблемы с подсветкой синтаксиса, если IntelliCode говорит об ошибке, но решение билдиться без ошибок - просто перезагрузите Visual Studio 
 
 # Что такое Next Gen Mapper?
 Вы правильно поняли - это очередной маппер, который позволит писать ещё меньше кода, по сравнению с мапперами "предыдущего поколения", а также сравняться по производительности с мапперами, написанными вручную.
