@@ -21,7 +21,7 @@ https://user-images.githubusercontent.com/36799941/191618500-31f7e179-3510-49dc-
  - Минимум выделения памяти
  - Не увеличивает время запуска приложения
  - Отсутствие зависимостей в итоговой сборке
- - Никаких сторонних инструментов и зависимостей IDE
+ - Без сторонних инструментов и зависимостей IDE
  - Не мешает статическому анализу
  - Поддержка навигации по коду
  - Простота отладки
@@ -55,6 +55,18 @@ Console.WriteLine(destination);
 record Source(string FirstName, string LastName, int Age);
 record Destination(string Name, int Age);
 ```
+
+Чтобы NextGenMapper использовал ваш маппинг при маппинге других объектов, нужно создать частичный класс `Mapper` в пространстве имен `NextGenMapper` и добавить в него метод `Map` с вашей реализацией
+```c#
+namespace NextGenMapper;
+
+internal static partial class Mapper
+{
+    internal static Destination Map<To>(this Source source) 
+        => source.MapWith<Destination>(name: source.FirstName + ' ' + source.LastName);
+}
+```
+
 > **Note**: 
 > Из-за использования новой технологии, на некоторых версиях Visual Studio иногда могут возникать проблемы с подсветкой синтаксиса, если IntelliCode говорит об ошибке, но решение билдиться без ошибок - просто перезагрузите Visual Studio 
 
