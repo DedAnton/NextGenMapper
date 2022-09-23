@@ -1,4 +1,7 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish to make via issue,
-email, or any other method with the owners of this repository before making a change. 
+1. Create new issue or leave a comment to the existing one
+2. Describe what you want to do and why
+3. Clone repo and create a new branch
+4. Make changes and test
+5. Submit Pull Request with comprehensive description of changes
