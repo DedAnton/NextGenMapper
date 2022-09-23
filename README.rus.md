@@ -104,16 +104,22 @@ dotnet add package NextGenMapper --prerelease
 ```
 
 # Как это работает?
-Я использю новую фичу языка C# - [Source Generators](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/), она позволяет проанализировать написанный код и сгенерировань новые файлы, которые будут встроены в сборку.
+NextGenMapper использует новую возможность языка C# - [Генераторы исходного кода](https://devblogs.microsoft.com/dotnet/introducing-c-source-generators/). Описать работу Генератора исходного кода можно следующими шагами:
+ 1. Код компилируется
+ 2. Генератор исходного кода анализирует сборку
+ 3. Генерирует новый код на основе анализа
+ 4. Компилирует новый код и добавляет его в сборку
+
 Вот так выглядит метод который вызывается изначально:
 ```C#
-public static partial class Mapper
-{
-    public static To Map<To>(this object source) => throw new InvalidOperationException($""Error when mapping {source.GetType()} to {typeof(To)}, mapping function was not found. Create custom mapping function."");
-}
+internal static To Map<To>(this object source) => throw new InvalidOperationException($""Error when mapping {source.GetType()} to {typeof(To)}, mapping function was not found. Create custom mapping function."");
 ```
-Но когда мы его вызываем, генератор анализирует этот вызов, смотрит какие аргументы были переданы, и генерирует функцию для маппинга с сигнатурой `public static DestinationType Map<To>(this SourceType source)`. Хитрость в том, что сигнатуры методов идентичны, но у сгенерированного метода параметры более специфичны и подходят лучше, вызывается именно он ([такое поведение описано в спецификации](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member)). Такой подход создает некоторые проблемы, не все из которых решены, но я работаю над этим.
-Эта сгенерированная функция помещается в статический класс и мы можем использовать её где угодно.
+Когда мы его вызываем, генератор анализирует этот вызов, и генерирует функцию для маппинга:
+```C#
+internal static Destination Map<To>(this Source source) 
+    => new Destination(source.Name, source.Age);
+```
+Хитрость в том, что сигнатуры методов идентичны, но у сгенерированного метода параметры более специфичны и подходят лучше, поэтому вызывается именно он ([такое поведение описано в спецификации](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member)).
 
 # Скоро
  - Использование NextGenMapper\`ом пользовательских методов для маппинга
