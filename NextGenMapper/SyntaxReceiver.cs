@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
-using NextGenMapper.PostInitialization;
 using System.Collections.Generic;
 using System.Linq;
 

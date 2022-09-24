@@ -3,7 +3,6 @@ using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
 using System.Linq;
-using System.Reflection;
 
 namespace NextGenMapper.CodeGeneration;
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
@@ -11,28 +10,20 @@ using NextGenMapper.PostInitialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace NextGenMapper
 {
     [Generator]
     public class MapperGenerator : ISourceGenerator
     {
-        private MapPlanner _mapPlanner;
-        private DiagnosticReporter _diagnosticReporter;
-
-        public MapperGenerator()
-        {
-        }
-
         public void Initialize(GeneratorInitializationContext context)
         {
-//#if DEBUG
-//            if (!System.Diagnostics.Debugger.IsAttached)
-//            {
-//                System.Diagnostics.Debugger.Launch();
-//            }
-//#endif 
+            //#if DEBUG
+            //if (!System.Diagnostics.Debugger.IsAttached)
+            //{
+            //    System.Diagnostics.Debugger.Launch();
+            //}
+            //#endif 
             context.RegisterForPostInitialization(i =>
             {
                 i.AddSource("MapperExtensions", ExtensionsSource.Source);
@@ -44,8 +35,8 @@ namespace NextGenMapper
 
         public void Execute(GeneratorExecutionContext context)
         {
-            _mapPlanner = new();
-            _diagnosticReporter = new();
+            var mapPlanner = new MapPlanner();
+            var diagnosticReporter = new DiagnosticReporter();
 
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
             {
@@ -59,13 +50,13 @@ namespace NextGenMapper
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
                     && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
                     && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
-                    && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
                 {
-                    var designer = new TypeMapDesigner(_diagnosticReporter);
+                    var designer = new TypeMapDesigner(diagnosticReporter);
                     var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType);
                     foreach (var map in maps)
                     {
-                        AddMapToPlanner(map, new());
+                        AddMapToPlanner(mapPlanner, map, new());
                     }
                 }
             }
@@ -89,15 +80,15 @@ namespace NextGenMapper
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithFunctionFullName
                     && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
                     && mapWithMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
-                    && !_mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType)
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType)
                     && invocatingVariable.Type.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
                 {
                     if (isStubMethod)
                     {
-                        _diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
+                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
                     }
 
-                    var designer = new TypeMapWithDesigner(_diagnosticReporter);
+                    var designer = new TypeMapWithDesigner(diagnosticReporter);
                     var publicProperties = method.ReturnType.GetPublicProperties().ToArray();
                     var arguments = mapWithMethodInvocation.Arguments.Select(x =>
                     {
@@ -111,38 +102,38 @@ namespace NextGenMapper
                     if (arguments.Count == publicProperties.Length)
                     {
                         //TODO: create only stub method if this happened
-                        _diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());
+                        diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());
                     }
 
                     var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType, arguments);
                     foreach (var map in maps)
                     {
-                        AddMapToPlanner(map, new());
+                        AddMapToPlanner(mapPlanner, map, new());
                     }
                 }
             }
 
             var prefix = 1;
             var mapperClassBuilder = new MapperClassBuilder();
-            foreach (var mapGroup in _mapPlanner.MapGroups)
+            foreach (var mapGroup in mapPlanner.MapGroups)
             {
                 var mapperSourceCode = mapperClassBuilder.Generate(mapGroup);
                 context.AddSource($"{prefix}_Mapper", mapperSourceCode);
                 prefix++;
             }
 
-            _diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
+            diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
         }
 
-        private void AddMapToPlanner(TypeMap map, HashSet<string> usings)
+        private void AddMapToPlanner(MapPlanner planner, TypeMap map, HashSet<string> usings)
         {
             if (map is ClassMapWith)
             {
-                _mapPlanner.AddCustomMap(map, usings);
+                planner.AddCustomMap(map, usings);
             }
             else
             {
-                _mapPlanner.AddCommonMap(map);
+                planner.AddCommonMap(map);
             }
         }
     }

@@ -16,7 +16,7 @@ namespace NextGenMapper.Extensions
                 return true;
             }
 
-            foreach(var @interface in type.AllInterfaces)
+            foreach (var @interface in type.AllInterfaces)
             {
                 if (@interface.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
                 {
@@ -79,8 +79,8 @@ namespace NextGenMapper.Extensions
             var count = 0;
             foreach (var member in members)
             {
-                if (member is IPropertySymbol property 
-                    && property.CanBeReferencedByName 
+                if (member is IPropertySymbol property
+                    && property.CanBeReferencedByName
                     && property.DeclaredAccessibility == Accessibility.Public)
                 {
                     properties[count] = property;
@@ -105,7 +105,7 @@ namespace NextGenMapper.Extensions
 
         public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
         {
-            foreach(var property in type.GetPublicProperties())
+            foreach (var property in type.GetPublicProperties())
             {
                 if (property.Name.Equals(name, comparision))
                 {

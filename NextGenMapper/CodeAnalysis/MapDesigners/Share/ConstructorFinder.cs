@@ -48,7 +48,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return commonConstructor;
         }
 
-        class ConstructorComparer : IComparer<IMethodSymbol>
+        private class ConstructorComparer : IComparer<IMethodSymbol>
         {
             public int Compare(IMethodSymbol? x, IMethodSymbol? y) => x!.Parameters.Length.CompareTo(y!.Parameters.Length) * -1;
         }

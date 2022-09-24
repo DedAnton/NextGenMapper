@@ -59,7 +59,7 @@ public class TypeMapWithDesigner
                 maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
             }
         }
-        
+
         maps.Add(new ClassMapWith(from, to, membersMaps, arguments));
 
         return maps;

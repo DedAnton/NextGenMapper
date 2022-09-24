@@ -1,7 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 
 namespace NextGenMapperTests.IntegrationTests
 {
