@@ -1,6 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
-using System;
 using System.Linq;
 
 namespace NextGenMapperTests.IntegrationTests;
@@ -155,7 +154,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
         var generator = new MapperGenerator();
         var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
-        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM009");
+        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM005");
     }
 
     [TestMethod]
@@ -186,7 +185,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
         var generator = new MapperGenerator();
         var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
-        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM010");
+        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM006");
     }
 
 }

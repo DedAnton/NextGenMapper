@@ -7,9 +7,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public List<MemberMap> InitializerProperties { get; } = new List<MemberMap>();
         public List<MemberMap> ConstructorProperties { get; } = new List<MemberMap>();
-        public bool IsUnflattening { get; }
 
-        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, bool isUnflattening = false)
+        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties)
             : base(from, to)
         {
             foreach (var property in properties)
@@ -23,8 +22,6 @@ namespace NextGenMapper.CodeAnalysis.Maps
                     ConstructorProperties.Add(property);
                 }
             }
-
-            IsUnflattening = isUnflattening;
         }
     }
 }

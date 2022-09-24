@@ -1,9 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Models;
 using System;
-using System.Collections.Generic;
 
 namespace NextGenMapper.Extensions
 {
@@ -18,7 +16,7 @@ namespace NextGenMapper.Extensions
                 return true;
             }
 
-            foreach(var @interface in type.AllInterfaces)
+            foreach (var @interface in type.AllInterfaces)
             {
                 if (@interface.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
                 {
@@ -40,24 +38,6 @@ namespace NextGenMapper.Extensions
             }
 
             return fields;
-        }
-
-        public static bool HasAttribute(this ISymbol? symbol, string attributeFullName)
-        {
-            if (symbol == null)
-            {
-                return false;
-            }
-
-            foreach(var attribute in symbol.GetAttributes())
-            {
-                if (attribute.AttributeClass?. ToDisplayString() == attributeFullName)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         public static Span<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
@@ -99,8 +79,8 @@ namespace NextGenMapper.Extensions
             var count = 0;
             foreach (var member in members)
             {
-                if (member is IPropertySymbol property 
-                    && property.CanBeReferencedByName 
+                if (member is IPropertySymbol property
+                    && property.CanBeReferencedByName
                     && property.DeclaredAccessibility == Accessibility.Public)
                 {
                     properties[count] = property;
@@ -125,7 +105,7 @@ namespace NextGenMapper.Extensions
 
         public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
         {
-            foreach(var property in type.GetPublicProperties())
+            foreach (var property in type.GetPublicProperties())
             {
                 if (property.Name.Equals(name, comparision))
                 {
@@ -136,28 +116,9 @@ namespace NextGenMapper.Extensions
             return null;
         }
 
-        public static HashSet<string> GetUsings(this SyntaxNode node)
-        {
-            var usings = new HashSet<string>();
-            foreach(var ancestor in node.Ancestors())
-            {
-                if (ancestor is CompilationUnitSyntax compilationUnit)
-                {
-                    foreach (var @using in compilationUnit.Usings)
-                    {
-                        usings.Add(@using.ToString());
-                    }
-
-                    return usings;
-                }
-            }
-
-            //TODO: add diagnostic
-            throw new ArgumentException($"usings for node {node} was not found");
-        }
-
         public static string GetNamespace(this SyntaxNode node)
         {
+            //TODO: maybe use while and node.Parent because this method will be used only for class and usualy namespace will be first Parent
             foreach (var ancestor in node.Ancestors())
             {
                 if (ancestor is NamespaceDeclarationSyntax namespaceDeclaration)
@@ -180,8 +141,5 @@ namespace NextGenMapper.Extensions
         }
 
         public static bool IsPrimitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
-
-        public static bool IsDefaultLiteralExpression(this ArgumentSyntax argument)
-            => argument.Expression is LiteralExpressionSyntax literal && literal.Kind() == SyntaxKind.DefaultLiteralExpression;
     }
 }
