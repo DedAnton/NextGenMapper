@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 

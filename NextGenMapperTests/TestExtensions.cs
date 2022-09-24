@@ -102,7 +102,7 @@ namespace NextGenMapperTests
             return $"\r\n{name}\r\n{diagnostincsString}";
         }
 
-        public static string GenerateSource(string classes, string validateFunction, string customMapping = "")
+        public static string GenerateSource(string classes, string validateFunction)
         {
             var source =
 @"using NextGenMapper;
@@ -136,12 +136,6 @@ namespace Test
 "
     + classes +
 @"
-    [Mapper]
-    public class CustomMapper
-    {
-" + customMapping +
-@"
-    }
 }
 ";
             return source;

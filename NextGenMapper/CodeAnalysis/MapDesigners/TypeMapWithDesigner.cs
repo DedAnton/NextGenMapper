@@ -1,12 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners;
 
@@ -59,10 +54,6 @@ public class TypeMapWithDesigner
             }
             membersMaps.Add(memberMap);
 
-            //if (memberMap.MapType is MemberMapType.UnflattenConstructor or MemberMapType.UnflattenInitializer)
-            //{
-            //    maps.AddRange(_classMapDesigner.DesignUnflattingClassMap(from, memberMap.ToName, memberMap.ToType));
-            //}
             if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
             {
                 maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));

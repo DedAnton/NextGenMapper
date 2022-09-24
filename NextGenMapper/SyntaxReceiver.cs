@@ -13,27 +13,10 @@ namespace NextGenMapper
         private const string MAP_WITH_METHOD_NAME = "MapWith";
         public List<MapMethodInvocation> MapMethodInvocations { get; } = new();
         public List<MapWithMethodInvocation> MapWithMethodInvocations { get; } = new();
-        public List<MapperClassDeclaration> MapperClassDeclarations { get; } = new();
 
         public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
         {
-            if (context.Node is ClassDeclarationSyntax classNode)
-            {
-                foreach(var attributeList in classNode.AttributeLists)
-                {
-                    foreach (var attribute in attributeList.Attributes)
-                    {
-                        if (attribute.Name.ToString() == Annotations.MapperAttributeShortName 
-                            || attribute.Name.ToString() == Annotations.MapperAttributeName)
-                        {
-                            var mapperClasDeclaration = new MapperClassDeclaration(classNode, context.SemanticModel);
-                            MapperClassDeclarations.Add(mapperClasDeclaration);
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (context.Node is InvocationExpressionSyntax invocationNode
+            if (context.Node is InvocationExpressionSyntax invocationNode
                 && invocationNode.Expression is MemberAccessExpressionSyntax memberAccessExpression
                 && memberAccessExpression.Name is GenericNameSyntax)
             {

@@ -21,16 +21,8 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor ObjectCreationExpressionNotFoundError = new(
-            id: "NGM003",
-            title: "Object creation expression was not found",
-            messageFormat: "Object creation expression was not found in custom mapping method ({0} -> {1}), custom mapping method must contains single return statement with constructor invocation, like \"return new {1}()\"",
-            category: "NextGenMapper",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
         public static readonly DiagnosticDescriptor UndefinedCollectionTypeError = new(
-            id: "NGM004",
+            id: "NGM003",
             title: "Mapped collection type was undefined",
             messageFormat: "Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>",
             category: "NextGenMapper",
@@ -38,39 +30,15 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor UnmappedEnumValueError = new(
-            id: "NGM005",
+            id: "NGM004",
             title: "Enum value was unmapped",
             messageFormat: "Value {0}.{2} cant be mapped to {1} enum, make sure that {2} has value with same name or constant value",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor ParameterNotFoundError = new(
-            id: "NGM006",
-            title: "Custom mapping method must have single parameter",
-            messageFormat: "Custom mapping method must have single parameter with type of mapping source",
-            category: "NextGenMapper",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        public static readonly DiagnosticDescriptor ReturnTypeNotFoundError = new(
-            id: "NGM007",
-            title: "Custom mapping method must have return type",
-            messageFormat: "Custom mapping method must have return type with type of mapping destination and can`t be void",
-            category: "NextGenMapper",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        public static readonly DiagnosticDescriptor PropertyAndParameterHasDifferentNamesError = new(
-            id: "NGM008",
-            title: "Constructor parameter and property has different names",
-            messageFormat: "Type {0} has not property with name {1}, when use custom mapping method (not partial constructor), for each parameter in constructor used by user, type must have property with same name",
-            category: "NextGenMapper",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
         public static readonly DiagnosticDescriptor MapWithMethodWithoutArgumentsError = new(
-            id: "NGM009",
+            id: "NGM005",
             title: "'MapWith' method without arguments",
             messageFormat: "Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.",
             category: "NextGenMapper",
@@ -78,12 +46,11 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
         public static readonly DiagnosticDescriptor ToManyArgumentsForMapWithError = new(
-            id: "NGM010",
+            id: "NGM006",
             title: "To many arguments for 'MapWith' method",
             messageFormat: "Method 'MapWith' must not pass all arguments for each parameter. At least one argument must not be passed",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
-
     }
 }
