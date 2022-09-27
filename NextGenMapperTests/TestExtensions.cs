@@ -15,12 +15,21 @@ namespace NextGenMapperTests
     public static class TestExtensions
     {
         public static Compilation CreateCompilation(this string source, string assemblyName)
-            => CSharpCompilation.Create(
-            assemblyName: assemblyName,
-            syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)) },
-            references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
+        {
+            var references = Assembly.GetEntryAssembly()
+                .GetReferencedAssemblies()
+                .Select(x => MetadataReference.CreateFromFile(Assembly.Load(x).Location))
+                .Append(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .Append(MetadataReference.CreateFromFile(typeof(MethodImplAttribute).Assembly.Location))
+                .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location));
+
+            var compilation = CSharpCompilation.Create(assemblyName: assemblyName)
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddReferences(references)
+                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)));
+
+            return compilation;
+        }
 
         public static GeneratorDriver CreateDriver(this Compilation compilation, params ISourceGenerator[] generators) => CSharpGeneratorDriver.Create(
             generators: ImmutableArray.Create(generators),

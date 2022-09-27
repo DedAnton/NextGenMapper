@@ -1,8 +1,11 @@
+using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace NextGenMapper.CodeGeneration;
 
@@ -42,6 +45,7 @@ public class MapperClassBuilder
     private const string Throw = "throw";
     private const string Select = "Select";
     private const string Return = "return";
+    private const string Var = "var";
 
     public string Generate(MapGroup mapGroup)
     {
@@ -293,60 +297,253 @@ public class MapperClassBuilder
         builder.Append(CloseCurlyBracket);
     }
 
-    private void AppendCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    private void AppendAbstractCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
     {
         AppendTabs(ref builder, 2);
-        builder.Append(Internal);
-        builder.Append(WhiteSpace);
-        builder.Append(Static);
-        builder.Append(WhiteSpace);
+        builder.Append("internal static ");
         builder.Append(map.To.ToString());
-        builder.Append(WhiteSpace);
-        builder.Append(Map);
-        builder.Append(OpenAngleBracket);
-        builder.Append(To);
-        builder.Append(CloseAngleBracket);
-        builder.Append(OpenBracket);
-        builder.Append(This);
-        builder.Append(WhiteSpace);
+        builder.Append(" Map<To>(this ");
         builder.Append(map.From.ToString());
-        builder.Append(WhiteSpace);
-        builder.Append(Source);
-        builder.Append(CloseBracket);
-        builder.Append(WhiteSpace);
+        builder.Append(" source)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenCurlyBracket);
         builder.Append(NewLine);
         AppendTabs(ref builder, 3);
-        builder.Append(Lambda);
-        builder.Append(WhiteSpace);
-        builder.Append(Source);
-        builder.Append(Dot);
-        builder.Append(Select);
-        builder.Append(OpenBracket);
-        builder.Append(X);
-        builder.Append(WhiteSpace);
-        builder.Append(Lambda);
-        builder.Append(WhiteSpace);
-        builder.Append(X);
-        builder.Append(Dot);
-        builder.Append(Map);
-        builder.Append(OpenAngleBracket);
-        builder.Append(map.ItemTo.ToString());
-        builder.Append(CloseAngleBracket);
-        builder.Append(OpenBracket);
-        builder.Append(CloseBracket);
-        builder.Append(CloseBracket);
-        builder.Append(Dot);
-        if (map.CollectionType == CollectionType.List)
+        builder.Append("if (!source.TryGetSpan(out var span))");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 4);
+        builder.Append("span = System.Linq.Enumerable.ToArray(source);");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(CloseCurlyBracket);
+        builder.Append(NewLine);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
-            builder.Append("ToList");
+            builder.Append("var destination = new System.Collections.Generic.List<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">(span.Length);");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+            builder.Append("var destination = new ");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append("[span.Length];");
         }
         else
         {
-            builder.Append("ToArray");
+            throw new NotImplementedException("Collection not supported");
         }
-        builder.Append(OpenBracket);
-        builder.Append(CloseBracket);
-        builder.Append(Semicolon);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("for (var i = 0; i < span.Length; i++)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 4);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
+        {
+            builder.Append("destination.Add(span[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">());");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+            builder.Append("destination[i] = span[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">();");
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(CloseCurlyBracket);
+        builder.Append(NewLine);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("return destination;");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseCurlyBracket);
+    }
+
+    private void AppendArrayMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    {
+        AppendTabs(ref builder, 2);
+        builder.Append("internal static ");
+        builder.Append(map.To.ToString());
+        builder.Append(" Map<To>(this ");
+        builder.Append(map.From.ToString());
+        builder.Append(" source)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
+        {
+            builder.Append("var destination = new System.Collections.Generic.List<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">(source.Length);");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+            builder.Append("var destination = new ");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append("[source.Length];");
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("var sourceSpan = new System.Span<");
+        builder.Append(map.ItemFrom.ToString());
+        builder.Append(">(source);");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("for (var i = 0; i < source.Length; i++)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 4);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
+        {
+            builder.Append("destination.Add(sourceSpan[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">());");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+            builder.Append("destination[i] = sourceSpan[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">();");
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(CloseCurlyBracket);
+        builder.Append(NewLine);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("return destination;");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseCurlyBracket);
+    }
+
+    private void AppendListMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    {
+        AppendTabs(ref builder, 2);
+        builder.Append("internal static ");
+        builder.Append(map.To.ToString());
+        builder.Append(" Map<To>(this ");
+        builder.Append(map.From.ToString());
+        builder.Append(" source)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
+        {
+            builder.Append("var destination = new System.Collections.Generic.List<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">(source.Count);");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+            builder.Append("var destination = new ");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append("[source.Count];");
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        #if NET5_0_OR_GREATER
+        builder.Append("var sourceSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        #endif
+        builder.Append("for (var i = 0; i < source.Count; i++)");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(OpenCurlyBracket);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 4);
+        if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
+        {
+#if NET5_0_OR_GREATER
+            builder.Append("destination.Add(sourceSpan[i].Map<");
+#else
+            builder.Append("destination.Add(source[i].Map<");
+            #endif
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">());");
+        }
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        {
+#if NET5_0_OR_GREATER
+            builder.Append("destination[i] = sourceSpan[i].Map<");
+#else
+            builder.Append("destination[i] = source[i].Map<");
+            #endif
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">();");
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append(CloseCurlyBracket);
+        builder.Append(NewLine);
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
+        builder.Append("return destination;");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 2);
+        builder.Append(CloseCurlyBracket);
+    }
+
+    private void AppendCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    {
+        if (map.CollectionFrom is CollectionType.IEnumerable or CollectionType.ICollection 
+            or CollectionType.IList or CollectionType.IReadOnlyCollection or CollectionType.IReadOnlyList)
+        {
+            AppendAbstractCollectionMapMethod(ref builder, map);
+        }
+        else if (map.CollectionFrom is CollectionType.Array)
+        {
+            AppendArrayMapMethod(ref builder, map);
+        }
+        else if (map.CollectionFrom is CollectionType.List)
+        {
+            AppendListMapMethod(ref builder, map);
+        }
+        else
+        {
+            throw new NotImplementedException("Collection not supported");
+        }
     }
 
     private void AppendEnumMapMethod(ref ValueStringBuilder builder, EnumMap map)
