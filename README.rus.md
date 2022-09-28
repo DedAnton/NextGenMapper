@@ -61,7 +61,7 @@ record Destination(string Name, int Age);
 ```
 <br>
 
-Чтобы NextGenMapper использовал ваш маппинг при маппинге других объектов, нужно создать частичный класс `Mapper` в пространстве имен `NextGenMapper` и добавить в него метод `Map` с вашей реализацией **(Coming soon!)**
+Чтобы NextGenMapper использовал ваш маппинг при маппинге других объектов, нужно создать частичный класс `Mapper` в пространстве имен `NextGenMapper` и добавить в него метод `Map` с вашей реализацией
 ```c#
 namespace NextGenMapper;
 

@@ -61,7 +61,7 @@ record Destination(string Name, int Age);
 ```
 <br>
 
-In order for NextGenMapper to use your mapping when mapping other objects, you need to create a partial class `Mapper` in the `NextGenMapper` namespace and add the `Map` method with your implementation to it **(Coming soon!)**
+In order for NextGenMapper to use your mapping when mapping other objects, you need to create a partial class `Mapper` in the `NextGenMapper` namespace and add the `Map` method with your implementation to it
 ```c#
 namespace NextGenMapper;
 
