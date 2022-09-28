@@ -34,9 +34,13 @@ NextGenMapper is a tool that just solves a problem and tries not to create new o
 Add `using NextGenMapper` and call the `Map` extension method on the object you want to map
 ```c#
 using NextGenMapper;
+
 var source = new Source("Anton", 25);
+
 var destination = source.Map<Destination>();
+
 Console.WriteLine(destination);
+
 record Source(string Name, int Age);
 record Destination(string Name, int Age);
 ```
@@ -45,9 +49,13 @@ record Destination(string Name, int Age);
 To customize the mapping of certain properties, call the `MapWith` method and pass the value of the overridden property as an argument
 ```c#
 using NextGenMapper;
+
 var source = new Source("Anton", "Ryabchikov", 25);
+
 var destination = source.MapWith<Destination>(name: source.FirstName + ' ' + source.LastName);
+
 Console.WriteLine(destination);
+
 record Source(string FirstName, string LastName, int Age);
 record Destination(string Name, int Age);
 ```
@@ -56,6 +64,7 @@ record Destination(string Name, int Age);
 In order for NextGenMapper to use your mapping when mapping other objects, you need to create a partial class `Mapper` in the `NextGenMapper` namespace and add the `Map` method with your implementation to it **(Coming soon!)**
 ```c#
 namespace NextGenMapper;
+
 internal static partial class Mapper
 {
     internal static Destination Map<To>(this Source source) 
@@ -67,6 +76,7 @@ internal static partial class Mapper
 The following collection types are currently supported: `List<T>`, `Array<T>`, `ICollection<T>`, `IEnumerable<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`
 ```c#
 var sourceCollection = new List<Source> { new("Anton", 25) };
+
 var destination = sourceCollection.Map<List<Destination>>();
 ```
 <br>
@@ -74,6 +84,7 @@ var destination = sourceCollection.Map<List<Destination>>();
 Enums can also be mapped
 ```c#
 var source = Source.EnumValue;
+
 var destination = source.Map<Destination>();
 ```
 <br>
