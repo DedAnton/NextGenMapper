@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -15,12 +16,21 @@ namespace NextGenMapperTests
     public static class TestExtensions
     {
         public static Compilation CreateCompilation(this string source, string assemblyName)
-            => CSharpCompilation.Create(
-            assemblyName: assemblyName,
-            syntaxTrees: new[] { CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)) },
-            references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
-            options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-        );
+        {
+            var references = Assembly.GetEntryAssembly()
+                .GetReferencedAssemblies()
+                .Select(x => MetadataReference.CreateFromFile(Assembly.Load(x).Location))
+                .Append(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+                .Append(MetadataReference.CreateFromFile(typeof(MethodImplAttribute).Assembly.Location))
+                .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location));
+
+            var compilation = CSharpCompilation.Create(assemblyName: assemblyName)
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddReferences(references)
+                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)));
+
+            return compilation;
+        }
 
         public static GeneratorDriver CreateDriver(this Compilation compilation, params ISourceGenerator[] generators) => CSharpGeneratorDriver.Create(
             generators: ImmutableArray.Create(generators),
@@ -43,9 +53,9 @@ namespace NextGenMapperTests
 
         public static bool TestMapper(this Compilation compilation, out object source, out object destination, out string message, [CallerMemberName] string caller = "test")
         {
-            var path = Path.Combine("..", "..", "..", "Temp", $"{caller}.dll");
+            var path = Path.Combine("..", "..", "..", "Temp", $"{caller}_{DateTimeOffset.Now.ToFileTime()}.dll");
             compilation.Emit(path);
-            Assembly assembly = Assembly.LoadFrom(path);
+            Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
             Type type = assembly.GetType("Test.Program");
             MethodInfo methodInfo = type.GetMethod("TestMethod");
             var classInstance = Activator.CreateInstance(type, null);
@@ -61,6 +71,10 @@ namespace NextGenMapperTests
                 message = ex.InnerException?.Message;
 
                 return false;
+            }
+            finally
+            {
+                File.Delete(path);
             }
 
             source = destination = message = null;
@@ -108,6 +122,7 @@ namespace NextGenMapperTests
 @"using NextGenMapper;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Test
 {

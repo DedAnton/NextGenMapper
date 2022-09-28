@@ -6,21 +6,28 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public ITypeSymbol ItemFrom { get; }
         public ITypeSymbol ItemTo { get; }
-        public CollectionType CollectionType { get; }
+        public CollectionType CollectionFrom { get; }
+        public CollectionType CollectionTo { get; }
 
-        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo, CollectionType collectionType)
+        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo, CollectionType collectionFrom, CollectionType collectionTo)
             : base(from, to)
         {
             ItemFrom = itemFrom;
             ItemTo = itemTo;
-            CollectionType = collectionType;
+            CollectionFrom = collectionFrom;
+            CollectionTo = collectionTo;
         }
     }
 
     public enum CollectionType
     {
         Undefined,
+        Array,
         List,
-        Array
+        ICollection,
+        IList,
+        IEnumerable,
+        IReadOnlyCollection,
+        IReadOnlyList
     }
 }

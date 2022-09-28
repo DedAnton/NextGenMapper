@@ -6,6 +6,7 @@
 
 @"using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NextGenMapper.Extensions
 {
@@ -14,23 +15,28 @@ namespace NextGenMapper.Extensions
         /// <summary>
         /// Do not use this method, for auto-generated mapper only!
         /// </summary>
-        internal static IEnumerable<TResult> Select<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryGetSpan<TSource>(this IEnumerable<TSource> source, out ReadOnlySpan<TSource> span)
         {
-            foreach(var item in source)
+            bool result = true;
+            if (source.GetType() == typeof(TSource[]))
             {
-                yield return selector(item);
+                span = Unsafe.As<TSource[]>(source);
             }
+            #if NET5_0_OR_GREATER
+            else if (source.GetType() == typeof(List<TSource>))
+            {
+                span = CollectionsMarshal.AsSpan(Unsafe.As<List<TSource>>(source));
+            }
+            #endif
+            else
+            {
+                span = default;
+                result = false;
+            }
+
+            return result;
         }
-
-        /// <summary>
-        /// Do not use this method, for auto-generated mapper only!
-        /// </summary>
-        internal static List<T> ToList<T>(this IEnumerable<T> source) => new(source);
-
-        /// <summary>
-        /// Do not use this method, for auto-generated mapper only!
-        /// </summary>
-        internal static T[] ToArray<T>(this IEnumerable<T> source) => new List<T>(source).ToArray();
     }
 }";
     }
