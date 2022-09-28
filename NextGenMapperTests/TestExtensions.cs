@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -52,9 +53,9 @@ namespace NextGenMapperTests
 
         public static bool TestMapper(this Compilation compilation, out object source, out object destination, out string message, [CallerMemberName] string caller = "test")
         {
-            var path = Path.Combine("..", "..", "..", "Temp", $"{caller}.dll");
+            var path = Path.Combine("..", "..", "..", "Temp", $"{caller}_{DateTimeOffset.Now.ToFileTime()}.dll");
             compilation.Emit(path);
-            Assembly assembly = Assembly.LoadFrom(path);
+            Assembly assembly = Assembly.Load(File.ReadAllBytes(path));
             Type type = assembly.GetType("Test.Program");
             MethodInfo methodInfo = type.GetMethod("TestMethod");
             var classInstance = Activator.CreateInstance(type, null);
@@ -70,6 +71,10 @@ namespace NextGenMapperTests
                 message = ex.InnerException?.Message;
 
                 return false;
+            }
+            finally
+            {
+                File.Delete(path);
             }
 
             source = destination = message = null;
@@ -117,6 +122,7 @@ namespace NextGenMapperTests
 @"using NextGenMapper;
 using System;
 using System.Collections.Generic;
+using System.Collections;
 
 namespace Test
 {

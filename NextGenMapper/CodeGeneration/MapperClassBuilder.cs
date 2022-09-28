@@ -329,7 +329,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">(span.Length);");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("var destination = new ");
             builder.Append(map.ItemTo.ToString());
@@ -353,7 +353,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">());");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = span[i].Map<");
             builder.Append(map.ItemTo.ToString());
@@ -394,7 +394,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">(source.Length);");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("var destination = new ");
             builder.Append(map.ItemTo.ToString());
@@ -423,7 +423,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">());");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = sourceSpan[i].Map<");
             builder.Append(map.ItemTo.ToString());
@@ -466,7 +466,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">(source.Count);");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("var destination = new ");
             builder.Append(map.ItemTo.ToString());
@@ -499,7 +499,7 @@ public class MapperClassBuilder
             builder.Append(map.ItemTo.ToString());
             builder.Append(">());");
         }
-        else if (map.CollectionTo is CollectionType.Array or CollectionType.ICollection or CollectionType.IList)
+        else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
 #if NET5_0_OR_GREATER
             builder.Append("destination[i] = sourceSpan[i].Map<");
