@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 namespace Benchmark.Benchmarks.Experiments;
 
-[SimpleJob(RuntimeMoniker.Net70)]
+[SimpleJob(RuntimeMoniker.Net60)]
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class ForCollectionsMapping
