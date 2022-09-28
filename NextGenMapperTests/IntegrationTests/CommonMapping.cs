@@ -669,5 +669,221 @@ if (!isValid) throw new MapFailedException(source, destination);";
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
+
+        [TestMethod]
+        public void CallMapOnMethod()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+
+    public static Source Create(string name, DateTime birthdate) => new Source { Name = name, Birthday = birthdate };
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+            var validateFunction = @"
+var destination = Source.Create(""Anton"", new DateTime(1997, 05, 20)).Map<Destination>();
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(null, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CallMapOnConstructorMethod()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+
+    public Source(string name, DateTime birthday)
+    {
+        Name = name;
+        Birthday = birthday;
+    }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+            var validateFunction = @"
+var destination = new Source(""Anton"", new DateTime(1997, 05, 20)).Map<Destination>();
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(null, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CallMapOnConstructorMethodWithInitializer()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+            var validateFunction = @"
+var destination = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20)}.Map<Destination>();
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(null, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CallMapInLambda()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20)};
+var sourceArray = new Source[] { source };
+
+var destinationArray = System.Linq.Enumerable.ToArray(System.Linq.Enumerable.Select(sourceArray, x => x.Map<Destination>()));
+var destination = destinationArray[0];
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(null, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CallMapOnProperty()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+
+    public static Source SourceProperty => new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+";
+
+            var validateFunction = @"
+var destination = Source.SourceProperty.Map<Destination>();
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(Source.SourceProperty, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void CallMapOnField()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+
+    public static Source sourceProperty = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+";
+
+            var validateFunction = @"
+var destination = Source.sourceProperty.Map<Destination>();
+
+var isValid = ""Anton"" == destination.Name && new DateTime(1997, 05, 20) == destination.Birthday;
+
+if (!isValid) throw new MapFailedException(Source.sourceProperty, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }

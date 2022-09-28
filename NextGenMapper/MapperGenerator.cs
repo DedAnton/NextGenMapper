@@ -49,11 +49,20 @@ namespace NextGenMapper
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
                     && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType))
+                    && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol switch
+                    {
+                        ILocalSymbol invocatedVariable => invocatedVariable.Type,
+                        IParameterSymbol invocatedParameter => invocatedParameter.Type,
+                        IMethodSymbol { MethodKind: MethodKind.Constructor } invocatedConstructor => invocatedConstructor.ContainingType,
+                        IMethodSymbol invocatedMethod => invocatedMethod.ReturnType,
+                        IPropertySymbol invocatedProperty => invocatedProperty.Type,
+                        IFieldSymbol invocatedField => invocatedField.Type, 
+                        _ => null
+                    } is ITypeSymbol fromType
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
                     var designer = new TypeMapDesigner(diagnosticReporter);
-                    var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType);
+                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType);
                     foreach (var map in maps)
                     {
                         AddMapToPlanner(mapPlanner, map, new());
@@ -79,9 +88,18 @@ namespace NextGenMapper
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithFunctionFullName
                     && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapWithMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol is ILocalSymbol invocatingVariable
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(invocatingVariable.Type, method.ReturnType)
-                    && invocatingVariable.Type.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
+                    && mapWithMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol switch
+                    {
+                        ILocalSymbol invocatedVariable => invocatedVariable.Type,
+                        IParameterSymbol invocatedParameter => invocatedParameter.Type,
+                        IMethodSymbol { MethodKind: MethodKind.Constructor } invocatedConstructor => invocatedConstructor.ContainingType,
+                        IMethodSymbol invocatedMethod => invocatedMethod.ReturnType,
+                        IPropertySymbol invocatedProperty => invocatedProperty.Type,
+                        IFieldSymbol invocatedField => invocatedField.Type,
+                        _ => null
+                    } is ITypeSymbol fromType
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType)
+                    && fromType.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
                 {
                     if (isStubMethod)
                     {
@@ -105,7 +123,7 @@ namespace NextGenMapper
                         diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());
                     }
 
-                    var maps = designer.DesignMapsForPlanner(invocatingVariable.Type, method.ReturnType, arguments);
+                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, arguments);
                     foreach (var map in maps)
                     {
                         AddMapToPlanner(mapPlanner, map, new());

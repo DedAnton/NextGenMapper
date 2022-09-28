@@ -27,7 +27,7 @@ namespace NextGenMapperTests
             var compilation = CSharpCompilation.Create(assemblyName: assemblyName)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(references)
-                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9)));
+                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest)));
 
             return compilation;
         }
@@ -116,7 +116,7 @@ namespace NextGenMapperTests
             return $"\r\n{name}\r\n{diagnostincsString}";
         }
 
-        public static string GenerateSource(string classes, string validateFunction)
+        public static string GenerateSource(string classes, string validateFunction, string customMapper = null)
         {
             var source =
 @"using NextGenMapper;
@@ -153,7 +153,7 @@ namespace Test
 @"
 }
 ";
-            return source;
+            return customMapper is null ? source : source + customMapper;
         }
     }
 }
