@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
 
@@ -36,6 +37,7 @@ public class TypeMapWithDesigner
         var maps = new List<TypeMap>();
         var membersMaps = new List<MemberMap>();
         var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+        var mapWithParameters = new List<ParameterDescriptor>(toMembers.Count);
         foreach (var member in toMembers)
         {
             var isProvidedByUser = byUser.Contains(member.Name);
@@ -47,6 +49,16 @@ public class TypeMapWithDesigner
                 (IPropertySymbol property, true) => MemberMap.User(property),
                 _ => null
             };
+            var mapWithParameter = member switch
+            {
+                IParameterSymbol parameter => new ParameterDescriptor(parameter.Name.ToCamelCase(), parameter.Type),
+                IPropertySymbol property => new ParameterDescriptor(property.Name.ToCamelCase(), property.Type),
+                _ => null
+            };
+            if (mapWithParameter is not null)
+            {
+                mapWithParameters.Add(mapWithParameter);
+            }
 
             if (memberMap == null)
             {
@@ -60,7 +72,8 @@ public class TypeMapWithDesigner
             }
         }
 
-        maps.Add(new ClassMapWith(from, to, membersMaps, arguments));
+        
+        maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters));
 
         return maps;
     }

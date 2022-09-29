@@ -1,18 +1,29 @@
 ﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.Extensions;
 using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps;
 
 public class ClassMapWith : ClassMap
 {
-    public IPropertySymbol[] PublicPropertiesForParameters { get; }
     public List<MapWithInvocationAgrument> Arguments { get; }
+    public List<ParameterDescriptor> Parameters { get; }
 
-    public ClassMapWith(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, List<MapWithInvocationAgrument> arguments)
+    public ClassMapWith(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, List<MapWithInvocationAgrument> arguments, List<ParameterDescriptor> parameters)
         : base(from, to, properties)
     {
-        PublicPropertiesForParameters = to.GetPublicProperties().ToArray();
         Arguments = arguments;
+        Parameters = parameters;
+    }
+}
+
+public class ParameterDescriptor
+{
+    public string Name { get; } 
+    public ITypeSymbol Type { get; }
+
+    public ParameterDescriptor(string name, ITypeSymbol type)
+    {
+        Name = name;
+        Type = type;
     }
 }

@@ -260,18 +260,18 @@ public class MapperClassBuilder
         builder.Append(Comma);
         builder.Append(NewLine);
         var counter = 1;
-        foreach (var property in map.PublicPropertiesForParameters)
+        foreach (var property in map.Parameters)
         {
             AppendTabs(ref builder, 3);
             builder.Append(property.Type.ToString());
             builder.Append(WhiteSpace);
-            builder.Append(property.Name.ToCamelCase());
+            builder.Append(property.Name);
             builder.Append(WhiteSpace);
             builder.Append(Equal);
             builder.Append(WhiteSpace);
             builder.Append("default");
 
-            if (counter < map.PublicPropertiesForParameters.Length)
+            if (counter < map.Parameters.Count)
             {
                 builder.Append(Comma);
             }

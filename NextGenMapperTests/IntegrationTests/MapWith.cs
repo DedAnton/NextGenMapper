@@ -1,6 +1,11 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
+using NextGenMapper.PostInitialization;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace NextGenMapperTests.IntegrationTests;
 
@@ -8,7 +13,7 @@ namespace NextGenMapperTests.IntegrationTests;
 public class MapWith
 {
     [TestMethod]
-    public void MapWithMappingInitializer_FirstParameter()
+    public void MapWith_Initializer_FirstParameter()
     {
         var classes = @"
 public class Source
@@ -36,7 +41,6 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var generator = new MapperGenerator();
         var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
         Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
-        //TODO: add more tests for mapwith
         var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
         Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
 
@@ -45,7 +49,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
     }
 
     [TestMethod]
-    public void MapWithMappingInitializer_SecondParameter()
+    public void MapWith_Initializer_SecondParameter()
     {
         var classes = @"
 public class Source
@@ -81,7 +85,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
     }
 
     [TestMethod]
-    public void MapWithMappingInitializer_ManyParameters()
+    public void MapWith_Initializer_ManyParameters()
     {
         var classes = @"
 public class Source
@@ -127,7 +131,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
     }
 
     [TestMethod]
-    public void MapWithMapping_WithoutArguments_MustCreateDiagnostic()
+    public void MapWith_WithoutArguments_MustCreateDiagnostic()
     {
         var classes = @"
 public class Source
@@ -153,12 +157,12 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
         var generator = new MapperGenerator();
-        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
         Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM005");
     }
 
     [TestMethod]
-    public void MapWithMapping_AllArguments_MustCreateDiagnostic()
+    public void MapWith_AllArguments_MustCreateDiagnostic()
     {
         var classes = @"
 public class Source
@@ -184,8 +188,94 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
         var generator = new MapperGenerator();
-        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
         Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM006");
     }
 
+    [TestMethod]
+    public async Task MapWithNonSettableProperty()
+    {
+        var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+    public int Age { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+    public int Age { get; }
+}";
+
+        var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20), Age = 15 };
+
+var destination = source.MapWith<Destination>(name: ""good"");
+//var destination = source.MapWith<Destination>(age: 30);
+
+var isValid = ""good"" == destination.Name && source.Birthday == destination.Birthday && 0 == destination.Age;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generated = "\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n    }\r\n}";
+        await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
+        {
+            TestState =
+                    {
+                        Sources = { userSource },
+                        GeneratedSources =
+                        {
+                            (typeof(MapperGenerator), "MapperExtensions.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                            (typeof(MapperGenerator), "StartMapper.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                            (typeof(MapperGenerator), "1_Mapper.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                        },
+                    },
+        }.RunAsync();
+
+        var generator = new MapperGenerator();
+        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+        var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+        Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+        var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+        Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+    }
+
+    [TestMethod]
+    public void MapWith_NonExistentArgument()
+    {
+        var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+        var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+
+var destination = source.MapWith<Destination>(nonExistent: 20);
+
+var isValid = true;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generator = new MapperGenerator();
+        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+        var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+        Assert.IsTrue(userSourceDiagnostics.Where(x => x.Id != "CS8019").Single().ToString() == "(15,47): error CS1739: The best overload for 'MapWith' does not have a parameter named 'nonExistent'");
+    }
 }
