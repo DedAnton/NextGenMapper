@@ -24,18 +24,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _diagnosticReporter = diagnosticReporter;
         }
 
-        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
             var collectionTypeFrom = GetCollectionType(from);
             var collectionTypeTo = GetCollectionType(to);
             if (collectionTypeFrom == CollectionType.Undefined)
             {
-                _diagnosticReporter.ReportUndefinedCollectionTypeError(from.Locations);
+                _diagnosticReporter.ReportUndefinedCollectionTypeError(mapLocation);
                 return new();
             }
             if (collectionTypeTo == CollectionType.Undefined)
             {
-                _diagnosticReporter.ReportUndefinedCollectionTypeError(to.Locations);
+                _diagnosticReporter.ReportUndefinedCollectionTypeError(mapLocation);
                 return new();
             }
 
@@ -44,8 +44,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
             var maps = new List<TypeMap>();
 
-            maps.AddRange(_classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo));
-            maps.Add(new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionTypeFrom, collectionTypeTo));
+            maps.AddRange(_classMapDesigner.DesignMapsForPlanner(elementTypeFrom, elementTypeTo, mapLocation));
+            maps.Add(new CollectionMap(from, to, elementTypeFrom, elementTypeTo, collectionTypeFrom, collectionTypeTo, mapLocation));
 
             return maps;
         }

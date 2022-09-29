@@ -24,7 +24,7 @@ public class CircleReferencesList
         var references = Enumerable.Range(0, ReferencesCount)
             .Select(x => ((ITypeSymbol)compilation.GetTypeByMetadataName($"Test.Source{x}"), (ITypeSymbol)compilation.GetTypeByMetadataName($"Test.Destination{x}")))
             .ToArray();
-        hashSet = new HashSet<(ITypeSymbol, ITypeSymbol)>(references, new ReferencesEqualityComparer());
+        hashSet = new HashSet<(ITypeSymbol, ITypeSymbol)>(references, new MapTypesEqualityComparer());
         list = new List<(ITypeSymbol, ITypeSymbol)>(references);
         testUnit = references[^1];
     }
@@ -34,5 +34,5 @@ public class CircleReferencesList
     public bool HashSet() => hashSet.Contains(testUnit);
 
     [BenchmarkCategory("CircleReferences"), Benchmark]
-    public bool List() => list.Contains(testUnit, new ReferencesEqualityComparer());
+    public bool List() => list.Contains(testUnit, new MapTypesEqualityComparer());
 }

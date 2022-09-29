@@ -116,20 +116,6 @@ namespace NextGenMapper.Extensions
             return null;
         }
 
-        public static string GetNamespace(this SyntaxNode node)
-        {
-            //TODO: maybe use while and node.Parent because this method will be used only for class and usualy namespace will be first Parent
-            foreach (var ancestor in node.Ancestors())
-            {
-                if (ancestor is NamespaceDeclarationSyntax namespaceDeclaration)
-                {
-                    return namespaceDeclaration.Name.ToString();
-                }
-            }
-
-            return string.Empty;
-        }
-
         public static SyntaxNode? GetFirstDeclaration(this ISymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length > 0)
@@ -140,6 +126,6 @@ namespace NextGenMapper.Extensions
             return null;
         }
 
-        public static bool IsPrimitive(this ITypeSymbol type) => (int)type.SpecialType is int and >= 7 and <= 20;
+        public static bool IsPrimitive(this ITypeSymbol type) => (sbyte)type.SpecialType >= 7 && (sbyte)type.SpecialType <= 20;
     }
 }

@@ -189,7 +189,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
         var generator = new MapperGenerator();
         userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
-        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM006");
+        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM006", "Wrong diagnostinc");
     }
 
     [TestMethod]
@@ -221,7 +221,7 @@ var isValid = ""good"" == destination.Name && source.Birthday == destination.Bir
 if (!isValid) throw new MapFailedException(source, destination);";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-        var generated = "\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n    }\r\n}";
+        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n    }\r\n}";
         await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
         {
             TestState =
@@ -229,9 +229,9 @@ if (!isValid) throw new MapFailedException(source, destination);";
                         Sources = { userSource },
                         GeneratedSources =
                         {
-                            (typeof(MapperGenerator), "MapperExtensions.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-                            (typeof(MapperGenerator), "StartMapper.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-                            (typeof(MapperGenerator), "1_Mapper.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                            (typeof(MapperGenerator), "MapperExtensions.g.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                            (typeof(MapperGenerator), "StartMapper.g.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                            (typeof(MapperGenerator), "Mapper.g.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
                         },
                     },
         }.RunAsync();
@@ -310,5 +310,112 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var generator = new MapperGenerator();
         userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
         Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM007");
+    }
+
+    [TestMethod]
+    public void MapWith_And_Map_Together()
+    {
+        var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
+
+        var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+
+var destination1 = source.Map<Destination>();
+var destination2 = source.MapWith<Destination>(""good"");
+
+var isValid1 = source.Name == destination1.Name && source.Birthday == destination1.Birthday;
+var isValid2 = ""good"" == destination2.Name && source.Birthday == destination2.Birthday;
+
+if (!isValid1) throw new MapFailedException(source, destination1);
+if (!isValid2) throw new MapFailedException(source, destination2);";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generator = new MapperGenerator();
+        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+        var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+        Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+        var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+        Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+    }
+
+    [TestMethod]
+    public void MapWith_Multiple()
+    {
+        var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}";
+
+        var validateFunction = @"
+var source = new Source { Name = ""Anton"", Age = 20 };
+
+var destination1 = source.MapWith<Destination>(name: ""good"");
+var destination2 = source.MapWith<Destination>(age: 1000);
+
+var isValid1 = ""good"" == destination1.Name && source.Age == destination1.Age;
+var isValid2 = source.Name == destination2.Name && 1000 == destination2.Age;
+
+if (!isValid1) throw new MapFailedException(source, destination1);
+if (!isValid2) throw new MapFailedException(source, destination2);";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generator = new MapperGenerator();
+        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+        var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+        Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+        var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+        Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+    }
+
+    [TestMethod]
+    public void MapWith_MultipleButSameType()
+    {
+        var classes = @"
+public class Source
+{
+    public string FirstName { get; set; }
+    public string SecondName { get; set; }
+}
+
+public class Destination
+{
+    public string FirstName { get; set; }
+    public string SecondName { get; set; }
+}";
+
+        var validateFunction = @"
+var source = new Source { FirstName = ""Vasya"", SecondName = ""Pupkin"" };
+
+var destination1 = source.MapWith<Destination>(firstName: ""good"");
+var destination2 = source.MapWith<Destination>(secondName: ""good"");";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+
+        userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM010");
+        Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(16,20): error NGM010: Can not map 'Test.Source' to Test.Destination. Better function member can not be selected for 'MapWith'. Multiple functions have the same signatures (number and type of parameters)");
     }
 }

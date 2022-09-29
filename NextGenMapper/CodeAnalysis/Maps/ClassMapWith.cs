@@ -5,11 +5,19 @@ namespace NextGenMapper.CodeAnalysis.Maps;
 
 public class ClassMapWith : ClassMap
 {
-    public List<MapWithInvocationAgrument> Arguments { get; }
+    public MapWithInvocationAgrument[] Arguments { get; }
     public List<ParameterDescriptor> Parameters { get; }
 
-    public ClassMapWith(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, List<MapWithInvocationAgrument> arguments, List<ParameterDescriptor> parameters)
-        : base(from, to, properties)
+    public bool NeedGenerateStubMethod { get; set; } = false;
+
+    public ClassMapWith(
+        ITypeSymbol from,
+        ITypeSymbol to, 
+        IEnumerable<MemberMap> properties, 
+        MapWithInvocationAgrument[] arguments, 
+        List<ParameterDescriptor> parameters,
+        Location mapLocaion)
+        : base(from, to, properties, mapLocaion)
     {
         Arguments = arguments;
         Parameters = parameters;

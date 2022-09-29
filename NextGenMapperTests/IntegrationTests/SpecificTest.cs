@@ -53,10 +53,7 @@ var destinationA = sourceA.Map<DestinationA>();
 
 var destinationB = destinationA.Ref;
 var destinationC = destinationB.Ref;
-
-var isValid = sourceA.Id == destinationA.Id && sourceB.Id == destinationB.Id && sourceC.Id == destinationC.Id;
-
-if (!isValid) throw new MapFailedException(sourceA, destinationA);";
+";
 
             var userSource = TestExtensions.GenerateSource(classes, validateFunction);
             _ = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
@@ -102,6 +99,85 @@ if (!isValid) throw new MapFailedException(source, destination);";
 
             var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
+
+        [TestMethod]
+        public void Map_MappingFunctionNotFoundForProperty()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public double Age { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", Age = 10 };
+
+var destination = source.Map<Destination>();
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+
+            userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM009");
+        }
+
+        [TestMethod]
+        public void NotFoundMappingFunctionForPropertiesInCollection()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public double Age { get; set; }
+}
+
+public class Destination
+{
+    public string Name { get; set; }
+    public int Age { get; set; }
+}";
+
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", Age = 10 };
+var sourceArray = new Source[] { source };
+
+var destinationArray = sourceArray.Map<Destination[]>();
+";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+
+            userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM009");
+            Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(16,24): error NGM009: Mapping function for mapping 'Test.Source.Age' of type 'double' to 'Test.Destination.Age' of type 'int' was not found. Add custom mapping function for mapper\r\nExample:\r\n\r\nnamespace NextGenMapper;\r\n\r\ninternal static partial class Mapper\r\n{\r\n    internal static int Map<To>(this double source) \r\n        => throw new NotImplementedException();\r\n}");
+        }
+
+        [TestMethod]
+        public void NotFoundMappingFunctionForCollectionItem()
+        {
+            var classes = @"";
+
+            var validateFunction = @"
+var source = new double[] { 1, 2, 3 };
+
+var destination = source.Map<int[]>();
+
+var isValid = true;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+
+            userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM008");
+            Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(15,19): error NGM008: Mapping function for mapping 'double' to 'int' was not found. Add custom mapping function for mapper\r\nExample:\r\n\r\nnamespace NextGenMapper;\r\n\r\ninternal static partial class Mapper\r\n{\r\n    internal static int Map<To>(this double source) \r\n        => throw new NotImplementedException();\r\n}");
         }
     }
 }

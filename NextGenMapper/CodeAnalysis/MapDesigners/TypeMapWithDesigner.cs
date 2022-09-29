@@ -19,7 +19,7 @@ public class TypeMapWithDesigner
         _constructorFinder = new();
     }
 
-    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, List<MapWithInvocationAgrument> arguments)
+    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, MapWithInvocationAgrument[] arguments, Location mapLocation)
     {
         var byUser = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         foreach (var argument in arguments)
@@ -30,7 +30,7 @@ public class TypeMapWithDesigner
         var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
         if (constructor == null)
         {
-            _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
+            _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
             return new();
         }
 
@@ -68,12 +68,12 @@ public class TypeMapWithDesigner
 
             if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
             {
-                maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
+                maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType, mapLocation));
             }
         }
 
         
-        maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters));
+        maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters, mapLocation));
 
         return maps;
     }

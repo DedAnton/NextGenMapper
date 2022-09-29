@@ -1,11 +1,6 @@
-using Microsoft.CodeAnalysis;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 
 namespace NextGenMapper.CodeGeneration;
 
@@ -13,6 +8,7 @@ public class MapperClassBuilder
 {
     private const int TabWidth = 4;
 
+    private const string Usings = "using NextGenMapper.Extensions;";
     private const string Namespace = "namespace NextGenMapper";
     private const string Class = "internal static partial class Mapper";
 
@@ -47,15 +43,12 @@ public class MapperClassBuilder
     private const string Return = "return";
     private const string Var = "var";
 
-    public string Generate(MapGroup mapGroup)
+    public string Generate(IReadOnlyCollection<TypeMap> maps)
     {
         var builder = new ValueStringBuilder(stackalloc char[1024]);
 
-        foreach (var @using in mapGroup.Usings)
-        {
-            builder.Append(@using);
-            builder.Append(NewLine);
-        };
+        builder.Append(Usings);
+        builder.Append(NewLine);
         builder.Append(NewLine);
         builder.Append(Namespace);
         builder.Append(NewLine);
@@ -67,15 +60,18 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 1);
         builder.Append(OpenCurlyBracket);
         builder.Append(NewLine);
-        foreach (var map in mapGroup.Maps)
+        foreach (var map in maps)
         {
             if (map is ClassMapWith classMapWith)
             {
-                AppendPlaceholderClassMapWith(ref builder, classMapWith);
-                if (classMapWith.Arguments.Count > 0)
+                if (classMapWith.NeedGenerateStubMethod)
                 {
+                    AppendPlaceholderClassMapWith(ref builder, classMapWith);
                     builder.Append(NewLine);
                     builder.Append(NewLine);
+                }
+                if (classMapWith.Arguments.Length > 0)
+                {
                     AppendClassMapWith(ref builder, classMapWith);
                 }
             }
@@ -135,7 +131,7 @@ public class MapperClassBuilder
             builder.Append(WhiteSpace);
             builder.Append(argument.Name);
 
-            if (counter < map.Arguments.Count)
+            if (counter < map.Arguments.Length)
             {
                 builder.Append(Comma);
             }
@@ -159,7 +155,7 @@ public class MapperClassBuilder
         {
             builder.Append(NewLine);
             AppendTabs(ref builder, 3);
-            var argument = map.Arguments.FirstOrDefault(x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+            var argument = Array.Find(map.Arguments, x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
             if (argument is not null)
             {
                 builder.Append(argument.Name);
@@ -201,7 +197,7 @@ public class MapperClassBuilder
             builder.Append(WhiteSpace);
             builder.Append(Equal);
             builder.Append(WhiteSpace);
-            var argument = map.Arguments.FirstOrDefault(x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
+            var argument = Array.Find(map.Arguments, x => property.ToName.Equals(x.Name, StringComparison.InvariantCultureIgnoreCase));
             if (argument is not null)
             {
                 builder.Append(argument.Name);
