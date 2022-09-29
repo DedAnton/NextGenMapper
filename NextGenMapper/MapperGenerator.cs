@@ -98,12 +98,18 @@ namespace NextGenMapper
                         IFieldSymbol invocatedField => invocatedField.Type,
                         _ => null
                     } is ITypeSymbol fromType
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType)
-                    && fromType.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
+                    if (fromType.TypeKind == TypeKind.Enum && method.ReturnType.TypeKind == TypeKind.Enum)
+                    {
+                        diagnosticReporter.ReportMapWithNotSupportedForEnums(memberAccess.GetLocation());
+                        continue;
+                    }
+
                     if (isStubMethod)
                     {
                         diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
+                        continue;
                     }
 
                     var designer = new TypeMapWithDesigner(diagnosticReporter);
@@ -117,7 +123,7 @@ namespace NextGenMapper
                         return new MapWithInvocationAgrument(propertyAsParamter.Name.ToCamelCase(), propertyAsParamter.Type);
                     }).ToList();
 
-                    if (arguments.Count == publicProperties.Length)
+                    if (arguments.Count > 0 && arguments.Count == publicProperties.Length)
                     {
                         //TODO: create only stub method if this happened
                         diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());

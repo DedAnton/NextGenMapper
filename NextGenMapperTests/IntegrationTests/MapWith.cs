@@ -278,4 +278,37 @@ if (!isValid) throw new MapFailedException(source, destination);";
         var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
         Assert.IsTrue(userSourceDiagnostics.Where(x => x.Id != "CS8019").Single().ToString() == "(15,47): error CS1739: The best overload for 'MapWith' does not have a parameter named 'nonExistent'");
     }
+
+    [TestMethod]
+    public void MapWith_Enum()
+    {
+        var classes = @"
+enum SourceEnum
+{
+    ValueA,
+    ValueB,
+    ValueC
+}
+
+enum DestinationEnum
+{
+    ValueA,
+    ValueB,
+    ValueC
+}";
+
+        var validateFunction = @"
+var source = SourceEnum.ValueA;
+
+var destination = source.MapWith<DestinationEnum>();
+
+var isValid = true;
+
+if (!isValid) throw new MapFailedException(source, destination);";
+
+        var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generator = new MapperGenerator();
+        userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM007");
+    }
 }

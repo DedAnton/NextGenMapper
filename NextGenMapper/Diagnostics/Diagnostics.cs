@@ -51,5 +51,25 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapWithNotSupportedForEnums = new(
+            id: "NGM007",
+            title: "'MapWith' method not supported enums",
+            messageFormat: "Method 'MapWith' must not be colled for enums mapping. For matching enums values set the integer value in enum.\r\n" +
+@"Example:
+enum SourceEnum
+{
+    A,
+    B = 1
+}
+enum DestinationEnum
+{
+    A,
+    C = 1
+}
+",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

@@ -42,5 +42,11 @@ namespace NextGenMapper
             var diagnostic = Diagnostic.Create(Diagnostics.ToManyArgumentsForMapWithError, location, additionalLocations: null);
             diagnosticReporter.Report(diagnostic);
         }
+
+        public static void ReportMapWithNotSupportedForEnums(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithNotSupportedForEnums, location, additionalLocations: null);
+            diagnosticReporter.Report(diagnostic);
+        }
     }
 }
