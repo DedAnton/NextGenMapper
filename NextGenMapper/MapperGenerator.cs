@@ -4,12 +4,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Validators;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Numerics;
 
 namespace NextGenMapper
 {
@@ -26,8 +29,8 @@ namespace NextGenMapper
             //#endif 
             context.RegisterForPostInitialization(i =>
             {
-                i.AddSource("MapperExtensions", ExtensionsSource.Source);
-                i.AddSource("StartMapper", StartMapperSource.StartMapper);
+                i.AddSource("MapperExtensions.g", ExtensionsSource.Source);
+                i.AddSource("StartMapper.g", StartMapperSource.StartMapper);
             });
 
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -41,6 +44,26 @@ namespace NextGenMapper
             if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
             {
                 return;
+            }
+
+            foreach(var userMapMethod in receiver.UserMapMethods)
+            {
+                if (userMapMethod.SemanticModel.GetDeclaredSymbol(userMapMethod.Node) is IMethodSymbol method
+                    && !method.IsAsync
+                    && method.IsExtensionMethod
+                    && method.IsGenericMethod
+                    && method.MethodKind == MethodKind.Ordinary
+                    && !method.ReturnsByRef
+                    && !method.ReturnsByRefReadonly
+                    && !method.ReturnsVoid
+                    && method.IsDefinition
+                    && method.IsStatic
+                    && method.Name == "Map"
+                    && method.Parameters.Length == 1
+                    && method.ReturnType is not ITypeParameterSymbol)
+                {
+                    mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
+                }
             }
 
             foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
@@ -62,10 +85,10 @@ namespace NextGenMapper
                     && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
                     var designer = new TypeMapDesigner(diagnosticReporter);
-                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType);
+                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, memberAccess.GetLocation());
                     foreach (var map in maps)
                     {
-                        AddMapToPlanner(mapPlanner, map, new());
+                        mapPlanner.AddMap(map);
                     }
                 }
             }
@@ -97,13 +120,18 @@ namespace NextGenMapper
                         IPropertySymbol invocatedProperty => invocatedProperty.Type,
                         IFieldSymbol invocatedField => invocatedField.Type,
                         _ => null
-                    } is ITypeSymbol fromType
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType)
-                    && fromType.TypeKind == TypeKind.Class && method.ReturnType.TypeKind == TypeKind.Class)
+                    } is ITypeSymbol fromType)
                 {
+                    if (fromType.TypeKind == TypeKind.Enum && method.ReturnType.TypeKind == TypeKind.Enum)
+                    {
+                        diagnosticReporter.ReportMapWithNotSupportedForEnums(memberAccess.GetLocation());
+                        continue;
+                    }
+
                     if (isStubMethod)
                     {
                         diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(memberAccess.GetLocation());
+                        continue;
                     }
 
                     var designer = new TypeMapWithDesigner(diagnosticReporter);
@@ -115,44 +143,92 @@ namespace NextGenMapper
                             ?? publicProperties[Array.IndexOf(mapWithMethodInvocation.Arguments, x)];
 
                         return new MapWithInvocationAgrument(propertyAsParamter.Name.ToCamelCase(), propertyAsParamter.Type);
-                    }).ToList();
+                    }).ToArray();
 
-                    if (arguments.Count == publicProperties.Length)
+                    if (arguments.Length > 0 && arguments.Length == publicProperties.Length)
                     {
-                        //TODO: create only stub method if this happened
                         diagnosticReporter.ReportToManyArgumentsForMapWithError(memberAccess.GetLocation());
+                        continue;
                     }
 
-                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, arguments);
+                    if (mapPlanner.IsTypesMapWithAlreadyPlanned(fromType, method.ReturnType, arguments))
+                    {
+                        diagnosticReporter.ReportMapWithBetterFunctionMemberNotFound(memberAccess.GetLocation(), fromType, method.ReturnType);
+                    }
+
+                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, arguments, memberAccess.GetLocation());
                     foreach (var map in maps)
                     {
-                        AddMapToPlanner(mapPlanner, map, new());
+                        if (map is ClassMapWith classMapWith)
+                        {
+                            if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(classMapWith.From, classMapWith.To))
+                            {
+                                classMapWith.NeedGenerateStubMethod = true;
+                            }
+                            mapPlanner.AddMapWith(classMapWith);
+                        }
+                        else
+                        {
+                            mapPlanner.AddMap(map);
+                        }
                     }
                 }
             }
 
-            var prefix = 1;
-            var mapperClassBuilder = new MapperClassBuilder();
-            foreach (var mapGroup in mapPlanner.MapGroups)
+            foreach (var map in mapPlanner.Maps)
             {
-                var mapperSourceCode = mapperClassBuilder.Generate(mapGroup);
-                context.AddSource($"{prefix}_Mapper", mapperSourceCode);
-                prefix++;
+                if (map is CollectionMap collectionMap
+                        && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.IncludeNullability)
+                        && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo))
+                {
+                    diagnosticReporter.ReportMappingFunctionNotFound(collectionMap.MapLocation, collectionMap.ItemFrom, collectionMap.ItemTo);
+                }
+
+                if (map is ClassMap classMap)
+                {
+                    if (classMap is ClassMapWith classMapWith)
+                    {
+                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.From, classMapWith.To, classMapWith.Arguments))
+                        {
+                            diagnosticReporter.ReportMappingFunctionNotFound(classMapWith.MapLocation, classMapWith.From, classMapWith.To);
+                        }
+                    }
+                    else
+                    {
+                        if (!mapPlanner.IsTypesMapAlreadyPlanned(classMap.From, classMap.To))
+                        {
+                            diagnosticReporter.ReportMappingFunctionNotFound(classMap.MapLocation, classMap.From, classMap.To);
+                        }
+                    }
+
+                    foreach (var constructorProperty in classMap.ConstructorProperties)
+                    {
+                        if (!constructorProperty.IsSameTypes
+                            && !mapPlanner.IsTypesMapAlreadyPlanned(constructorProperty.FromType, constructorProperty.ToType)
+                            && !ImplicitNumericConversionValidator.HasImplicitConversion(constructorProperty.FromType, constructorProperty.ToType))
+                        {
+                            diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
+                                classMap.MapLocation, classMap.From, constructorProperty.FromName, constructorProperty.FromType, classMap.To, constructorProperty.ToName, constructorProperty.ToType);
+                        }
+                    }
+
+                    foreach (var initializerProperty in classMap.InitializerProperties)
+                    {
+                        if (!initializerProperty.IsSameTypes
+                            && !mapPlanner.IsTypesMapAlreadyPlanned(initializerProperty.FromType, initializerProperty.ToType)
+                            && !ImplicitNumericConversionValidator.HasImplicitConversion(initializerProperty.FromType, initializerProperty.ToType))
+                        {
+                            diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
+                                classMap.MapLocation, classMap.From, initializerProperty.FromName, initializerProperty.FromType, classMap.To, initializerProperty.ToName, initializerProperty.ToType);
+                        }
+                    }
+                }
             }
+            var mapperClassBuilder = new MapperClassBuilder();
+            var mapperSourceCode = mapperClassBuilder.Generate(mapPlanner.Maps);
+            context.AddSource($"Mapper.g", mapperSourceCode);
 
             diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
-        }
-
-        private void AddMapToPlanner(MapPlanner planner, TypeMap map, HashSet<string> usings)
-        {
-            if (map is ClassMapWith)
-            {
-                planner.AddCustomMap(map, usings);
-            }
-            else
-            {
-                planner.AddCommonMap(map);
-            }
         }
     }
 }

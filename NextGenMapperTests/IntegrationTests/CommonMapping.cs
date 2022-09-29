@@ -1,5 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenMapper;
+using System.Linq;
+using System.Reflection.Emit;
 
 namespace NextGenMapperTests.IntegrationTests
 {
@@ -395,43 +397,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
         }
 
         [TestMethod]
-        public void TryMappingPrimitiveTypesExpliciteMustNotMap()
-        {
-            var classes = @"
-public class Source
-{
-    public string Name { get; set; }
-    public double Age { get; set; }
-}
-
-public class Destination
-{
-    public string Name { get; set; }
-    public int Age { get; set; }
-}";
-
-            var validateFunction = @"
-var source = new Source { Name = ""Anton"", Age = 24 };
-
-var destination = source.Map<Destination>();
-
-var isValid = source.Name == destination.Name && source.Age == 0;
-
-if (!isValid) throw new MapFailedException(source, destination);";
-
-            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
-            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
-            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
-            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
-
-            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
-            Assert.IsFalse(testResult, TestExtensions.GetObjectsString(source, destination, message));
-            Assert.IsTrue(message == "Error when mapping System.Double to System.Int32, mapping function was not found. Create custom mapping function.");
-        }
-
-        [TestMethod]
-        public void TryMappingPrimitiveTypesImpliciteMustMap()
+        public void TryMappingPrimitiveTypesImplicitMustMap()
         {
             var classes = @"
 public class Source

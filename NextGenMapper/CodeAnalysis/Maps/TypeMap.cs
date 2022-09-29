@@ -6,11 +6,13 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public ITypeSymbol From { get; }
         public ITypeSymbol To { get; }
+        public Location MapLocation { get; }
 
-        public TypeMap(ITypeSymbol from, ITypeSymbol to)
+        public TypeMap(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
             From = from;
             To = to;
+            MapLocation = mapLocation;
         }
     }
 }

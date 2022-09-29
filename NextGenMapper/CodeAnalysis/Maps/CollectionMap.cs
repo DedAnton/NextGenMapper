@@ -9,8 +9,15 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public CollectionType CollectionFrom { get; }
         public CollectionType CollectionTo { get; }
 
-        public CollectionMap(ITypeSymbol from, ITypeSymbol to, ITypeSymbol itemFrom, ITypeSymbol itemTo, CollectionType collectionFrom, CollectionType collectionTo)
-            : base(from, to)
+        public CollectionMap(
+            ITypeSymbol from, 
+            ITypeSymbol to, 
+            ITypeSymbol itemFrom, 
+            ITypeSymbol itemTo, 
+            CollectionType collectionFrom, 
+            CollectionType collectionTo, 
+            Location mapLocaion)
+            : base(from, to, mapLocaion)
         {
             ItemFrom = itemFrom;
             ItemTo = itemTo;

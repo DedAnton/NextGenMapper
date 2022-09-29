@@ -1,18 +1,37 @@
 ﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.Extensions;
 using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps;
 
 public class ClassMapWith : ClassMap
 {
-    public IPropertySymbol[] PublicPropertiesForParameters { get; }
-    public List<MapWithInvocationAgrument> Arguments { get; }
+    public MapWithInvocationAgrument[] Arguments { get; }
+    public List<ParameterDescriptor> Parameters { get; }
 
-    public ClassMapWith(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, List<MapWithInvocationAgrument> arguments)
-        : base(from, to, properties)
+    public bool NeedGenerateStubMethod { get; set; } = false;
+
+    public ClassMapWith(
+        ITypeSymbol from,
+        ITypeSymbol to, 
+        IEnumerable<MemberMap> properties, 
+        MapWithInvocationAgrument[] arguments, 
+        List<ParameterDescriptor> parameters,
+        Location mapLocaion)
+        : base(from, to, properties, mapLocaion)
     {
-        PublicPropertiesForParameters = to.GetPublicProperties().ToArray();
         Arguments = arguments;
+        Parameters = parameters;
+    }
+}
+
+public class ParameterDescriptor
+{
+    public string Name { get; } 
+    public ITypeSymbol Type { get; }
+
+    public ParameterDescriptor(string name, ITypeSymbol type)
+    {
+        Name = name;
+        Type = type;
     }
 }

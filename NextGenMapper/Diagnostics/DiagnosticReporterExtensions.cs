@@ -13,15 +13,15 @@ namespace NextGenMapper
             diagnosticReporter.Report(diagnostic);
         }
 
-        public static void ReportConstructorNotFoundError(this DiagnosticReporter diagnosticReporter, IEnumerable<Location> locations, ITypeSymbol from, ITypeSymbol to)
+        public static void ReportConstructorNotFoundError(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.ConstructorNotFoundError, locations.FirstOrDefault(), locations, from, to);
+            var diagnostic = Diagnostic.Create(Diagnostics.ConstructorNotFoundError, location, from, to);
             diagnosticReporter.Report(diagnostic);
         }
 
-        public static void ReportUndefinedCollectionTypeError(this DiagnosticReporter diagnosticReporter, IEnumerable<Location> locations)
+        public static void ReportUndefinedCollectionTypeError(this DiagnosticReporter diagnosticReporter, Location location)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.UndefinedCollectionTypeError, locations.FirstOrDefault(), locations);
+            var diagnostic = Diagnostic.Create(Diagnostics.UndefinedCollectionTypeError, location);
             diagnosticReporter.Report(diagnostic);
         }
 
@@ -33,13 +33,54 @@ namespace NextGenMapper
 
         public static void ReportMapWithMethodWithoutArgumentsError(this DiagnosticReporter diagnosticReporter, Location location)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.MapWithMethodWithoutArgumentsError, location, additionalLocations: null);
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithMethodWithoutArgumentsError, location);
             diagnosticReporter.Report(diagnostic);
         }
 
         public static void ReportToManyArgumentsForMapWithError(this DiagnosticReporter diagnosticReporter, Location location)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.ToManyArgumentsForMapWithError, location, additionalLocations: null);
+            var diagnostic = Diagnostic.Create(Diagnostics.ToManyArgumentsForMapWithError, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapWithNotSupportedForEnums(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithNotSupportedForEnums, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMappingFunctionNotFound(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MappingFunctionNotFound, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMappingFunctionForPropertyNotFound(
+            this DiagnosticReporter diagnosticReporter, 
+            Location location, 
+            ITypeSymbol fromContainedType,
+            string fromProperty,
+            ITypeSymbol fromType,
+            ITypeSymbol toContainedType,
+            string toProperty,
+            ITypeSymbol toType)
+        {
+            var diagnostic = Diagnostic.Create(
+                Diagnostics.MappingFunctionForPropertiesNotFound, 
+                location, 
+                fromContainedType, 
+                fromProperty,
+                fromType,
+                toContainedType,
+                toProperty,
+                toType);
+
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapWithBetterFunctionMemberNotFound(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithBetterFunctionMemberNotFound, location, from, to);
             diagnosticReporter.Report(diagnostic);
         }
     }

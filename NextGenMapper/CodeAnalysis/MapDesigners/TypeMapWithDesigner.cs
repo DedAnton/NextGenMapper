@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
 
@@ -18,7 +19,7 @@ public class TypeMapWithDesigner
         _constructorFinder = new();
     }
 
-    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, List<MapWithInvocationAgrument> arguments)
+    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, MapWithInvocationAgrument[] arguments, Location mapLocation)
     {
         var byUser = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
         foreach (var argument in arguments)
@@ -29,13 +30,14 @@ public class TypeMapWithDesigner
         var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
         if (constructor == null)
         {
-            _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
+            _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
             return new();
         }
 
         var maps = new List<TypeMap>();
         var membersMaps = new List<MemberMap>();
         var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+        var mapWithParameters = new List<ParameterDescriptor>(toMembers.Count);
         foreach (var member in toMembers)
         {
             var isProvidedByUser = byUser.Contains(member.Name);
@@ -47,6 +49,16 @@ public class TypeMapWithDesigner
                 (IPropertySymbol property, true) => MemberMap.User(property),
                 _ => null
             };
+            var mapWithParameter = member switch
+            {
+                IParameterSymbol parameter => new ParameterDescriptor(parameter.Name.ToCamelCase(), parameter.Type),
+                IPropertySymbol property => new ParameterDescriptor(property.Name.ToCamelCase(), property.Type),
+                _ => null
+            };
+            if (mapWithParameter is not null)
+            {
+                mapWithParameters.Add(mapWithParameter);
+            }
 
             if (memberMap == null)
             {
@@ -56,11 +68,12 @@ public class TypeMapWithDesigner
 
             if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
             {
-                maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType));
+                maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType, mapLocation));
             }
         }
 
-        maps.Add(new ClassMapWith(from, to, membersMaps, arguments));
+        
+        maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters, mapLocation));
 
         return maps;
     }

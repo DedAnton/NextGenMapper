@@ -1,6 +1,7 @@
 using Benchmark.Utils;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
+using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.CodeGeneration;
 
 namespace Benchmark.Benchmarks;
@@ -13,7 +14,7 @@ public class CodeGeneratorsBenchmark
 {
     [BenchmarkCategory("Common"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-    public string New(BenchmarkInput input) => new MapperClassBuilder().Generate(input.MapGroup);
+    public string New(BenchmarkInput input) => new MapperClassBuilder().Generate(input.Maps);
 
     public IEnumerable<BenchmarkInput> GenerateCommonClassesMapPairs()
     {
@@ -33,27 +34,22 @@ public class CodeGeneratorsBenchmark
             var compilation = source.CreateCompilation("test");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
-            var maps = new TypeMapDesigner(new()).DesignMapsForPlanner(from, to);
-            var mapGroup = new MapGroup(maps[0], new() { "using NextGenMapper.Extensions;" }, MapPriority.Common);
-            for(var i = 1; i < maps.Count; i++)
-            {
-                mapGroup.Add(maps[i]);
-            }
+            var maps = new TypeMapDesigner(new()).DesignMapsForPlanner(from, to, default);
 
-            yield return new BenchmarkInput(Description, mapGroup);
+            yield return new BenchmarkInput(Description, maps);
         }
     }
 
     public class BenchmarkInput
     {
-        public BenchmarkInput(string name, MapGroup mapGroup)
+        public BenchmarkInput(string name, List<TypeMap> maps)
         {
             Name = name;
-            MapGroup = mapGroup;
+            Maps = maps;
         }
 
         public string Name { get; set; }
-        public MapGroup MapGroup { get; set; }
+        public List<TypeMap> Maps { get; set; }
 
         public override string ToString() => Name;
     }

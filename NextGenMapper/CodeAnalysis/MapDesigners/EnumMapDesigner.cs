@@ -17,7 +17,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _diagnosticReporter = diagnosticReporter;
         }
 
-        public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
             if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
@@ -67,7 +67,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 //TODO: add warning diagnostic if 'to' has unmapped values (is this necessary?)
             }
 
-            return new EnumMap(from, to, valuesMappings);
+            return new EnumMap(from, to, valuesMappings, mapLocation);
         }
     }
 }

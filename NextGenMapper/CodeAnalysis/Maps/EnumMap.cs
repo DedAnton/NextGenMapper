@@ -7,8 +7,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
     {
         public List<MemberMap> Fields { get; }
 
-        public EnumMap(ITypeSymbol from, ITypeSymbol to, List<MemberMap> fields)
-            : base(from, to)
+        public EnumMap(ITypeSymbol from, ITypeSymbol to, List<MemberMap> fields, Location mapLocaion)
+            : base(from, to, mapLocaion)
         {
             Fields = fields;
         }

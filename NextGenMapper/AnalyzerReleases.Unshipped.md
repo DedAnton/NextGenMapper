@@ -10,3 +10,7 @@ NGM003 | NextGenMapper | Error | Diagnostics
 NGM004 | NextGenMapper | Error | Diagnostics
 NGM005 | NextGenMapper | Error | Diagnostics
 NGM006 | NextGenMapper | Error | Diagnostics
+NGM007 | NextGenMapper | Error | Diagnostics
+NGM008 | NextGenMapper | Error | Diagnostics
+NGM009 | NextGenMapper | Error | Diagnostics
+NGM010 | NextGenMapper | Error | Diagnostics

@@ -16,14 +16,14 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public TypeMapDesigner(DiagnosticReporter diagnosticReporter)
         {
-            _referencesHistory = new(new ReferencesEqualityComparer());
+            _referencesHistory = new(new MapTypesEqualityComparer());
             _diagnosticReporter = diagnosticReporter;
             _constructorFinder = new();
             _enumMapDesigner = new(diagnosticReporter);
             _collectionMapDesigner = new(diagnosticReporter, this);
         }
 
-        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to)
+        public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
             var mapTypes = new Stack<(ITypeSymbol From, ITypeSymbol To)>();
             mapTypes.Push((from, to));
@@ -45,13 +45,13 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
                 if (MapDesignersHelper.IsEnumMapping(from, to))
                 {
-                    maps.Add(_enumMapDesigner.DesignMapsForPlanner(from, to));
+                    maps.Add(_enumMapDesigner.DesignMapsForPlanner(from, to, mapLocation));
                     continue;
                 }
 
                 if (MapDesignersHelper.IsCollectionMapping(from, to))
                 {
-                    maps.AddRange(_collectionMapDesigner.DesignMapsForPlanner(from, to));
+                    maps.AddRange(_collectionMapDesigner.DesignMapsForPlanner(from, to, mapLocation));
                     continue;
                 }
 
@@ -67,7 +67,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)
                 {
-                    _diagnosticReporter.ReportConstructorNotFoundError(to.Locations, from, to);
+                    _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
                     continue;
                 }
 
@@ -91,7 +91,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     mapTypes.Push((memberMap.FromType, memberMap.ToType));
                 }
 
-                maps.Add(new ClassMap(from, to, membersMaps));
+                maps.Add(new ClassMap(from, to, membersMaps, mapLocation));
             }
 
             return maps;

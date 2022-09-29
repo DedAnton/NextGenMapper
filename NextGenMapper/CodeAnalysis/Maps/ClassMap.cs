@@ -8,8 +8,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public List<MemberMap> InitializerProperties { get; } = new List<MemberMap>();
         public List<MemberMap> ConstructorProperties { get; } = new List<MemberMap>();
 
-        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties)
-            : base(from, to)
+        public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, Location mapLocation)
+            : base(from, to, mapLocation)
         {
             foreach (var property in properties)
             {
