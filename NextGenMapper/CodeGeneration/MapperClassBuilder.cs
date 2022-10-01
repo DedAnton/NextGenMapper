@@ -62,14 +62,12 @@ public class MapperClassBuilder
         builder.Append(NewLine);
         foreach (var map in maps)
         {
+            if (map is ClassMapWithStub classMapWithStub)
+            {
+                AppendPlaceholderClassMapWith(ref builder, classMapWithStub);
+            }
             if (map is ClassMapWith classMapWith)
             {
-                if (classMapWith.NeedGenerateStubMethod)
-                {
-                    AppendPlaceholderClassMapWith(ref builder, classMapWith);
-                    builder.Append(NewLine);
-                    builder.Append(NewLine);
-                }
                 if (classMapWith.Arguments.Length > 0)
                 {
                     AppendClassMapWith(ref builder, classMapWith);
@@ -230,7 +228,7 @@ public class MapperClassBuilder
         builder.Append(Semicolon);
     }
 
-    private void AppendPlaceholderClassMapWith(ref ValueStringBuilder builder, ClassMapWith map)
+    private void AppendPlaceholderClassMapWith(ref ValueStringBuilder builder, ClassMapWithStub map)
     {
         AppendTabs(ref builder, 2);
         builder.Append(Internal);
@@ -267,7 +265,7 @@ public class MapperClassBuilder
             builder.Append(WhiteSpace);
             builder.Append("default");
 
-            if (counter < map.Parameters.Count)
+            if (counter < map.Parameters.Length)
             {
                 builder.Append(Comma);
             }

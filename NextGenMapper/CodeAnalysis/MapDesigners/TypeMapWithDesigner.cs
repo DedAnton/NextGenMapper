@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
@@ -74,6 +75,35 @@ public class TypeMapWithDesigner
 
         
         maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters, mapLocation));
+
+        return maps;
+    }
+
+    public List<ClassMapWithStub> DesignStubMethodMap(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
+    {
+        var maps = new List<ClassMapWithStub>();
+        var constructors = to.GetPublicConstructors();
+        foreach (var constructor in constructors)
+        {
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+            var mapWithParameters = new ParameterDescriptor[toMembers.Count];
+            for (var i = 0; i < toMembers.Count; i++)
+            {
+                var mapWithParameter = toMembers[i] switch
+                {
+                    IParameterSymbol parameter => new ParameterDescriptor(parameter.Name.ToCamelCase(), parameter.Type),
+                    IPropertySymbol property => new ParameterDescriptor(property.Name.ToCamelCase(), property.Type),
+                    _ => null
+                };
+
+                if (mapWithParameter is not null)
+                {
+                    mapWithParameters[i] = mapWithParameter;
+                }
+            }
+
+            maps.Add(new ClassMapWithStub(from, to, mapWithParameters, mapLocation));
+        }
 
         return maps;
     }

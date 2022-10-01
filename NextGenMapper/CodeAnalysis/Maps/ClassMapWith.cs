@@ -3,12 +3,25 @@ using System.Collections.Generic;
 
 namespace NextGenMapper.CodeAnalysis.Maps;
 
+public class ClassMapWithStub : TypeMap
+{
+    public ParameterDescriptor[] Parameters { get; }
+
+    public ClassMapWithStub(
+        ITypeSymbol from,
+        ITypeSymbol to,
+        ParameterDescriptor[] parameters,
+        Location mapLocaion)
+        : base(from, to, mapLocaion)
+    {
+        Parameters = parameters;
+    }
+}
+
 public class ClassMapWith : ClassMap
 {
     public MapWithInvocationAgrument[] Arguments { get; }
     public List<ParameterDescriptor> Parameters { get; }
-
-    public bool NeedGenerateStubMethod { get; set; } = false;
 
     public ClassMapWith(
         ITypeSymbol from,

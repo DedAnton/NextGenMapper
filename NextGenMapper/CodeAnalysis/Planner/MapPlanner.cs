@@ -9,7 +9,7 @@ namespace NextGenMapper.CodeAnalysis
         private readonly HashSet<TypeMap> _maps = new();
         private readonly HashSet<(ITypeSymbol from, ITypeSymbol to)> _mapTypes = new(new MapTypesEqualityComparer());
         private readonly HashSet<(ITypeSymbol from, ITypeSymbol to, MapWithInvocationAgrument[] arguments)> _mapWithTypes = new(new MapWithTypesEqualityComparer());
-        private readonly HashSet<(ITypeSymbol from, ITypeSymbol to)> _mapWithStub = new(new MapTypesEqualityComparer());
+        private readonly HashSet<(ITypeSymbol from, ITypeSymbol to, ParameterDescriptor[] parameters)> _mapWithStub = new(new MapWithStubsEqualityComparer());
 
         public IReadOnlyCollection<TypeMap> Maps => _maps;
 
@@ -46,7 +46,13 @@ namespace NextGenMapper.CodeAnalysis
 
             _maps.Add(map);
             _mapWithTypes.Add((map.From, map.To, map.Arguments));
-            _mapWithStub.Add((map.From, map.To));
+            //_mapWithStub.Add((map.From, map.To));
+        }
+
+        public void AddMapWithStub(ClassMapWithStub map)
+        {
+            _maps.Add(map);
+            _mapWithStub.Add((map.From, map.To, map.Parameters));
         }
 
         public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to) => _mapTypes.Contains((from, to));
@@ -54,6 +60,6 @@ namespace NextGenMapper.CodeAnalysis
         public bool IsTypesMapWithAlreadyPlanned(ITypeSymbol from, ITypeSymbol to, MapWithInvocationAgrument[] agruments) 
             => _mapWithTypes.Contains((from, to, agruments));
 
-        public bool IsTypesMapWithStubAlreadyPlanned(ITypeSymbol from, ITypeSymbol to) => _mapWithStub.Contains((from, to));
+        public bool IsTypesMapWithStubAlreadyPlanned(ITypeSymbol from, ITypeSymbol to, ParameterDescriptor[] parameters) => _mapWithStub.Contains((from, to, parameters));
     }
 }
