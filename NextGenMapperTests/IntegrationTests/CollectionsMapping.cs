@@ -1,10 +1,12 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json.Linq;
 using NextGenMapper;
 using NextGenMapper.PostInitialization;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
@@ -306,48 +308,78 @@ if (!isValid) throw new MapFailedException(source, destination);";
             Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
         }
 
-//        [TestMethod]
-//        public async Task MappingListWhenDotNet5OrHigher()
-//        {
-//            var classes = @"
-//public class Source
-//{
-//    public string Name { get; set; }
-//    public DateTime Birthday { get; set; }
-//}
+        //TODO: find how to run this test on .NET6
+        //[TestMethod]
+        public async Task MappingListWhenDotNet5OrHigher()
+        {
+            var classes = @"
+public class Source
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}
 
-//public class Destination
-//{
-//    public string Name { get; set; }
-//    public DateTime Birthday { get; set; }
-//}";
+public class Destination
+{
+    public string Name { get; set; }
+    public DateTime Birthday { get; set; }
+}";
 
-//            var validateFunction = @"
-//var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
-//var sourceList = new List<Source> { source };
+            var validateFunction = @"
+var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
+var sourceList = new List<Source> { source };
 
-//var destinationArray = sourceList.Map<Destination[]>();
-//var destination = destinationArray[0];
+var destinationArray = sourceList.Map<Destination[]>();
+var destination = destinationArray[0];
 
-//var isValid = source.Name == destination.Name && source.Birthday == destination.Birthday;
+var isValid = source.Name == destination.Name && source.Birthday == destination.Birthday;
 
-//if (!isValid) throw new MapFailedException(source, destination);";
+if (!isValid) throw new MapFailedException(source, destination);";
 
-//            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-//            var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = source.Name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n    }\r\n}";
-//            await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
-//            {
-//                TestState =
-//                {
-//                    Sources = { userSource },
-//                    GeneratedSources =
-//                    {
-//                        (typeof(MapperGenerator), "MapperExtensions.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-//                        (typeof(MapperGenerator), "StartMapper.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-//                        (typeof(MapperGenerator), "1_Mapper.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-//                    },
-//                },
-//            }.RunAsync();
-//        }
+            var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+            var generated = 
+@"using NextGenMapper.Extensions;
+
+namespace NextGenMapper
+{
+    internal static partial class Mapper
+    {
+        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination
+        (
+        )
+        {
+            Name = source.Name,
+            Birthday = source.Birthday
+        };
+
+        internal static Test.Destination[] Map<To>(this System.Collections.Generic.List<Test.Source> source)
+        {
+
+            var destination = new Test.Destination[source.Count];
+            var sourceSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);
+            for (var i = 0; i < source.Count; i++)
+            {
+                destination[i] = sourceSpan[i].Map<Test.Destination>();
+            }
+
+            return destination;
+        }
+
+    }
+}";
+            await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
+            {
+                TestState =
+                {
+                    Sources = { userSource },
+                    GeneratedSources =
+                    {
+                        (typeof(MapperGenerator), "MapperExtensions.g.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                        (typeof(MapperGenerator), "StartMapper.g.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                        (typeof(MapperGenerator), "Mapper.g.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                    }
+                },
+            }.RunAsync();
+        }
     }
 }
