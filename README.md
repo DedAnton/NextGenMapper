@@ -123,7 +123,7 @@ internal static Destination Map<To>(this Source source)
 The trick is that the method signatures are identical, but the generated method has more specific parameters and fits better, so it is called ([this behavior is described in the specification](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member))
 
 # Soon
- - Using NextGenMapper custom mapping methods
- - MapWith method for enum
- - IQueryable support
+ - Query projection
  - Using [Incremental Generators](https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md)
+
+All tasks and their progress can be viewed on the [project board](https://github.com/users/DedAnton/projects/3)

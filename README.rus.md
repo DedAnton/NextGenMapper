@@ -122,9 +122,7 @@ internal static Destination Map<To>(this Source source)
 Хитрость в том, что сигнатуры методов идентичны, но у сгенерированного метода параметры более специфичны и подходят лучше, поэтому вызывается именно он ([такое поведение описано в спецификации](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member)).
 
 # Скоро
- - Использование NextGenMapper\`ом пользовательских методов для маппинга
- - Метод MapWith для enum
- - Поддержка для IQueryable 
+ - Поддержка IQueryable 
  - Использование [Incremental Generators](https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md)
 
 Все задачи и ход их выполнения можно посмотреть на [доске проекта](https://github.com/users/DedAnton/projects/3)
