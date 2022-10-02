@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +27,13 @@ namespace NextGenMapper
                         Identifier.ValueText: "Mapper",
                         Modifiers.Count: 3,
                         Parent: NamespaceDeclarationSyntax
+                        {
+                            Name: IdentifierNameSyntax
+                            {
+                                Identifier.ValueText: "NextGenMapper"
+                            }
+                        } 
+                        or FileScopedNamespaceDeclarationSyntax
                         {
                             Name: IdentifierNameSyntax
                             {

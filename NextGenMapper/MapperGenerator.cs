@@ -9,10 +9,7 @@ using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Numerics;
 
 namespace NextGenMapper
 {
