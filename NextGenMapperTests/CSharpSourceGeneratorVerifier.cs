@@ -23,7 +23,7 @@ public static class CSharpSourceGeneratorVerifier<TSourceGenerator>
                  compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
         }
 
-        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.Default;
+        public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp10;
 
         private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
         {

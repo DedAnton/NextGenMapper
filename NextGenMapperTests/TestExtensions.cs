@@ -16,6 +16,9 @@ namespace NextGenMapperTests
     public static class TestExtensions
     {
         public static Compilation CreateCompilation(this string source, string assemblyName)
+            => CreateCompilation(new[] { source }, assemblyName);
+
+        public static Compilation CreateCompilation(string[] sources, string assemblyName)
         {
             var references = Assembly.GetEntryAssembly()
                 .GetReferencedAssemblies()
@@ -26,8 +29,12 @@ namespace NextGenMapperTests
 
             var compilation = CSharpCompilation.Create(assemblyName: assemblyName)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(references)
-                .AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest)));
+                .AddReferences(references);
+
+            foreach(var source in sources)
+            {
+                compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.Latest)));
+            }
 
             return compilation;
         }
@@ -46,6 +53,18 @@ namespace NextGenMapperTests
             params ISourceGenerator[] generators)
         {
             var compilation = sourceCode.CreateCompilation(caller);
+            compilation.CreateDriver(generators).RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out diagnostics);
+
+            return updatedCompilation;
+        }
+
+        public static Compilation RunGenerators(
+            string[] sources,
+            out ImmutableArray<Diagnostic> diagnostics,
+            [CallerMemberName] string caller = "test",
+            params ISourceGenerator[] generators)
+        {
+            var compilation = CreateCompilation(sources, caller);
             compilation.CreateDriver(generators).RunGeneratorsAndUpdateCompilation(compilation, out var updatedCompilation, out diagnostics);
 
             return updatedCompilation;
