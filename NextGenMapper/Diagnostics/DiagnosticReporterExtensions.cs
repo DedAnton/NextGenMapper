@@ -37,9 +37,9 @@ namespace NextGenMapper
             diagnosticReporter.Report(diagnostic);
         }
 
-        public static void ReportToManyArgumentsForMapWithError(this DiagnosticReporter diagnosticReporter, Location location)
+        public static void ReportMapWithArgumentMustBeNamed(this DiagnosticReporter diagnosticReporter, Location location)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.ToManyArgumentsForMapWithError, location);
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithArgumentMustBeNamed, location);
             diagnosticReporter.Report(diagnostic);
         }
 

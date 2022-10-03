@@ -9,6 +9,7 @@ using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace NextGenMapper
@@ -43,7 +44,7 @@ namespace NextGenMapper
                 return;
             }
 
-            foreach(var userMapMethod in receiver.UserMapMethods)
+            foreach (var userMapMethod in receiver.UserMapMethods)
             {
                 if (userMapMethod.SemanticModel.GetDeclaredSymbol(userMapMethod.Node) is IMethodSymbol method
                     && !method.IsAsync
@@ -76,7 +77,7 @@ namespace NextGenMapper
                         IMethodSymbol { MethodKind: MethodKind.Constructor } invocatedConstructor => invocatedConstructor.ContainingType,
                         IMethodSymbol invocatedMethod => invocatedMethod.ReturnType,
                         IPropertySymbol invocatedProperty => invocatedProperty.Type,
-                        IFieldSymbol invocatedField => invocatedField.Type, 
+                        IFieldSymbol invocatedField => invocatedField.Type,
                         _ => null
                     } is ITypeSymbol fromType
                     && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
@@ -119,78 +120,92 @@ namespace NextGenMapper
                         _ => null
                     } is ITypeSymbol fromType)
                 {
-                    var mapmethodLocation = memberAccess.GetLocation();
+                    var mapMethodLocation = memberAccess.GetLocation();
                     if (fromType.TypeKind == TypeKind.Enum && method.ReturnType.TypeKind == TypeKind.Enum)
                     {
-                        diagnosticReporter.ReportMapWithNotSupportedForEnums(mapmethodLocation);
+                        diagnosticReporter.ReportMapWithNotSupportedForEnums(mapMethodLocation);
                         continue;
                     }
 
-                    var publicProperties = method.ReturnType.GetPublicProperties().ToArray();
-                    var arguments = mapWithMethodInvocation.Arguments.Select(x =>
+                    var argumentsNames = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+                    foreach (var argument in mapWithMethodInvocation.Arguments)
                     {
-                        var propertyAsParamter = publicProperties
-                            .FirstOrDefault(y => y.Name.Equals(x.NameColon?.Name.Identifier.Text, StringComparison.InvariantCultureIgnoreCase))
-                            ?? publicProperties[Array.IndexOf(mapWithMethodInvocation.Arguments, x)];
-
-                        return new MapWithInvocationAgrument(propertyAsParamter.Name.ToCamelCase(), propertyAsParamter.Type);
-                    }).ToArray();
-
-                    var designer = new TypeMapWithDesigner(diagnosticReporter);
-                    var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapmethodLocation);
-                    foreach (var map in mapWithStubs)
-                    {
-                        if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(map.From, map.To, map.Parameters))
+                        var argumentName = argument.NameColon?.Name.Identifier.ValueText;
+                        if (argumentName is not null)
                         {
-                            var argumentsFromParameters = new MapWithInvocationAgrument[map.Parameters.Length];
-                            for(var i = 0; i < map.Parameters.Length; i++)
-                            {
-                                argumentsFromParameters[i] = new MapWithInvocationAgrument(map.Parameters[i].Name, map.Parameters[i].Type);
-                            }
-                            if (!mapPlanner.IsTypesMapWithAlreadyPlanned(map.From, map.To, argumentsFromParameters))
-                            {
-                                var isParametersEqualArguments = arguments.Length == map.Parameters.Length;
-                                for (var i = 0; i < arguments.Length; i++)
-                                {
-                                    isParametersEqualArguments = isParametersEqualArguments 
-                                        && SymbolEqualityComparer.IncludeNullability.Equals(arguments[i].Type, map.Parameters[i].Type);
-                                }
-                                if (!isParametersEqualArguments)
-                                {
-                                    mapPlanner.AddMapWithStub(map);
-                                }
-                            }
-                        }
-                    }
-
-                    if (isStubMethod)
-                    {
-                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapmethodLocation);
-                        continue;
-                    }
-
-                    if (arguments.Length > 0 && arguments.Length == publicProperties.Length)
-                    {
-                        diagnosticReporter.ReportToManyArgumentsForMapWithError(mapmethodLocation);
-                        continue;
-                    }
-
-                    if (mapPlanner.IsTypesMapWithAlreadyPlanned(fromType, method.ReturnType, arguments))
-                    {
-                        diagnosticReporter.ReportMapWithBetterFunctionMemberNotFound(mapmethodLocation, fromType, method.ReturnType);
-                    }
-
-                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, arguments, mapmethodLocation);
-                    foreach (var map in maps)
-                    {
-                        if (map is ClassMapWith classMapWith)
-                        {
-                            
-                            mapPlanner.AddMapWith(classMapWith);
+                            argumentsNames.Add(argumentName);
                         }
                         else
                         {
-                            mapPlanner.AddMap(map);
+                            diagnosticReporter.ReportMapWithArgumentMustBeNamed(mapMethodLocation);
+                        }
+                    }
+
+                    var designer = new TypeMapWithDesigner(diagnosticReporter);
+
+                    var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapMethodLocation);
+                    if (isStubMethod)
+                    {
+                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapMethodLocation);
+                        foreach (var mapWithStub in mapWithStubs)
+                        {
+                            if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.From, mapWithStub.To, mapWithStub.Parameters))
+                            {
+                                var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
+                                for (var i = 0; i < mapWithStub.Parameters.Length; i++)
+                                {
+                                    argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
+                                }
+                                if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.From, mapWithStub.To, argumentsFromParameters))
+                                {
+                                    mapPlanner.AddMapWithStub(mapWithStub);
+                                }
+                            }
+                        }
+                        continue;
+                    }
+                    else
+                    {
+                        var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, argumentsNames, mapMethodLocation);
+                        foreach (var map in maps)
+                        {
+                            if (map is ClassMapWith classMapWith)
+                            {
+                                if (mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.From, classMapWith.To, classMapWith.Arguments))
+                                {
+                                    diagnosticReporter.ReportMapWithBetterFunctionMemberNotFound(mapMethodLocation, fromType, method.ReturnType);
+                                }
+                                mapPlanner.AddMapWith(classMapWith);
+
+                                foreach (var mapWithStub in mapWithStubs)
+                                {
+                                    if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.From, mapWithStub.To, mapWithStub.Parameters))
+                                    {
+                                        var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
+                                        for (var i = 0; i < mapWithStub.Parameters.Length; i++)
+                                        {
+                                            argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
+                                        }
+                                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.From, mapWithStub.To, argumentsFromParameters))
+                                        {
+                                            var isParametersEqualArguments = classMapWith.Arguments.Length == mapWithStub.Parameters.Length;
+                                            for (var i = 0; i < classMapWith.Arguments.Length; i++)
+                                            {
+                                                isParametersEqualArguments = isParametersEqualArguments
+                                                    && SymbolEqualityComparer.IncludeNullability.Equals(classMapWith.Arguments[i].Type, mapWithStub.Parameters[i].Type);
+                                            }
+                                            if (!isParametersEqualArguments)
+                                            {
+                                                mapPlanner.AddMapWithStub(mapWithStub);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                mapPlanner.AddMap(map);
+                            }
                         }
                     }
                 }

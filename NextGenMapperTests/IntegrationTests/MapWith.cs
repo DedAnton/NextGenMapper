@@ -32,7 +32,7 @@ public class Destination
         var validateFunction = @"
 var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
 
-var destination = source.MapWith<Destination>(""good"");
+var destination = source.MapWith<Destination>(name: ""good"");
 
 var isValid = ""good"" == destination.Name && source.Birthday == destination.Birthday;
 
@@ -112,7 +112,7 @@ public class Destination
         var validateFunction = @"
 var source = new Source { A = 1, B = 2, C = 3, D = 4, E = 5, F = 6 };
 
-var destination = source.MapWith<Destination>(10, 20, d: 40, f: 60);
+var destination = source.MapWith<Destination>(a: 10, b: 20, d: 40, f: 60);
 
 var isValid = destination.A == 10 && destination.B == 20 
     && destination.C == source.C && destination.D == 40 
@@ -163,7 +163,7 @@ if (!isValid) throw new MapFailedException(source, destination);";
     }
 
     [TestMethod]
-    public void MapWith_AllArguments_MustCreateDiagnostic()
+    public async Task MapWith_AllArguments_MustCreateDiagnostic()
     {
         var classes = @"
 public class Source
@@ -181,16 +181,36 @@ public class Destination
         var validateFunction = @"
 var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
 
-var destination = source.MapWith<Destination>(""TEST"", DateTime.MinValue);
+var destination = source.MapWith<Destination>(name: ""good"", birthday: new DateTime(2000, 12, 12));
 
-var isValid = true;
+var isValid = destination.Name == ""good"" && destination.Birthday == new DateTime(2000, 12, 12);
 
 if (!isValid) throw new MapFailedException(source, destination);";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
+        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name,\r\n            System.DateTime birthday\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = birthday\r\n        };\r\n\r\n    }\r\n}";
+        await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
+        {
+            TestState =
+            {
+                Sources = { userSource },
+                GeneratedSources =
+                {
+                    (typeof(MapperGenerator), "MapperExtensions.g.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                    (typeof(MapperGenerator), "StartMapper.g.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                    (typeof(MapperGenerator), "Mapper.g.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                },
+            },
+        }.RunAsync();
+
         var generator = new MapperGenerator();
-        userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
-        Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM006", "Wrong diagnostinc");
+        var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: generator);
+        Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+        var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+        Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+        var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+        Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
     }
 
     [TestMethod]
@@ -222,19 +242,19 @@ var isValid = ""good"" == destination.Name && source.Birthday == destination.Bir
 if (!isValid) throw new MapFailedException(source, destination);";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n    }\r\n}";
+        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n        )\r\n        {\r\n            Name = name,\r\n            Birthday = source.Birthday\r\n        };\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n    }\r\n}";
         await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
         {
             TestState =
-                    {
-                        Sources = { userSource },
-                        GeneratedSources =
-                        {
-                            (typeof(MapperGenerator), "MapperExtensions.g.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-                            (typeof(MapperGenerator), "StartMapper.g.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-                            (typeof(MapperGenerator), "Mapper.g.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
-                        },
-                    },
+            {
+                Sources = { userSource },
+                GeneratedSources =
+                {
+                    (typeof(MapperGenerator), "MapperExtensions.g.cs", SourceText.From(ExtensionsSource.Source, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                    (typeof(MapperGenerator), "StartMapper.g.cs", SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                    (typeof(MapperGenerator), "Mapper.g.cs", SourceText.From(generated, Encoding.UTF8, SourceHashAlgorithm.Sha1)),
+                },
+            },
         }.RunAsync();
 
         var generator = new MapperGenerator();
@@ -333,7 +353,7 @@ public class Destination
 var source = new Source { Name = ""Anton"", Birthday = new DateTime(1997, 05, 20) };
 
 var destination1 = source.Map<Destination>();
-var destination2 = source.MapWith<Destination>(""good"");
+var destination2 = source.MapWith<Destination>(name: ""good"");
 
 var isValid1 = source.Name == destination1.Name && source.Birthday == destination1.Birthday;
 var isValid2 = ""good"" == destination2.Name && source.Birthday == destination2.Birthday;
@@ -499,7 +519,7 @@ throw new MapFailedException(source, destination);
 ";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n            name,\r\n            source.Birthday\r\n        )\r\n        {\r\n        };\r\n\r\n    }\r\n}";
+        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n            name,\r\n            source.Birthday\r\n        )\r\n        {\r\n        };\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n    }\r\n}";
         await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
         {
             TestState =
@@ -611,7 +631,7 @@ if (!isValid) throw new MapFailedException(source, destination);
 ";
 
         var userSource = TestExtensions.GenerateSource(classes, validateFunction);
-        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n            name,\r\n            source.Birthday\r\n        )\r\n        {\r\n        };\r\n\r\n    }\r\n}";
+        var generated = "using NextGenMapper.Extensions;\r\n\r\nnamespace NextGenMapper\r\n{\r\n    internal static partial class Mapper\r\n    {\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name\r\n        )\r\n        => new Test.Destination\r\n        (\r\n            name,\r\n            source.Birthday\r\n        )\r\n        {\r\n        };\r\n\r\n        internal static Test.Destination MapWith<To>\r\n        (\r\n            this Test.Source source,\r\n            string name = default,\r\n            System.DateTime birthday = default\r\n        )\r\n        {\r\n            throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }\r\n\r\n    }\r\n}";
         await new CSharpSourceGeneratorVerifier<MapperGenerator>.Test
         {
             TestState =

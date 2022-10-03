@@ -67,7 +67,6 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)
                 {
-                    _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
                     continue;
                 }
 

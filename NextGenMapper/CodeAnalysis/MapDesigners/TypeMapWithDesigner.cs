@@ -4,6 +4,7 @@ using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners;
 
@@ -20,15 +21,9 @@ public class TypeMapWithDesigner
         _constructorFinder = new();
     }
 
-    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, MapWithInvocationAgrument[] arguments, Location mapLocation)
+    public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, HashSet<string> argumentsNames, Location mapLocation)
     {
-        var byUser = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-        foreach (var argument in arguments)
-        {
-            byUser.Add(argument.Name);
-        }
-
-        var constructor = _constructorFinder.GetOptimalConstructor(from, to, byUser);
+        var constructor = _constructorFinder.GetOptimalConstructor(from, to, argumentsNames);
         if (constructor == null)
         {
             _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
@@ -39,42 +34,44 @@ public class TypeMapWithDesigner
         var membersMaps = new List<MemberMap>();
         var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
         var mapWithParameters = new List<ParameterDescriptor>(toMembers.Count);
+        var mapWithArguments = new List<MapWithInvocationAgrument>(argumentsNames.Count);
         foreach (var member in toMembers)
         {
-            var isProvidedByUser = byUser.Contains(member.Name);
-            MemberMap? memberMap = (member, isProvidedByUser) switch
+            var isProvidedByUser = argumentsNames.Contains(member.Name);
+            var memberMap = (member, isProvidedByUser) switch
             {
                 (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
                 (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
                 (IParameterSymbol parameter, true) => MemberMap.User(parameter),
                 (IPropertySymbol property, true) => MemberMap.User(property),
-                _ => null
+                _ => throw new ArgumentOutOfRangeException(nameof(member), "member must be 'IParameterSymbol' or 'IPropertySymbol'")
             };
             var mapWithParameter = member switch
             {
                 IParameterSymbol parameter => new ParameterDescriptor(parameter.Name.ToCamelCase(), parameter.Type),
                 IPropertySymbol property => new ParameterDescriptor(property.Name.ToCamelCase(), property.Type),
-                _ => null
+                _ => throw new ArgumentOutOfRangeException(nameof(member), "member must be 'IParameterSymbol' or 'IPropertySymbol'")
             };
-            if (mapWithParameter is not null)
+
+            mapWithParameters.Add(mapWithParameter);
+
+            if (argumentsNames.Contains(mapWithParameter.Name))
             {
-                mapWithParameters.Add(mapWithParameter);
+                mapWithArguments.Add(new MapWithInvocationAgrument(mapWithParameter.Name, mapWithParameter.Type));
             }
 
-            if (memberMap == null)
+            if (memberMap is not null)
             {
-                continue;
+                membersMaps.Add(memberMap);
             }
-            membersMaps.Add(memberMap);
 
             if (memberMap is { IsSameTypes: false, IsProvidedByUser: false })
             {
                 maps.AddRange(_classMapDesigner.DesignMapsForPlanner(memberMap.FromType, memberMap.ToType, mapLocation));
             }
         }
-
         
-        maps.Add(new ClassMapWith(from, to, membersMaps, arguments, mapWithParameters, mapLocation));
+        maps.Add(new ClassMapWith(from, to, membersMaps, mapWithArguments.ToArray(), mapWithParameters, mapLocation));
 
         return maps;
     }

@@ -44,10 +44,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor ToManyArgumentsForMapWithError = new(
+        public static readonly DiagnosticDescriptor MapWithArgumentMustBeNamed = new(
             id: "NGM006",
-            title: "To many arguments for 'MapWith' method",
-            messageFormat: "Method 'MapWith' must not pass all arguments for each parameter. At least one argument must not be passed",
+            title: "All arguments for method 'MapWith' must be named",
+            messageFormat: "All arguments for method 'MapWith' must be named",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
