@@ -14,9 +14,9 @@ public class TypeMapWithDesigner
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly ConstructorFinder _constructorFinder;
 
-    public TypeMapWithDesigner(DiagnosticReporter diagnosticReporter)
+    public TypeMapWithDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner)
     {
-        _classMapDesigner = new(diagnosticReporter);
+        _classMapDesigner = new(diagnosticReporter, mapPlanner);
         _diagnosticReporter = diagnosticReporter;
         _constructorFinder = new();
     }

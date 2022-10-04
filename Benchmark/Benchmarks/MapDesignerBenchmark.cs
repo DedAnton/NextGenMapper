@@ -13,11 +13,11 @@ public class MapDesignerBenchmark
 {
     [BenchmarkCategory("Properties"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-    public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
+    public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
 
     [BenchmarkCategory("NestedClasses"), Benchmark]
     [ArgumentsSource(nameof(GenerateNestedClassesMapPairs))]
-    public List<TypeMap> Nested(TypesMapPair mapPair) => new TypeMapDesigner(new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
+    public List<TypeMap> Nested(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
 
     [BenchmarkCategory("Enums"), Benchmark]
     [ArgumentsSource(nameof(GenerateEnumsMapPairs))]

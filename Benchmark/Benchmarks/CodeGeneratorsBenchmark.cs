@@ -34,7 +34,7 @@ public class CodeGeneratorsBenchmark
             var compilation = source.CreateCompilation("test");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
-            var maps = new TypeMapDesigner(new()).DesignMapsForPlanner(from, to, default);
+            var maps = new TypeMapDesigner(new(), new()).DesignMapsForPlanner(from, to, default);
 
             yield return new BenchmarkInput(Description, maps);
         }

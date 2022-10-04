@@ -82,7 +82,7 @@ namespace NextGenMapper
                     } is ITypeSymbol fromType
                     && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
-                    var designer = new TypeMapDesigner(diagnosticReporter);
+                    var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner);
                     var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, memberAccess.GetLocation());
                     foreach (var map in maps)
                     {
@@ -141,7 +141,7 @@ namespace NextGenMapper
                         }
                     }
 
-                    var designer = new TypeMapWithDesigner(diagnosticReporter);
+                    var designer = new TypeMapWithDesigner(diagnosticReporter, mapPlanner);
 
                     var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapMethodLocation);
                     if (isStubMethod)

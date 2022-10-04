@@ -13,14 +13,16 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         private readonly ConstructorFinder _constructorFinder;
         private readonly EnumMapDesigner _enumMapDesigner;
         private readonly CollectionMapDesigner _collectionMapDesigner;
+        private readonly MapPlanner _mapPlanner;
 
-        public TypeMapDesigner(DiagnosticReporter diagnosticReporter)
+        public TypeMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner)
         {
             _referencesHistory = new(new MapTypesEqualityComparer());
             _diagnosticReporter = diagnosticReporter;
             _constructorFinder = new();
             _enumMapDesigner = new(diagnosticReporter);
             _collectionMapDesigner = new(diagnosticReporter, this);
+            _mapPlanner = mapPlanner;
         }
 
         public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
@@ -67,6 +69,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)
                 {
+                    if (!_mapPlanner.IsTypesMapAlreadyPlanned(from, to))
+                    {
+                        _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
+                    }
                     continue;
                 }
 
