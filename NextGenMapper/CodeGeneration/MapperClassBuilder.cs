@@ -472,11 +472,15 @@ public class MapperClassBuilder
         }
         builder.Append(NewLine);
         AppendTabs(ref builder, 3);
-        #if NET5_0_OR_GREATER
+        builder.Append("#if NET5_0_OR_GREATER");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
         builder.Append("var sourceSpan = System.Runtime.InteropServices.CollectionsMarshal.AsSpan(source);");
         builder.Append(NewLine);
         AppendTabs(ref builder, 3);
-        #endif
+        builder.Append("#endif");
+        builder.Append(NewLine);
+        AppendTabs(ref builder, 3);
         builder.Append("for (var i = 0; i < source.Count; i++)");
         builder.Append(NewLine);
         AppendTabs(ref builder, 3);
@@ -485,23 +489,43 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 4);
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
-#if NET5_0_OR_GREATER
+            builder.Append("#if NET5_0_OR_GREATER");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
             builder.Append("destination.Add(sourceSpan[i].Map<");
-#else
-            builder.Append("destination.Add(source[i].Map<");
-            #endif
             builder.Append(map.ItemTo.ToString());
             builder.Append(">());");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("#else");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("destination.Add(source[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">());");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("#endif");
         }
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
-#if NET5_0_OR_GREATER
+            builder.Append("#if NET5_0_OR_GREATER");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
             builder.Append("destination[i] = sourceSpan[i].Map<");
-#else
-            builder.Append("destination[i] = source[i].Map<");
-            #endif
             builder.Append(map.ItemTo.ToString());
             builder.Append(">();");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("#else");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("destination[i] = source[i].Map<");
+            builder.Append(map.ItemTo.ToString());
+            builder.Append(">();");
+            builder.Append(NewLine);
+            AppendTabs(ref builder, 4);
+            builder.Append("#endif");
         }
         else
         {
