@@ -28,7 +28,7 @@ public class SourceGeneratorVerifier : VerifyBase
 
         var functionResult = RunMappingFunction(outputCompilation, caller);
 
-        await Verify(functionResult).UseDirectory(Path.Combine("Snapshots", "TestResult"));
+        await Verify(functionResult).UseDirectory(Path.Combine("Snapshots", "MapResult"));
     }
 
     private object? RunMappingFunction(Compilation compilation, string testFunctionName)
