@@ -25,7 +25,8 @@ namespace NextGenMapperTests
                 .Select(x => MetadataReference.CreateFromFile(Assembly.Load(x).Location))
                 .Append(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
                 .Append(MetadataReference.CreateFromFile(typeof(MethodImplAttribute).Assembly.Location))
-                .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location));
+                .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location))
+                .Append(MetadataReference.CreateFromFile(typeof(EnumFromDllTest.EnumFromDll).Assembly.Location));
 
             var compilation = CSharpCompilation.Create(assemblyName: assemblyName)
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))

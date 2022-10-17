@@ -1,10 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners
 {
@@ -19,15 +21,23 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public EnumMap DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
+            EnumField[] fromFields;
+            EnumField[] toFields;
             if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
                 //TODO: research: is this real case?
-                throw new ArgumentException("enum must have declaration");
+                //throw new ArgumentException("enum must have declaration");
+                //TODO: refactoring
+                //this is really a real case, because when we map types from dll, we don't have access to the syntax
+                fromFields = from.GetMembers().OfType<IFieldSymbol>().Select(x => new EnumField(x.Name, x.ConstantValue?.UnboxToLong())).ToArray();
+                toFields = to.GetMembers().OfType<IFieldSymbol>().Select(x => new EnumField(x.Name, x.ConstantValue?.UnboxToLong())).ToArray();
             }
-
-            var fromFields = fromDeclaration.GetFields();
-            var toFields = toDeclaration.GetFields();
+            else
+            {
+                fromFields = fromDeclaration.GetFields();
+                toFields = toDeclaration.GetFields();
+            }
 
             var valuesMappings = new List<MemberMap>();
             foreach (var fromField in fromFields)
