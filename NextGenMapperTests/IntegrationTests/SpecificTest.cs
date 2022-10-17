@@ -179,5 +179,59 @@ if (!isValid) throw new MapFailedException(source, destination);";
             Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM008");
             Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(15,19): error NGM008: Mapping function for mapping 'double' to 'int' was not found. Add custom mapping function for mapper\r\nExample:\r\n\r\nnamespace NextGenMapper;\r\n\r\ninternal static partial class Mapper\r\n{\r\n    internal static int Map<To>(this double source) \r\n        => throw new NotImplementedException();\r\n}");
         }
+
+        [TestMethod]
+        public void EnumFromDll()
+        {
+            var userSource =
+    @"using NextGenMapper;
+using System.Collections.Generic;
+using EnumFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public void TestMethod()
+    {
+        var source = EnumFromDll.B;
+
+        var destination = source.Map<Destination>();
+
+        var isValid = destination == Destination.B;
+
+        if (!isValid) throw new MapFailedException(source, destination);
+    }
+}
+
+public enum Destination
+{
+    A,
+    B,
+    C
+}
+
+public class MapFailedException : System.Exception 
+{
+    public object MapSource { get; set; }
+    public object MapDestination { get; set; }
+
+    public MapFailedException(object source, object destination) 
+        : base()
+    {
+        MapSource = source;
+        MapDestination = destination;
+    }
+}
+";
+
+            var userSourceCompilation = userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
+            Assert.IsTrue(generatorDiagnostics.IsFilteredEmpty(), generatorDiagnostics.PrintDiagnostics("Generator deagnostics:"));
+            var userSourceDiagnostics = userSourceCompilation.GetDiagnostics();
+            Assert.IsTrue(userSourceDiagnostics.IsFilteredEmpty(), userSourceDiagnostics.PrintDiagnostics("Users source diagnostics:"));
+
+            var testResult = userSourceCompilation.TestMapper(out var source, out var destination, out var message);
+            Assert.IsTrue(testResult, TestExtensions.GetObjectsString(source, destination, message));
+        }
     }
 }
