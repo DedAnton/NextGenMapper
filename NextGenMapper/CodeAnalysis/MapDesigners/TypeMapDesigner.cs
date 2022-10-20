@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -45,6 +46,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
+                if (_mapPlanner.IsTypesMapAlreadyPlanned(from, to))
+                {
+                    continue;
+                }
+
                 if (MapDesignersHelper.IsEnumMapping(from, to))
                 {
                     maps.Add(_enumMapDesigner.DesignMapsForPlanner(from, to, mapLocation));
@@ -57,14 +63,36 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
+                if (!MapDesignersHelper.IsClassMapping(from, to))
+                {
+                    continue;
+                }
+
                 if (_referencesHistory.Contains((from, to)))
                 {
                     _diagnosticReporter.ReportCircularReferenceError(to.Locations, _referencesHistory.Select(x => x.from).Append(from));
-                    return maps;
+                    return new();
                 }
                 _referencesHistory.Add((from, to));
 
-
+                var fromProperties = from.GetPublicProperties();
+                var isSuitableProperyFounded = false;
+                foreach (var property in fromProperties)
+                {
+                    if (property is
+                        {
+                            IsWriteOnly: false,
+                            GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
+                        })
+                    {
+                        isSuitableProperyFounded = true;
+                    }
+                }
+                if (!isSuitableProperyFounded)
+                {
+                    _diagnosticReporter.ReportSuitablePropertyNotFoundInSource(mapLocation, from, to);
+                    continue;
+                }
 
                 var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)
@@ -78,6 +106,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
                 var membersMaps = new List<MemberMap>();
                 var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+                if (toMembers.Count == 0)
+                {
+                    _diagnosticReporter.ReportSuitablePropertyNotFoundInDestination(mapLocation, from, to);
+                    continue;
+                }
                 foreach (var member in toMembers)
                 {
                     MemberMap? memberMap = member switch
@@ -96,6 +129,10 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     mapTypes.Push((memberMap.FromType, memberMap.ToType));
                 }
 
+                if (membersMaps.Count == 0)
+                {
+                    _diagnosticReporter.ReportNoPropertyMatches(mapLocation, from, to);
+                }
                 maps.Add(new ClassMap(from, to, membersMaps, mapLocation));
             }
 
@@ -104,7 +141,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
 
         public MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter)
         {
-            var fromProperty = from.FindPublicProperty(constructorParameter.Name);
+            var fromProperty = from.FindPublicProperty(constructorParameter.Name) 
+                ?? from.FindPublicProperty(constructorParameter.Name, StringComparison.InvariantCultureIgnoreCase);
             if (fromProperty != null)
             {
                 return MemberMap.Counstructor(fromProperty, constructorParameter);

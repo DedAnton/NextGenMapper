@@ -1,0 +1,4 @@
+﻿{
+  PropertyName: 1,
+  DerrivedProperty: 0
+}

@@ -13,22 +13,62 @@ public class SourceGeneratorVerifier : VerifyBase
     private const string TestClassName = "Program";
     private const string TestFunctionName = "RunTest";
     public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp10;
+    public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
 
-    public async Task VerifyAndRun(string source, [CallerMemberName] string caller = "test") => await VerifyAndRun(new[] { source }, caller);
+    public async Task VerifyAndRun(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
+        => await VerifyAndRun(new[] { source }, caller, ignoreSourceErrors, variant);
 
-    public async Task VerifyAndRun(string[] sources, [CallerMemberName] string caller = "test")
+    public async Task VerifyAndRun(string[] sources, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
+    {
+        var generatorResults = RunGenerator(sources, out var sourceErrors, out var outputCompilation);
+        if (!ignoreSourceErrors && sourceErrors.Length > 0)
+        {
+            throw new SourceException(sourceErrors);
+        }
+
+        var generatorPath = variant != null
+            ? Path.Combine("Snapshots", caller, variant, "Generator")
+            : Path.Combine("Snapshots", caller, "Generator");
+
+        var mapResultPath = variant != null
+            ? Path.Combine("Snapshots", caller, variant, "MapResult")
+            : Path.Combine("Snapshots", caller, "MapResult");
+
+        var functionResult = RunMappingFunction(outputCompilation, caller);
+
+        await Task.WhenAll(
+            Verify(generatorResults).UseDirectory(generatorPath),
+            Verify(functionResult).UseDirectory(mapResultPath));
+    }
+
+    public async Task VerifyOnly(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
+        => await VerifyOnly(new[] { source }, caller, ignoreSourceErrors, variant);
+
+    public async Task VerifyOnly(string[] sources, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
+    {
+        var generatorResults = RunGenerator(sources, out var sourceErrors, out var _);
+        if (!ignoreSourceErrors && sourceErrors.Length > 0)
+        {
+            throw new SourceException(sourceErrors);
+        }
+
+        var generatorPath = variant != null
+            ? Path.Combine("Snapshots", caller, variant, "Generator")
+            : Path.Combine("Snapshots", caller, "Generator");
+
+        await Verify(generatorResults).UseDirectory(generatorPath);
+    }
+
+    private GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation)
     {
         var compilation = CreateCompilation(sources, GetType().Name);
         var generator = new MapperGenerator();
         GeneratorDriver driver = CreateDriver(generator);
-        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-        driver.GetRunResult();
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out var _);
 
-        await Verify(driver).UseDirectory(Path.Combine("Snapshots", "Generator"));
+        sourceErrors = outputCompilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error).ToArray();
 
-        var functionResult = RunMappingFunction(outputCompilation, caller);
-
-        await Verify(functionResult).UseDirectory(Path.Combine("Snapshots", "MapResult"));
+        return driver.GetRunResult();
     }
 
     private object? RunMappingFunction(Compilation compilation, string testFunctionName)
@@ -72,7 +112,8 @@ public class SourceGeneratorVerifier : VerifyBase
             .Select(x => MetadataReference.CreateFromFile(Assembly.Load(x).Location))
             .Append(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
             .Append(MetadataReference.CreateFromFile(typeof(MethodImplAttribute).Assembly.Location))
-            .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location));
+            .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location))
+            .Append(MetadataReference.CreateFromFile(typeof(ImmutableList).Assembly.Location));
 
         if (references is null)
         {
@@ -95,7 +136,7 @@ public class SourceGeneratorVerifier : VerifyBase
 
     private CompilationOptions CreateCompilationOptions()
     {
-        var compilationOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        var compilationOptions = new CSharpCompilationOptions(OutputKind);
 
         return compilationOptions.WithSpecificDiagnosticOptions(
             compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));

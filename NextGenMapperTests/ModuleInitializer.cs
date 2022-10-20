@@ -18,6 +18,7 @@ public static class ModuleInitializer
         {
             _.DateFormatHandling = DateFormatHandling.IsoDateFormat;
             _.NullValueHandling = NullValueHandling.Include;
+            _.DefaultValueHandling = DefaultValueHandling.Include;
         });
     }
 }

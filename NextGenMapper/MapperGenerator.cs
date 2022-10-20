@@ -17,6 +17,7 @@ namespace NextGenMapper
     [Generator]
     public class MapperGenerator : ISourceGenerator
     {
+        public static SemanticModel SemanticModel;
         public void Initialize(GeneratorInitializationContext context)
         {
             //#if DEBUG
@@ -66,6 +67,7 @@ namespace NextGenMapper
 
             foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
             {
+                SemanticModel = mapMethodInvocation.SemanticModel;
                 if (mapMethodInvocation.SemanticModel.GetSymbolInfo(mapMethodInvocation.Node.Expression).Symbol is IMethodSymbol method
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
@@ -82,8 +84,29 @@ namespace NextGenMapper
                     } is ITypeSymbol fromType
                     && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
+                    var mapInvocationLocation = memberAccess.GetLocation();
+
+                    if (fromType.TypeKind != method.ReturnType.TypeKind
+                        && !MapDesignersHelper.IsCollectionMapping(fromType, method.ReturnType))
+                    {
+                        diagnosticReporter.ReportTypesKindsMismatch(mapInvocationLocation, fromType, method.ReturnType);
+                        continue;
+                    }
+
+                    if (fromType.TypeKind == TypeKind.Struct || method.ReturnType.TypeKind == TypeKind.Struct)
+                    {
+                        diagnosticReporter.ReportStructNotSupported(mapInvocationLocation);
+                        continue;
+                    }
+
+                    if (SymbolEqualityComparer.IncludeNullability.Equals(fromType, method.ReturnType))
+                    {
+                        diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
+                        continue;
+                    }
+
                     var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner);
-                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, memberAccess.GetLocation());
+                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, mapInvocationLocation);
                     foreach (var map in maps)
                     {
                         mapPlanner.AddMap(map);
@@ -214,8 +237,9 @@ namespace NextGenMapper
             foreach (var map in mapPlanner.Maps)
             {
                 if (map is CollectionMap collectionMap
-                        && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.IncludeNullability)
-                        && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo))
+                    && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.IncludeNullability)
+                    && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo)
+                    && !ImplicitNumericConversionValidator.HasImplicitConversion(collectionMap.ItemFrom, collectionMap.ItemTo))
                 {
                     diagnosticReporter.ReportMappingFunctionNotFound(collectionMap.MapLocation, collectionMap.ItemFrom, collectionMap.ItemTo);
                 }

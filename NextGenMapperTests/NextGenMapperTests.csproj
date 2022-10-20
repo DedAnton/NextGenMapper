@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-	<LangVersion>10.0</LangVersion>
+	<LangVersion>preview</LangVersion>
     <IsPackable>false</IsPackable>
 	<ImplicitUsings>enable</ImplicitUsings>
 	<Nullable>enable</Nullable>
@@ -27,6 +27,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NextGenMapper\NextGenMapper.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Snapshots\" />
   </ItemGroup>
 
 </Project>

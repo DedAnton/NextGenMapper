@@ -1,0 +1,5 @@
+﻿{
+  SameProperty: {
+    Property: 1
+  }
+}

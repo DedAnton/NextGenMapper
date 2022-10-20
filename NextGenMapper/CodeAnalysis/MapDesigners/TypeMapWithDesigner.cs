@@ -1,10 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis.MapDesigners;
 

@@ -83,5 +83,53 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInSource = new(
+            id: "NGM011",
+            title: "Suitable property for mapping was not found",
+            messageFormat: "Source class {0} has no properties suitable for mapping to {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInDestination = new(
+            id: "NGM012",
+            title: "Suitable property for mapping was not found",
+            messageFormat: "Destination class {1} has no properties suitable for mapping from {0}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor NoPropertyMatches = new(
+            id: "NGM013",
+            title: "No property matches",
+            messageFormat: "None of the properties of class {0} match the properties of class {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor StructNotSupported = new(
+            id: "NGM014",
+            title: "Struct not supported",
+            messageFormat: "Mapping from/to struct is not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MappedTypesEquals = new(
+            id: "NGM015",
+            title: "Mapped types are equals",
+            messageFormat: "Types for mapping must not be equals",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor TypesKindsMismatch = new(
+            id: "NGM016",
+            title: "Types kinds does not match",
+            messageFormat: "Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
