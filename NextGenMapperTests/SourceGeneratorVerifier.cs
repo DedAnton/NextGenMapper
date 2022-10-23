@@ -7,13 +7,23 @@ using System.Runtime.CompilerServices;
 
 namespace NextGenMapperTests;
 
-public class SourceGeneratorVerifier : VerifyBase
+partial class VerifyExtensions
+{
+    public static SettingsTask UseMySettings(this SettingsTask settingsTask, string directory) => settingsTask
+        .UseDirectory(directory)
+        .UseFileName("F")
+        //.AutoVerify()
+        ;
+}
+
+public abstract class SourceGeneratorVerifier : VerifyBase
 {
     private const string TestNamespace = "Test";
     private const string TestClassName = "Program";
     private const string TestFunctionName = "RunTest";
     public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp10;
     public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
+    public abstract string TestGroup { get; }
 
     public async Task VerifyAndRun(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
         => await VerifyAndRun(new[] { source }, caller, ignoreSourceErrors, variant);
@@ -25,20 +35,12 @@ public class SourceGeneratorVerifier : VerifyBase
         {
             throw new SourceException(sourceErrors);
         }
-
-        var generatorPath = variant != null
-            ? Path.Combine("Snapshots", caller, variant, "Generator")
-            : Path.Combine("Snapshots", caller, "Generator");
-
-        var mapResultPath = variant != null
-            ? Path.Combine("Snapshots", caller, variant, "MapResult")
-            : Path.Combine("Snapshots", caller, "MapResult");
-
         var functionResult = RunMappingFunction(outputCompilation, caller);
 
+        var directory = GetPath(caller, variant);
         await Task.WhenAll(
-            Verify(generatorResults).UseDirectory(generatorPath),
-            Verify(functionResult).UseDirectory(mapResultPath));
+            Verify(generatorResults).UseGeneratorResultSettings(directory),
+            Verify(functionResult).UseMapResultSettings(directory));
     }
 
     public async Task VerifyOnly(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
@@ -52,12 +54,14 @@ public class SourceGeneratorVerifier : VerifyBase
             throw new SourceException(sourceErrors);
         }
 
-        var generatorPath = variant != null
-            ? Path.Combine("Snapshots", caller, variant, "Generator")
-            : Path.Combine("Snapshots", caller, "Generator");
-
-        await Verify(generatorResults).UseDirectory(generatorPath);
+        var directory = GetPath(caller, variant);
+        await Verify(generatorResults).UseGeneratorResultSettings(directory);
     }
+
+    private string GetPath(string methodName, string? variant)
+        => variant is not null
+            ? Path.Combine("Snapshots", TestGroup, GetType().Name, methodName, variant)
+            : Path.Combine("Snapshots", TestGroup, GetType().Name, methodName);
 
     private GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation)
     {

@@ -5,6 +5,8 @@ namespace NextGenMapperTests.Tests.AutomaticMapping;
 [TestClass]
 public class Collections : SourceGeneratorVerifier
 {
+    public override string TestGroup => "Map";
+
     [DataRow("var source = new List<int> { 1, 2, 3 };", "List")]
     [DataRow("var source = new byte[] { 1, 2, 3 };", "Array")]
     [DataRow("IEnumerable<int> source = new MyCollection<int> { 1, 2, 3 };", "IEnumerable")]

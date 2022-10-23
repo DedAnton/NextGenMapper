@@ -1,0 +1,4 @@
+﻿{
+  PropertyB: 0,
+  ProeprtyForAutoMapping: 1
+}

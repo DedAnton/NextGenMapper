@@ -131,5 +131,37 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapMethodMustBeExtension = new(
+            id: "NGM017",
+            title: "Map method must be extension",
+            messageFormat: "Custom map method must be extension method",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapMethodMustBeGeneric = new(
+            id: "NGM018",
+            title: "Map method must be generic with single type parameter",
+            messageFormat: "Custom map method must be generic method with single type parameter",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapMethodMustNotReturnVoid = new(
+            id: "NGM019",
+            title: "Map method must not return void",
+            messageFormat: "Custom map method must not return void. Map method must return destination type",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+        
+        public static readonly DiagnosticDescriptor MapMethodMustBeInternal = new(
+            id: "NGM020",
+            title: "Map method must be internal",
+            messageFormat: "Custom map method must have 'internal' access modifier",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

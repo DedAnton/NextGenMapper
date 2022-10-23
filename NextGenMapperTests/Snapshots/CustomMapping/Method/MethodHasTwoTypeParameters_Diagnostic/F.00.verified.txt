@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM018,
+      Title: Map method must be generic with single type parameter,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,36)-(7,39),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Custom map method must be generic method with single type parameter,
+      Message: Custom map method must be generic method with single type parameter,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

@@ -119,5 +119,29 @@ namespace NextGenMapper
             var diagnostic = Diagnostic.Create(Diagnostics.TypesKindsMismatch, location, from, to, from.TypeKind, to.TypeKind);
             diagnosticReporter.Report(diagnostic);
         }
+
+        public static void ReportMapMethodMustBeExtension(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeExtension, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapMethodMustBeGeneric(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeGeneric, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+        
+        public static void ReportMapMethodMustNotReturnVoid(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustNotReturnVoid, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapMethodMustBeInternal(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeInternal, location);
+            diagnosticReporter.Report(diagnostic);
+        }
     }
 }

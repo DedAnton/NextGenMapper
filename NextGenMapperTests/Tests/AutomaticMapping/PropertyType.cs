@@ -5,48 +5,50 @@ namespace NextGenMapperTests.Tests.AutomaticMapping;
 [TestClass]
 public class PropertyType : SourceGeneratorVerifier
 {
-//    [TestMethod]
-//    public Task MapNullable_ShouldMap()
-//    {
-//        var source =
-//@"
-//using NextGenMapper;
+    public override string TestGroup => "Map";
 
-//namespace Test;
+    //    [TestMethod]
+    //    public Task MapNullable_ShouldMap()
+    //    {
+    //        var source =
+    //@"
+    //using NextGenMapper;
 
-//public class Program
-//{
-//    public object RunTest() => new Source().Map<Destination>();
-//}
+    //namespace Test;
 
-//#nullable enable
-//public class Source
-//{
-//    public string? PropertyA { get; set; } = ""good"";
-//    public int? PropertyB { get; set; } = 1;
+    //public class Program
+    //{
+    //    public object RunTest() => new Source().Map<Destination>();
+    //}
 
-//    public string PropertyC { get; set; } = ""good"";
-//    public int PropertyD { get; set; } = 1;
+    //#nullable enable
+    //public class Source
+    //{
+    //    public string? PropertyA { get; set; } = ""good"";
+    //    public int? PropertyB { get; set; } = 1;
 
-//    public string? PropertyE { get; set; } = ""good"";
-//    public int? PropertyF { get; set; } = 1;
-//}
+    //    public string PropertyC { get; set; } = ""good"";
+    //    public int PropertyD { get; set; } = 1;
 
-//public class Destination
-//{
-//    public string PropertyA { get; set; } = ""bad"";
-//    public int PropertyB { get; set; } = -1;
+    //    public string? PropertyE { get; set; } = ""good"";
+    //    public int? PropertyF { get; set; } = 1;
+    //}
 
-//    public string? PropertyC { get; set; } = ""bad"";
-//    public int? PropertyD { get; set; } = -1;
+    //public class Destination
+    //{
+    //    public string PropertyA { get; set; } = ""bad"";
+    //    public int PropertyB { get; set; } = -1;
 
-//    public string? PropertyE { get; set; } = ""bad"";
-//    public int? PropertyF { get; set; } = -1;
-//}
-//#nullable disable";
+    //    public string? PropertyC { get; set; } = ""bad"";
+    //    public int? PropertyD { get; set; } = -1;
 
-//        return VerifyAndRun(source);
-//    }
+    //    public string? PropertyE { get; set; } = ""bad"";
+    //    public int? PropertyF { get; set; } = -1;
+    //}
+    //#nullable disable";
+
+    //        return VerifyAndRun(source);
+    //    }
 
     [TestMethod]
     public Task CommonUsedTypes_ShouldMap()

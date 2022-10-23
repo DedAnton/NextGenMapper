@@ -49,18 +49,47 @@ namespace NextGenMapper
             {
                 if (userMapMethod.SemanticModel.GetDeclaredSymbol(userMapMethod.Node) is IMethodSymbol method
                     && !method.IsAsync
-                    && method.IsExtensionMethod
-                    && method.IsGenericMethod
                     && method.MethodKind == MethodKind.Ordinary
-                    && !method.ReturnsByRef
-                    && !method.ReturnsByRefReadonly
-                    && !method.ReturnsVoid
+                    //&& !method.ReturnsByRef
+                    //&& !method.ReturnsByRefReadonly
                     && method.IsDefinition
                     && method.IsStatic
                     && method.Name == "Map"
                     && method.Parameters.Length == 1
                     && method.ReturnType is not ITypeParameterSymbol)
                 {
+                    if (!method.IsExtensionMethod)
+                    {
+                        //TODO: Research for OutOfRangeException
+                        diagnosticReporter.ReportMapMethodMustBeExtension(method.Locations[0]);
+                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
+                        continue;
+                    }
+
+                    if (!method.IsGenericMethod || method.TypeParameters.Length != 1)
+                    {
+                        //TODO: Research for OutOfRangeException
+                        diagnosticReporter.ReportMapMethodMustBeGeneric(method.Locations[0]);
+                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
+                        continue;
+                    }
+
+                    if (method.ReturnsVoid)
+                    {
+                        //TODO: Research for OutOfRangeException
+                        diagnosticReporter.ReportMapMethodMustNotReturnVoid(method.Locations[0]);
+                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
+                        continue;
+                    }
+
+                    if (method.DeclaredAccessibility != Accessibility.Internal)
+                    {
+                        //TODO: Research for OutOfRangeException
+                        diagnosticReporter.ReportMapMethodMustBeInternal(method.Locations[0]);
+                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
+                        continue;
+                    }
+
                     mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
                 }
             }
@@ -72,16 +101,7 @@ namespace NextGenMapper
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
                     && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol switch
-                    {
-                        ILocalSymbol invocatedVariable => invocatedVariable.Type,
-                        IParameterSymbol invocatedParameter => invocatedParameter.Type,
-                        IMethodSymbol { MethodKind: MethodKind.Constructor } invocatedConstructor => invocatedConstructor.ContainingType,
-                        IMethodSymbol invocatedMethod => invocatedMethod.ReturnType,
-                        IPropertySymbol invocatedProperty => invocatedProperty.Type,
-                        IFieldSymbol invocatedField => invocatedField.Type,
-                        _ => null
-                    } is ITypeSymbol fromType
+                    && mapMethodInvocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type is ITypeSymbol fromType
                     && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
                 {
                     var mapInvocationLocation = memberAccess.GetLocation();
@@ -132,16 +152,7 @@ namespace NextGenMapper
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithFunctionFullName
                     && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapWithMethodInvocation.SemanticModel.GetSymbolInfo(memberAccess.Expression).Symbol switch
-                    {
-                        ILocalSymbol invocatedVariable => invocatedVariable.Type,
-                        IParameterSymbol invocatedParameter => invocatedParameter.Type,
-                        IMethodSymbol { MethodKind: MethodKind.Constructor } invocatedConstructor => invocatedConstructor.ContainingType,
-                        IMethodSymbol invocatedMethod => invocatedMethod.ReturnType,
-                        IPropertySymbol invocatedProperty => invocatedProperty.Type,
-                        IFieldSymbol invocatedField => invocatedField.Type,
-                        _ => null
-                    } is ITypeSymbol fromType)
+                    && mapWithMethodInvocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type is ITypeSymbol fromType)
                 {
                     var mapMethodLocation = memberAccess.GetLocation();
                     if (fromType.TypeKind == TypeKind.Enum && method.ReturnType.TypeKind == TypeKind.Enum)

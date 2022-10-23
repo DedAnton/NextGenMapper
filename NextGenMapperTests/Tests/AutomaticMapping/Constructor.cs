@@ -3,6 +3,8 @@
 [TestClass]
 public class Constructor : SourceGeneratorVerifier
 {
+    public override string TestGroup => "Map";
+
     [TestMethod]
     public Task ConstructorInitializeSingleProperty_ShouldMap()
     {

@@ -3,6 +3,8 @@
 [TestClass]
 public class Enums : SourceGeneratorVerifier
 {
+    public override string TestGroup => "Map";
+
     [TestMethod]
     public Task NamesAreEquals_ShouldMap()
     {

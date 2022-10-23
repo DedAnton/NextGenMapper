@@ -3,6 +3,8 @@
 [TestClass]
 public class Properties : SourceGeneratorVerifier
 {
+    public override string TestGroup => "Map";
+
     [TestMethod]
     public Task NamesShouldBeEqual_OtherwiseIgnored()
     {
@@ -36,7 +38,7 @@ public class Destination
     }
 
     [TestMethod]
-    public Task DifferentAccessModifiers_ShuldMapPublicAndInternal()
+    public Task DifferentAccessModifiers_ShouldMapPublicAndInternal()
     {
         var source =
 @"using NextGenMapper;
@@ -160,7 +162,7 @@ public class Destination
     }
 
     [TestMethod]
-    public Task DifferentPropertiesAccessorsAccessModifiers_ShouldMapPublicAndInternal()
+    public Task DifferentAccessorsAccessModifiers_ShouldMapPublicAndInternal()
     {
         var source =
 @"using NextGenMapper;
