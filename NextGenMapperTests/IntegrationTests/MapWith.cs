@@ -437,7 +437,7 @@ var destination2 = source.MapWith<Destination>(secondName: ""good"");";
 
         userSource.RunGenerators(out var generatorDiagnostics, generators: new MapperGenerator());
         Assert.IsTrue(generatorDiagnostics.Single().Id == "NGM010");
-        Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(16,20): error NGM010: Can not map 'Test.Source' to Test.Destination. Better function member can not be selected for 'MapWith'. Multiple functions have the same signatures (number and type of parameters)");
+        Assert.IsTrue(generatorDiagnostics.Single().ToString() == "(16,20): error NGM010: Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from Test.Source to Test.Destination. To use multiple custom mapping functions, they must have a different number of parameters and/or their type");
     }
 
     [TestMethod]

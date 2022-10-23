@@ -1,0 +1,6 @@
+﻿{
+  SameProperty: [
+    1
+  ],
+  ForMapWith: 1
+}

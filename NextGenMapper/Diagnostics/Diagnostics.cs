@@ -52,10 +52,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapWithNotSupportedForEnums = new(
+        public static readonly DiagnosticDescriptor MapWithNotSupportedForMapWith = new(
             id: "NGM007",
-            title: "'MapWith' method not supported enums",
-            messageFormat: "Method 'MapWith' must not be colled for enums mapping. For matching enums values set the integer value in enum\r\nExample:\r\nenum SourceEnum\r\n{\r\n    A,\r\n    B = 1\r\n}\r\nenum DestinationEnum\r\n{\r\n    A,\r\n    C = 1\r\n}",
+            title: "Not supported for 'MapWith' method",
+            messageFormat: "Customized mapping from {0} to {1} with 'MapWith' not supported. 'MapWith' method supports only class to class mapping",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -76,10 +76,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapWithBetterFunctionMemberNotFound = new(
+        public static readonly DiagnosticDescriptor DuplicateMapWithFunction = new(
             id: "NGM010",
-            title: "Better function member can not be selected for 'MapWith'",
-            messageFormat: "Can not map '{0}' to {1}. Better function member can not be selected for 'MapWith'. Multiple functions have the same signatures (number and type of parameters)",
+            title: "Duplicate 'MapWith' function",
+            messageFormat: "Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from {0} to {1}. To use multiple custom mapping functions, they must have a different number of parameters and/or their type",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

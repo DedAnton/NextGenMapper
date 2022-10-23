@@ -1,4 +1,5 @@
 ﻿{
   PropertyName: 1,
-  DerrivedProperty: 0
+  DerrivedPropertyA: 0,
+  DerrivedPropertyB: 0
 }

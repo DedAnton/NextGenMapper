@@ -124,7 +124,7 @@ public class Program
         var source = new Source();
         source.Map<DestinationStruct>();
         source.Map<DestinationEnum>();
-        source.Map<List<int>>();
+        source.Map<int[]>();
 
         return -1;
     }

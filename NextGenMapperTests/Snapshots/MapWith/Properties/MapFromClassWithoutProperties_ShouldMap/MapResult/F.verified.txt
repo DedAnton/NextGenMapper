@@ -1,0 +1,4 @@
+﻿{
+  PropertyName: 0,
+  ForMapWith: 1
+}

@@ -27,15 +27,15 @@
       CustomTags: []
     },
     {
-      Id: NGM013,
-      Title: No property matches,
+      Id: NGM016,
+      Title: Types kinds does not match,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (12,8)-(12,29),
+      Location: : (12,8)-(12,25),
       Description: ,
       HelpLink: ,
-      MessageFormat: None of the properties of class {0} match the properties of class {1},
-      Message: None of the properties of class Test.Source match the properties of class System.Collections.Generic.List<int>,
+      MessageFormat: Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported,
+      Message: Error when mapping Test.Source to int[]. Mapping from Class to Array is not supported,
       Category: NextGenMapper,
       CustomTags: []
     }

@@ -154,10 +154,17 @@ namespace NextGenMapper
                     && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
                     && mapWithMethodInvocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type is ITypeSymbol fromType)
                 {
-                    var mapMethodLocation = memberAccess.GetLocation();
-                    if (fromType.TypeKind == TypeKind.Enum && method.ReturnType.TypeKind == TypeKind.Enum)
+                    var mapInvocationLocation = memberAccess.GetLocation();
+
+                    if (!MapDesignersHelper.IsClassMapping(fromType, method.ReturnType))
                     {
-                        diagnosticReporter.ReportMapWithNotSupportedForEnums(mapMethodLocation);
+                        diagnosticReporter.ReportNotSupportetForMapWith(mapInvocationLocation, fromType, method.ReturnType);
+                        continue;
+                    }
+
+                    if (SymbolEqualityComparer.IncludeNullability.Equals(fromType, method.ReturnType))
+                    {
+                        diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
                         continue;
                     }
 
@@ -171,16 +178,16 @@ namespace NextGenMapper
                         }
                         else
                         {
-                            diagnosticReporter.ReportMapWithArgumentMustBeNamed(mapMethodLocation);
+                            diagnosticReporter.ReportMapWithArgumentMustBeNamed(mapInvocationLocation);
                         }
                     }
 
                     var designer = new TypeMapWithDesigner(diagnosticReporter, mapPlanner);
 
-                    var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapMethodLocation);
+                    var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapInvocationLocation);
                     if (isStubMethod)
                     {
-                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapMethodLocation);
+                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapInvocationLocation);
                         foreach (var mapWithStub in mapWithStubs)
                         {
                             if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.From, mapWithStub.To, mapWithStub.Parameters))
@@ -200,14 +207,14 @@ namespace NextGenMapper
                     }
                     else
                     {
-                        var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, argumentsNames, mapMethodLocation);
+                        var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, argumentsNames, mapInvocationLocation);
                         foreach (var map in maps)
                         {
                             if (map is ClassMapWith classMapWith)
                             {
                                 if (mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.From, classMapWith.To, classMapWith.Arguments))
                                 {
-                                    diagnosticReporter.ReportMapWithBetterFunctionMemberNotFound(mapMethodLocation, fromType, method.ReturnType);
+                                    diagnosticReporter.ReportDuplicateMapWithFunction(mapInvocationLocation, fromType, method.ReturnType);
                                 }
                                 mapPlanner.AddMapWith(classMapWith);
 

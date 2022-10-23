@@ -58,16 +58,16 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         await Verify(generatorResults).UseGeneratorResultSettings(directory);
     }
 
-    private string GetPath(string methodName, string? variant)
+    private protected string GetPath(string methodName, string? variant)
         => variant is not null
             ? Path.Combine("Snapshots", TestGroup, GetType().Name, methodName, variant)
             : Path.Combine("Snapshots", TestGroup, GetType().Name, methodName);
 
-    private GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation)
+    private protected GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation, MapperGenerator? mapperGenerator = null)
     {
         var compilation = CreateCompilation(sources, GetType().Name);
-        var generator = new MapperGenerator();
-        GeneratorDriver driver = CreateDriver(generator);
+        mapperGenerator ??= new();
+        GeneratorDriver driver = CreateDriver(mapperGenerator);
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out var _);
 
         sourceErrors = outputCompilation.GetDiagnostics().Where(x => x.Severity == DiagnosticSeverity.Error).ToArray();
@@ -75,7 +75,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         return driver.GetRunResult();
     }
 
-    private object? RunMappingFunction(Compilation compilation, string testFunctionName)
+    private protected object? RunMappingFunction(Compilation compilation, string testFunctionName)
     {
         var path = Path.Combine("..", "..", "..", "Temp", $"{GetType().Name}_{testFunctionName}_{DateTimeOffset.Now.ToFileTime()}.dll");
         compilation.Emit(path);

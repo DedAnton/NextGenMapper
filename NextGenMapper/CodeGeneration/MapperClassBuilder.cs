@@ -253,7 +253,10 @@ public class MapperClassBuilder
         builder.Append(map.From.ToString());
         builder.Append(WhiteSpace);
         builder.Append(Source);
-        builder.Append(Comma);
+        if (map.Parameters.Length > 0)
+        {
+            builder.Append(Comma);
+        }
         builder.Append(NewLine);
         var counter = 1;
         foreach (var property in map.Parameters)

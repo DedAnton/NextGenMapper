@@ -104,18 +104,24 @@ public class Program
 
 public class SourceBase
 {
-    public int DerrivedProperty { get; set; } = -1;
+    public int DerrivedPropertyA { get; set; } = -1;
 }
 
 public class Source : SourceBase
 {
     public int PropertyName { get; set; } = 1;
+    public int DerrivedPropertyB { get; set; } = -1;
 }
 
-public class Destination
+public class DestinationBase
+{
+    public int DerrivedPropertyB { get; set; }
+}
+
+public class Destination : DestinationBase
 {
     public int PropertyName { get; set; }
-    public int DerrivedProperty { get; set; }
+    public int DerrivedPropertyA { get; set; }
 }";
 
         return VerifyAndRun(source);

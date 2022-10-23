@@ -1,0 +1,50 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM001,
+      Title: Circular reference was found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (28,13)-(28,25),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Circular reference {0},
+      Message: Circular reference SourceB => SourceC => SourceA => SourceB,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM009,
+      Title: Mapping function for properties was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,66),
+      Description: ,
+      HelpLink: ,
+      MessageFormat:
+Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found. Add custom mapping function for mapper
+Example:
+
+namespace NextGenMapper;
+
+internal static partial class Mapper
+{{
+    internal static {5} Map<To>(this {2} source) 
+        => throw new NotImplementedException();
+}},
+      Message:
+Mapping function for mapping 'Test.SourceA.Reference' of type 'Test.SourceB' to 'Test.DestinationA.Reference' of type 'Test.DestinationB' was not found. Add custom mapping function for mapper
+Example:
+
+namespace NextGenMapper;
+
+internal static partial class Mapper
+{
+    internal static Test.DestinationB Map<To>(this Test.SourceB source) 
+        => throw new NotImplementedException();
+},
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}
