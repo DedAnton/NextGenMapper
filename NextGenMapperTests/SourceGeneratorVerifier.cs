@@ -120,7 +120,8 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             .Append(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
             .Append(MetadataReference.CreateFromFile(typeof(MethodImplAttribute).Assembly.Location))
             .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location))
-            .Append(MetadataReference.CreateFromFile(typeof(ImmutableList).Assembly.Location));
+            .Append(MetadataReference.CreateFromFile(typeof(ImmutableList).Assembly.Location))
+            .Append(MetadataReference.CreateFromFile(typeof(EnumFromDllTest.EnumFromDll).Assembly.Location));
 
         if (references is null)
         {

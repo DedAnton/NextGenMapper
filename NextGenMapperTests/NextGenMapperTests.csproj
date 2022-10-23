@@ -27,4 +27,10 @@
     <ProjectReference Include="..\NextGenMapper\NextGenMapper.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="EnumFromDllTest">
+      <HintPath>Resourses\EnumFromDllTest.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

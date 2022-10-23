@@ -56,4 +56,29 @@ public class Destination
             Verify(generatorResults2).UseGeneratorResultSettings(Path.Combine("..", "..", directory2)),
             Verify(functionResult2).UseMapResultSettings(Path.Combine("..", "..", directory2)));
     }
+
+    [TestMethod]
+    public Task EnumFromDll_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Collections.Generic;
+using EnumFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => EnumFromDll.B.Map<Destination>();
+}
+
+public enum Destination
+{
+    A,
+    B,
+    C
+}";
+
+        return VerifyAndRun(source);
+    }
 }
