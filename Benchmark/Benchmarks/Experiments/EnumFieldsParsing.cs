@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Models;
 using NextGenMapper.Extensions;
 
@@ -8,10 +7,12 @@ namespace Benchmark.Benchmarks.Experiments;
 
 [SimpleJob(RuntimeMoniker.Net50)]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-public class EnumFieldsParsing
+public class EnumFieldsParsing : SourceGeneratorVerifier
 {
     private EnumDeclarationSyntax enumDeclaration;
     private SemanticModel enumSemanticModel;
+
+    public override string TestGroup => throw new NotImplementedException();
 
     [GlobalSetup(Targets = new string[] { nameof(FromSyntaxOptimized), nameof(FromSyntax), nameof(FromSymbols) })]
     public void SetupBenchmark()
@@ -33,7 +34,7 @@ public namespace Test
         Ten = 10
     }
 }";
-        var compilation = source.CreateCompilation("test");
+        var compilation = CreateCompilation(new[] { source }, "bench");
         enumDeclaration = compilation.GetTypeByMetadataName("Test.MyEnum").GetFirstDeclaration() as EnumDeclarationSyntax;
         enumSemanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees.First());
     }

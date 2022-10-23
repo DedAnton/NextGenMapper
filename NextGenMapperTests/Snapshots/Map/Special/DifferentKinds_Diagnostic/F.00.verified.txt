@@ -8,8 +8,8 @@
       Location: : (10,8)-(10,37),
       Description: ,
       HelpLink: ,
-      MessageFormat: Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported,
-      Message: Error when mapping Test.Source to Test.DestinationStruct. Mapping from Class to Structure is not supported,
+      MessageFormat: Error when mapping {0} to {1}, mapping from {2} to {3} is not supported,
+      Message: Error when mapping Test.Source to Test.DestinationStruct, mapping from Class to Structure is not supported,
       Category: NextGenMapper,
       CustomTags: []
     },
@@ -21,8 +21,8 @@
       Location: : (11,8)-(11,35),
       Description: ,
       HelpLink: ,
-      MessageFormat: Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported,
-      Message: Error when mapping Test.Source to Test.DestinationEnum. Mapping from Class to Enum is not supported,
+      MessageFormat: Error when mapping {0} to {1}, mapping from {2} to {3} is not supported,
+      Message: Error when mapping Test.Source to Test.DestinationEnum, mapping from Class to Enum is not supported,
       Category: NextGenMapper,
       CustomTags: []
     },
@@ -34,8 +34,8 @@
       Location: : (12,8)-(12,25),
       Description: ,
       HelpLink: ,
-      MessageFormat: Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported,
-      Message: Error when mapping Test.Source to int[]. Mapping from Class to Array is not supported,
+      MessageFormat: Error when mapping {0} to {1}, mapping from {2} to {3} is not supported,
+      Message: Error when mapping Test.Source to int[], mapping from Class to Array is not supported,
       Category: NextGenMapper,
       CustomTags: []
     }

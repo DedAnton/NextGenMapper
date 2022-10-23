@@ -55,7 +55,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor MapWithNotSupportedForMapWith = new(
             id: "NGM007",
             title: "Not supported for 'MapWith' method",
-            messageFormat: "Customized mapping from {0} to {1} with 'MapWith' not supported. 'MapWith' method supports only class to class mapping",
+            messageFormat: "Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -63,7 +63,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor MappingFunctionNotFound = new(
             id: "NGM008",
             title: "Mapping function was not found",
-            messageFormat: "Mapping function for mapping '{0}' to '{1}' was not found. Add custom mapping function for mapper\r\nExample:\r\n\r\nnamespace NextGenMapper;\r\n\r\ninternal static partial class Mapper\r\n{{\r\n    internal static {1} Map<To>(this {0} source) \r\n        => throw new NotImplementedException();\r\n}}",
+            messageFormat: "Mapping function for mapping '{0}' to '{1}' was not found",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -71,7 +71,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor MappingFunctionForPropertiesNotFound = new(
             id: "NGM009",
             title: "Mapping function for properties was not found",
-            messageFormat: "Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found. Add custom mapping function for mapper\r\nExample:\r\n\r\nnamespace NextGenMapper;\r\n\r\ninternal static partial class Mapper\r\n{{\r\n    internal static {5} Map<To>(this {2} source) \r\n        => throw new NotImplementedException();\r\n}}",
+            messageFormat: "Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -79,7 +79,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor DuplicateMapWithFunction = new(
             id: "NGM010",
             title: "Duplicate 'MapWith' function",
-            messageFormat: "Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from {0} to {1}. To use multiple custom mapping functions, they must have a different number of parameters and/or their type",
+            messageFormat: "Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -127,7 +127,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor TypesKindsMismatch = new(
             id: "NGM016",
             title: "Types kinds does not match",
-            messageFormat: "Error when mapping {0} to {1}. Mapping from {2} to {3} is not supported",
+            messageFormat: "Error when mapping {0} to {1}, mapping from {2} to {3} is not supported",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -151,7 +151,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor MapMethodMustNotReturnVoid = new(
             id: "NGM019",
             title: "Map method must not return void",
-            messageFormat: "Custom map method must not return void. Map method must return destination type",
+            messageFormat: "Custom map method must not return void, map method must return destination type",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

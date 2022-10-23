@@ -14,3 +14,13 @@ NGM007 | NextGenMapper | Error | Diagnostics
 NGM008 | NextGenMapper | Error | Diagnostics
 NGM009 | NextGenMapper | Error | Diagnostics
 NGM010 | NextGenMapper | Error | Diagnostics
+NGM011 | NextGenMapper | Error | Diagnostics
+NGM012 | NextGenMapper | Error | Diagnostics
+NGM013 | NextGenMapper | Error | Diagnostics
+NGM014 | NextGenMapper | Error | Diagnostics
+NGM015 | NextGenMapper | Error | Diagnostics
+NGM016 | NextGenMapper | Error | Diagnostics
+NGM017 | NextGenMapper | Error | Diagnostics
+NGM018 | NextGenMapper | Error | Diagnostics
+NGM019 | NextGenMapper | Error | Diagnostics
+NGM020 | NextGenMapper | Error | Diagnostics

@@ -6,18 +6,15 @@ using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.CodeAnalysis.Validators;
 using NextGenMapper.CodeGeneration;
-using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace NextGenMapper
 {
     [Generator]
     public class MapperGenerator : ISourceGenerator
     {
-        public static SemanticModel SemanticModel;
         public void Initialize(GeneratorInitializationContext context)
         {
             //#if DEBUG
@@ -50,8 +47,6 @@ namespace NextGenMapper
                 if (userMapMethod.SemanticModel.GetDeclaredSymbol(userMapMethod.Node) is IMethodSymbol method
                     && !method.IsAsync
                     && method.MethodKind == MethodKind.Ordinary
-                    //&& !method.ReturnsByRef
-                    //&& !method.ReturnsByRefReadonly
                     && method.IsDefinition
                     && method.IsStatic
                     && method.Name == "Map"
@@ -96,7 +91,6 @@ namespace NextGenMapper
 
             foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
             {
-                SemanticModel = mapMethodInvocation.SemanticModel;
                 if (mapMethodInvocation.SemanticModel.GetSymbolInfo(mapMethodInvocation.Node.Expression).Symbol is IMethodSymbol method
                     && method.MethodKind == MethodKind.ReducedExtension
                     && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName

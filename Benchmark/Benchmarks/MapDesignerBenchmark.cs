@@ -1,16 +1,16 @@
 ﻿using Benchmark.Utils;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.Extensions;
 
 namespace Benchmark.Benchmarks;
 
 [SimpleJob(RuntimeMoniker.Net50)]
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-public class MapDesignerBenchmark
+public class MapDesignerBenchmark : SourceGeneratorVerifier
 {
+    public override string TestGroup => throw new NotImplementedException();
+
     [BenchmarkCategory("Properties"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
     public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
@@ -38,7 +38,7 @@ public class MapDesignerBenchmark
         foreach (var (Description, Classes) in groups)
         {
             var source = TestTypeSourceGenerator.GenerateClassesSource(Classes);
-            var compilation = source.CreateCompilation("test");
+            var compilation = CreateCompilation(new[] { source }, "bench");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
 
@@ -59,7 +59,7 @@ public class MapDesignerBenchmark
         foreach (var (Description, Classes) in groups)
         {
             var source = TestTypeSourceGenerator.GenerateClassesSource(Classes);
-            var compilation = source.CreateCompilation("test");
+            var compilation = CreateCompilation(new[] { source }, "bench");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
 
@@ -79,7 +79,7 @@ public class MapDesignerBenchmark
         foreach (var (Description, Classes) in groups)
         {
             var source = TestTypeSourceGenerator.GenerateClassesSource(Classes);
-            var compilation = source.CreateCompilation("test");
+            var compilation = CreateCompilation(new[] { source }, "bench");
             var from = compilation.GetTypeByMetadataName("Test.SourceEnum");
             var to = compilation.GetTypeByMetadataName("Test.DestinationEnum");
 

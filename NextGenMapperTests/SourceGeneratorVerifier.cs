@@ -18,9 +18,9 @@ partial class VerifyExtensions
 
 public abstract class SourceGeneratorVerifier : VerifyBase
 {
-    private const string TestNamespace = "Test";
-    private const string TestClassName = "Program";
-    private const string TestFunctionName = "RunTest";
+    private protected const string TestNamespace = "Test";
+    private protected const string TestClassName = "Program";
+    private protected const string TestFunctionName = "RunTest";
     public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp10;
     public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
     public abstract string TestGroup { get; }
@@ -96,20 +96,23 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             }
             finally
             {
-                File.Delete(path);
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
             }
         }
 
         throw new Exception($"can not find type '{TestNamespace}.{TestClassName}' with method '{TestFunctionName}' in assembly '{compilation.AssemblyName}'");
     }
 
-    private CSharpGeneratorDriver CreateDriver(params ISourceGenerator[] generators)
+    private protected CSharpGeneratorDriver CreateDriver(params ISourceGenerator[] generators)
     {
         var parseOptions = CreateParseOptions();
         return CSharpGeneratorDriver.Create(generators, parseOptions: parseOptions);
     }
 
-    private Compilation CreateCompilation(string[] sources, string assemblyName)
+    protected Compilation CreateCompilation(string[] sources, string assemblyName)
     {
         var references = Assembly.GetEntryAssembly()?
             .GetReferencedAssemblies()
@@ -138,7 +141,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         return compilation;
     }
 
-    private CompilationOptions CreateCompilationOptions()
+    private protected CompilationOptions CreateCompilationOptions()
     {
         var compilationOptions = new CSharpCompilationOptions(OutputKind);
 
@@ -146,7 +149,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
     }
 
-    private static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
+    private protected static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()
     {
         string[] args = { "/warnaserror:nullable" };
         var commandLineArguments = CSharpCommandLineParser.Default.Parse(args, baseDirectory: Environment.CurrentDirectory, sdkDirectory: Environment.CurrentDirectory);
@@ -155,7 +158,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         return nullableWarnings;
     }
 
-    private CSharpParseOptions CreateParseOptions()
+    private protected CSharpParseOptions CreateParseOptions()
     {
         return new CSharpParseOptions(LanguageVersion, DocumentationMode.Diagnose);
     }

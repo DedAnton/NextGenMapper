@@ -8,28 +8,8 @@
       Location: : (6,31)-(6,64),
       Description: ,
       HelpLink: ,
-      MessageFormat:
-Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{{
-    internal static {5} Map<To>(this {2} source) 
-        => throw new NotImplementedException();
-}},
-      Message:
-Mapping function for mapping 'Test.Source.Property1' of type 'Test.ClassA' to 'Test.Destination.Property1' of type 'Test.EnumA' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{
-    internal static Test.EnumA Map<To>(this Test.ClassA source) 
-        => throw new NotImplementedException();
-},
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property1' of type 'Test.ClassA' to 'Test.Destination.Property1' of type 'Test.EnumA' was not found,
       Category: NextGenMapper,
       CustomTags: []
     },
@@ -41,28 +21,8 @@ internal static partial class Mapper
       Location: : (6,31)-(6,64),
       Description: ,
       HelpLink: ,
-      MessageFormat:
-Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{{
-    internal static {5} Map<To>(this {2} source) 
-        => throw new NotImplementedException();
-}},
-      Message:
-Mapping function for mapping 'Test.Source.Property2' of type 'Test.ClassA' to 'Test.Destination.Property2' of type 'Test.StructA' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{
-    internal static Test.StructA Map<To>(this Test.ClassA source) 
-        => throw new NotImplementedException();
-},
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property2' of type 'Test.ClassA' to 'Test.Destination.Property2' of type 'Test.StructA' was not found,
       Category: NextGenMapper,
       CustomTags: []
     },
@@ -74,28 +34,8 @@ internal static partial class Mapper
       Location: : (6,31)-(6,64),
       Description: ,
       HelpLink: ,
-      MessageFormat:
-Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{{
-    internal static {5} Map<To>(this {2} source) 
-        => throw new NotImplementedException();
-}},
-      Message:
-Mapping function for mapping 'Test.Source.Property3' of type 'Test.ClassA' to 'Test.Destination.Property3' of type 'int[]' was not found. Add custom mapping function for mapper
-Example:
-
-namespace NextGenMapper;
-
-internal static partial class Mapper
-{
-    internal static int[] Map<To>(this Test.ClassA source) 
-        => throw new NotImplementedException();
-},
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property3' of type 'Test.ClassA' to 'Test.Destination.Property3' of type 'int[]' was not found,
       Category: NextGenMapper,
       CustomTags: []
     }

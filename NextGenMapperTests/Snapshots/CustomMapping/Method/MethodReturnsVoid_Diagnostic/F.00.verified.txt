@@ -8,8 +8,8 @@
       Location: : (7,29)-(7,32),
       Description: ,
       HelpLink: ,
-      MessageFormat: Custom map method must not return void. Map method must return destination type,
-      Message: Custom map method must not return void. Map method must return destination type,
+      MessageFormat: Custom map method must not return void, map method must return destination type,
+      Message: Custom map method must not return void, map method must return destination type,
       Category: NextGenMapper,
       CustomTags: []
     }

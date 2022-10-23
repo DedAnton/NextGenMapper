@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 
-namespace NetEscapades.EnumGenerators.Tests;
+namespace NextGenMapperTests.Tests;
 
 public static class ModuleInitializer
 {
