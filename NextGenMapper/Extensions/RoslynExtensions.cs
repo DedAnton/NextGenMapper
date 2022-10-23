@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Models;
 using System;
+using System.Drawing;
 
 namespace NextGenMapper.Extensions
 {
@@ -51,7 +52,7 @@ namespace NextGenMapper.Extensions
             var count = 0;
             foreach (var constructor in namedTypeSymbol.Constructors)
             {
-                if (constructor.DeclaredAccessibility == Accessibility.Public)
+                if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
                 {
                     publicConstructors[count] = constructor;
                     count++;
@@ -79,9 +80,11 @@ namespace NextGenMapper.Extensions
             var count = 0;
             foreach (var member in members)
             {
-                if (member is IPropertySymbol property
-                    && property.CanBeReferencedByName
-                    && property.DeclaredAccessibility == Accessibility.Public)
+                if (member is IPropertySymbol
+                {
+                    CanBeReferencedByName: true,
+                    DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
+                } property)
                 {
                     properties[count] = property;
                     count++;
@@ -103,11 +106,16 @@ namespace NextGenMapper.Extensions
             return names;
         }
 
-        public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCultureIgnoreCase)
+        public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCulture)
         {
             foreach (var property in type.GetPublicProperties())
             {
-                if (property.Name.Equals(name, comparision))
+                if (property is
+                    {
+                        IsWriteOnly: false,
+                        GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
+                    } 
+                    && property.Name.Equals(name, comparision))
                 {
                     return property;
                 }

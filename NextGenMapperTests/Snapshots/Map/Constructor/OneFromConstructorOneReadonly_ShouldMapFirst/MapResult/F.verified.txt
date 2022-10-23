@@ -1,0 +1,4 @@
+﻿{
+  Property1: 1,
+  Property2: 0
+}

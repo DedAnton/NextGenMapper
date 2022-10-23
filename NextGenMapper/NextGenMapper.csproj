@@ -4,7 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>10.0</LangVersion>
         <PackageId>NextGenMapper</PackageId>
-        <Version>0.1.0-alpha.7</Version>
+        <Version>0.1.0-alpha.8</Version>
         <Authors>Anton Ryabchikov</Authors>
         <Copyright>Copyright (c) Anton Ryabchikov 2021</Copyright>
         <Title>NextGenMapper</Title>
@@ -22,6 +22,7 @@
         <DebugType>embedded</DebugType>
         <EnableNETAnalyzers>True</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+		<EnforceExtendedAnalyzerRules>True</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
 	<PropertyGroup>
@@ -29,15 +30,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="bin\**" />
+	  <EmbeddedResource Remove="bin\**" />
+	  <None Remove="bin\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
 		<AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
+		<None Remove="bin\Debug\netstandard2.0\\NextGenMapper.dll" />
 		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
 		<None Include="..\.editorconfig" Link=".editorconfig" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.3.1" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3" />
     </ItemGroup>
 
 </Project>

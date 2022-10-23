@@ -1,4 +1,6 @@
+using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Validators;
 using System;
 using System.Collections.Generic;
 
@@ -251,7 +253,10 @@ public class MapperClassBuilder
         builder.Append(map.From.ToString());
         builder.Append(WhiteSpace);
         builder.Append(Source);
-        builder.Append(Comma);
+        if (map.Parameters.Length > 0)
+        {
+            builder.Append(Comma);
+        }
         builder.Append(NewLine);
         var counter = 1;
         foreach (var property in map.Parameters)
@@ -343,15 +348,31 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 4);
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
-            builder.Append("destination.Add(span[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">());");
+            builder.Append("destination.Add(span[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(");");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">());");
+            }
         }
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
-            builder.Append("destination[i] = span[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">();");
+            builder.Append("destination[i] = span[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(";");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">();");
+            }
         }
         else
         {
@@ -413,15 +434,31 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 4);
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
-            builder.Append("destination.Add(sourceSpan[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">());");
+            builder.Append("destination.Add(sourceSpan[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(");");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">());");
+            }
         }
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
-            builder.Append("destination[i] = sourceSpan[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">();");
+            builder.Append("destination[i] = sourceSpan[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(";");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">();");
+            }
         }
         else
         {
@@ -492,9 +529,17 @@ public class MapperClassBuilder
             builder.Append("#if NET5_0_OR_GREATER");
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
-            builder.Append("destination.Add(sourceSpan[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">());");
+            builder.Append("destination.Add(sourceSpan[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(");");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">());");
+            }
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("#else");
@@ -512,17 +557,33 @@ public class MapperClassBuilder
             builder.Append("#if NET5_0_OR_GREATER");
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
-            builder.Append("destination[i] = sourceSpan[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">();");
+            builder.Append("destination[i] = sourceSpan[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(";");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">();");
+            }
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("#else");
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
-            builder.Append("destination[i] = source[i].Map<");
-            builder.Append(map.ItemTo.ToString());
-            builder.Append(">();");
+            builder.Append("destination[i] = source[i]");
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                builder.Append(";");
+            }
+            else
+            {
+                builder.Append(".Map<");
+                builder.Append(map.ItemTo.ToString());
+                builder.Append(">();");
+            }
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("#endif");

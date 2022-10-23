@@ -1,0 +1,43 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM009,
+      Title: Mapping function for properties was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,60),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property1' of type 'Test.ClassA' to 'Test.Destination.Property1' of type 'Test.EnumA' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM009,
+      Title: Mapping function for properties was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,60),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property2' of type 'Test.ClassA' to 'Test.Destination.Property2' of type 'Test.StructA' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM009,
+      Title: Mapping function for properties was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,60),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.Property3' of type 'Test.ClassA' to 'Test.Destination.Property3' of type 'int[]' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

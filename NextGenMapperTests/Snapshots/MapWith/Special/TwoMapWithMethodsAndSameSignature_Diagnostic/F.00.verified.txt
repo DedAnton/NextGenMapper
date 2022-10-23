@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM010,
+      Title: Duplicate 'MapWith' function,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (10,29)-(10,56),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type,
+      Message: Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from Test.Source to Test.Destination, to use multiple custom mapping functions, they must have a different number of parameters and/or their type,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

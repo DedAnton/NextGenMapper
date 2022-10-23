@@ -26,8 +26,6 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             if (from.GetFirstDeclaration() is not EnumDeclarationSyntax fromDeclaration
                 || to.GetFirstDeclaration() is not EnumDeclarationSyntax toDeclaration)
             {
-                //TODO: research: is this real case?
-                //throw new ArgumentException("enum must have declaration");
                 //TODO: refactoring
                 //this is really a real case, because when we map types from dll, we don't have access to the syntax
                 fromFields = from.GetMembers().OfType<IFieldSymbol>().Select(x => new EnumField(x.Name, x.ConstantValue?.UnboxToLong())).ToArray();

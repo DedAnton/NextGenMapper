@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM001,
+      Title: Circular reference was found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (22,13)-(22,25),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Circular reference {0},
+      Message: Circular reference SourceA => SourceB => SourceC => SourceA,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+﻿{
+  Property: {
+    InnerProperty: 1
+  },
+  ForMapWith: 1
+}

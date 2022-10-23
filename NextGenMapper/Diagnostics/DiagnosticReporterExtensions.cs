@@ -43,9 +43,9 @@ namespace NextGenMapper
             diagnosticReporter.Report(diagnostic);
         }
 
-        public static void ReportMapWithNotSupportedForEnums(this DiagnosticReporter diagnosticReporter, Location location)
+        public static void ReportNotSupportetForMapWith(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.MapWithNotSupportedForEnums, location);
+            var diagnostic = Diagnostic.Create(Diagnostics.MapWithNotSupportedForMapWith, location, from, to);
             diagnosticReporter.Report(diagnostic);
         }
 
@@ -78,9 +78,69 @@ namespace NextGenMapper
             diagnosticReporter.Report(diagnostic);
         }
 
-        public static void ReportMapWithBetterFunctionMemberNotFound(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        public static void ReportDuplicateMapWithFunction(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
         {
-            var diagnostic = Diagnostic.Create(Diagnostics.MapWithBetterFunctionMemberNotFound, location, from, to);
+            var diagnostic = Diagnostic.Create(Diagnostics.DuplicateMapWithFunction, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportSuitablePropertyNotFoundInSource(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.SuitablePropertyNotFoundInSource, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportSuitablePropertyNotFoundInDestination(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.SuitablePropertyNotFoundInDestination, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportNoPropertyMatches(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.NoPropertyMatches, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportStructNotSupported(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.StructNotSupported, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMappedTypesEquals(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MappedTypesEquals, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportTypesKindsMismatch(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.TypesKindsMismatch, location, from, to, from.TypeKind, to.TypeKind);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapMethodMustBeExtension(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeExtension, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapMethodMustBeGeneric(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeGeneric, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+        
+        public static void ReportMapMethodMustNotReturnVoid(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustNotReturnVoid, location);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportMapMethodMustBeInternal(this DiagnosticReporter diagnosticReporter, Location location)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeInternal, location);
             diagnosticReporter.Report(diagnostic);
         }
     }

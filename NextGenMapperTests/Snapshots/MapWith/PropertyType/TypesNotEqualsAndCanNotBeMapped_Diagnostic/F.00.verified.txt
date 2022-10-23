@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM009,
+      Title: Mapping function for properties was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,64),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found,
+      Message: Mapping function for mapping 'Test.Source.SamePropertyName' of type 'int' to 'Test.Destination.SamePropertyName' of type 'string' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

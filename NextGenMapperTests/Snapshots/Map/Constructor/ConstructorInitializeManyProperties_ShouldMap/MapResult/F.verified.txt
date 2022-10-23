@@ -1,0 +1,18 @@
+﻿{
+  Property1: 1,
+  Property2: 1,
+  Property3: 1,
+  Property4: 1,
+  Property5: 1,
+  Property6: 1,
+  Property7: 1,
+  Property8: 1,
+  Property9: 1,
+  Property10: 1,
+  Property11: 1,
+  Property12: 1,
+  Property13: 1,
+  Property14: 1,
+  Property15: 1,
+  Property16: 1
+}

@@ -112,12 +112,10 @@ public class ForCollectionsMapping
     public void MapEnumerableEnumerator() => MapEnumerableEnumerator(enumerable).Consume(consumer);
     private IEnumerable<int> MapEnumerableEnumerator(IEnumerable<int> input)
     {
-        using (IEnumerator<int> e = input.GetEnumerator())
+        using IEnumerator<int> e = input.GetEnumerator();
+        while (e.MoveNext())
         {
-            while (e.MoveNext())
-            {
-                yield return e.Current;
-            }
+            yield return e.Current;
         }
     }
 
@@ -378,7 +376,7 @@ public class ForCollectionsMapping
     public int[] SmartMapIListV5ToArray() => SmartMapEnumerableV5ToArray(iList);
     private int[] SmartMapEnumerableV5ToArray(IEnumerable<int> input)
     {
-        Span<int> span = default;
+        Span<int> span;
         if (input.GetType() == typeof(int[]))
         {
             span = Unsafe.As<int[]>(input);
@@ -682,9 +680,10 @@ public class ForCollectionsMapping
 
 internal class ListProxy<T>
 {
+#pragma warning disable 0649
     internal T[] _items;
+#pragma warning restore 0649
 }
-
 
 class MyCollection<T> : IList<T>
 {

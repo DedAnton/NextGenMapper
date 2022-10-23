@@ -1,5 +1,4 @@
 using Benchmark.Utils;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.CodeGeneration;
@@ -10,8 +9,10 @@ namespace Benchmark.Benchmarks;
 [SimpleJob(RuntimeMoniker.Net60)]
 [MemoryDiagnoser]
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
-public class CodeGeneratorsBenchmark
+public class CodeGeneratorsBenchmark : SourceGeneratorVerifier
 {
+    public override string TestGroup => throw new NotImplementedException();
+
     [BenchmarkCategory("Common"), Benchmark]
     [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
     public string New(BenchmarkInput input) => new MapperClassBuilder().Generate(input.Maps);
@@ -31,7 +32,7 @@ public class CodeGeneratorsBenchmark
         foreach (var (Description, Classes) in classes)
         {
             var source = TestTypeSourceGenerator.GenerateClassesSource(Classes);
-            var compilation = source.CreateCompilation("test");
+            var compilation = CreateCompilation(new[] { source }, "bench");
             var from = compilation.GetTypeByMetadataName("Test.Source");
             var to = compilation.GetTypeByMetadataName("Test.Destination");
             var maps = new TypeMapDesigner(new(), new()).DesignMapsForPlanner(from, to, default);

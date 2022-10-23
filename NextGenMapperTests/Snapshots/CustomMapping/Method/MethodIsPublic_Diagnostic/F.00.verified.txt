@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM020,
+      Title: Map method must be internal,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,34)-(7,37),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Custom map method must have 'internal' access modifier,
+      Message: Custom map method must have 'internal' access modifier,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}
