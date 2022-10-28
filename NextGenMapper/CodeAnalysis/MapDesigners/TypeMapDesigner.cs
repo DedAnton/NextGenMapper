@@ -16,11 +16,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         private readonly CollectionMapDesigner _collectionMapDesigner;
         private readonly MapPlanner _mapPlanner;
 
-        public TypeMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner)
+        public TypeMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner, SemanticModel semanticModel)
         {
             _referencesHistory = new(new MapTypesEqualityComparer());
             _diagnosticReporter = diagnosticReporter;
-            _constructorFinder = new();
+            _constructorFinder = new(semanticModel);
             _enumMapDesigner = new(diagnosticReporter);
             _collectionMapDesigner = new(diagnosticReporter, this);
             _mapPlanner = mapPlanner;
@@ -94,7 +94,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
-                var constructor = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
+                var (constructor, assigments) = _constructorFinder.GetOptimalConstructor(from, to, new HashSet<string>());
                 if (constructor == null)
                 {
                     if (!_mapPlanner.IsTypesMapAlreadyPlanned(from, to))
@@ -105,7 +105,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
 
                 var membersMaps = new List<MemberMap>();
-                var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+                var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer(assigments);
                 if (toMembers.Count == 0)
                 {
                     _diagnosticReporter.ReportSuitablePropertyNotFoundInDestination(mapLocation, from, to);
@@ -115,7 +115,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 {
                     MemberMap? memberMap = member switch
                     {
-                        IParameterSymbol parameter => DesignConstructorParameterMap(from, parameter),
+                        IParameterSymbol parameter => DesignConstructorParameterMap(from, parameter, assigments),
                         IPropertySymbol property => DesignInitializerPropertyMap(from, property),
                         _ => null
                     };
@@ -139,13 +139,18 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             return maps;
         }
 
-        public MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter)
+        public MemberMap? DesignConstructorParameterMap(ITypeSymbol from, IParameterSymbol constructorParameter, List<Assigment> assigments)
         {
-            var fromProperty = from.FindPublicProperty(constructorParameter.Name) 
-                ?? from.FindPublicProperty(constructorParameter.Name, StringComparison.InvariantCultureIgnoreCase);
-            if (fromProperty != null)
+            foreach(var assigment in assigments)
             {
-                return MemberMap.Counstructor(fromProperty, constructorParameter);
+                if (assigment.Parameter == constructorParameter.Name)
+                {
+                    var fromProperty = from.FindPublicProperty(assigment.Property);
+                    if (fromProperty != null)
+                    {
+                        return MemberMap.Counstructor(fromProperty, constructorParameter);
+                    }
+                }
             }
 
             return null;

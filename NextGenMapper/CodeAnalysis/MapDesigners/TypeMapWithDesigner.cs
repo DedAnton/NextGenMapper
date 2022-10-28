@@ -12,16 +12,16 @@ public class TypeMapWithDesigner
     private readonly DiagnosticReporter _diagnosticReporter;
     private readonly ConstructorFinder _constructorFinder;
 
-    public TypeMapWithDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner)
+    public TypeMapWithDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner, SemanticModel semanticModel)
     {
-        _classMapDesigner = new(diagnosticReporter, mapPlanner);
+        _classMapDesigner = new(diagnosticReporter, mapPlanner, semanticModel);
         _diagnosticReporter = diagnosticReporter;
-        _constructorFinder = new();
+        _constructorFinder = new(semanticModel);
     }
 
     public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, HashSet<string> argumentsNames, Location mapLocation)
     {
-        var constructor = _constructorFinder.GetOptimalConstructor(from, to, argumentsNames);
+        var (constructor, assigments) = _constructorFinder.GetOptimalConstructor(from, to, argumentsNames);
         if (constructor == null)
         {
             _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
@@ -30,7 +30,7 @@ public class TypeMapWithDesigner
 
         var maps = new List<TypeMap>();
         var membersMaps = new List<MemberMap>();
-        var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+        var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer(assigments);
         var mapWithParameters = new List<ParameterDescriptor>(toMembers.Count);
         var mapWithArguments = new List<MapWithInvocationAgrument>(argumentsNames.Count);
         foreach (var member in toMembers)
@@ -38,7 +38,7 @@ public class TypeMapWithDesigner
             var isProvidedByUser = argumentsNames.Contains(member.Name);
             var memberMap = (member, isProvidedByUser) switch
             {
-                (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter),
+                (IParameterSymbol parameter, false) => _classMapDesigner.DesignConstructorParameterMap(from, parameter, assigments),
                 (IPropertySymbol property, false) => _classMapDesigner.DesignInitializerPropertyMap(from, property),
                 (IParameterSymbol parameter, true) => MemberMap.User(parameter),
                 (IPropertySymbol property, true) => MemberMap.User(property),
@@ -80,7 +80,8 @@ public class TypeMapWithDesigner
         var constructors = to.GetPublicConstructors();
         foreach (var constructor in constructors)
         {
-            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer();
+            var assigments = _constructorFinder.GetAssigments(constructor);
+            var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer(assigments);
             var mapWithParameters = new ParameterDescriptor[toMembers.Count];
             for (var i = 0; i < toMembers.Count; i++)
             {

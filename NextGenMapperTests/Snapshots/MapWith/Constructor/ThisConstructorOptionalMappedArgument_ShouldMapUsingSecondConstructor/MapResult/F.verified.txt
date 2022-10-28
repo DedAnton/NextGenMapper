@@ -1,0 +1,7 @@
+﻿{
+  PropertyA: 1,
+  PropertyB: 1,
+  PropertyC: 1,
+  PropertyD: 1,
+  ForMapWith: 1
+}

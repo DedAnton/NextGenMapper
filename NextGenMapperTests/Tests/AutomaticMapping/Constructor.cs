@@ -301,6 +301,111 @@ public class Destination
     }
 
     [TestMethod]
+    public Task OptionalArgument_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; }
+
+    public Destination(int property, int optional = 0)
+    {
+        Property = property;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task MappableOptionalArgument_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; }
+    public int PropertyB { get; }
+
+    public Destination(int parameterA, int parameterB = 0)
+    {
+        PropertyA = parameterA;
+        PropertyB = parameterB;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    //TODO: compare constructor by mappable parameters
+    //[TestMethod]
+    public Task ManyOptionalButNotMappable_ShouldMapWithFirstConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; }
+
+    public Destination(int property)
+    {
+        Property = property;
+    }
+
+    public Destination(int notMappable1 = 0, int notMappable2 = 0, int notMappable3 = 0)
+    {
+        
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
     public Task SinglePrivateConstructor_Diagnostic()
     {
         var source =
@@ -330,138 +435,6 @@ public class Destination
 ";
 
         return VerifyOnly(source);
-    }
-
-    //[TestMethod]
-    public Task ConstructorDoNotInitializeProperty_Diagnostic()
-    {
-        var source =
-@"using NextGenMapper;
-
-namespace Test;
-
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
-
-public class Source
-{
-    public int Property { get; set; } = 1;
-}
-
-public class Destination
-{
-    public int Property { get; }
-
-    private Destination(int parameter)
-    {
-        //nothing
-    }
-}
-";
-
-        return VerifyOnly(source);
-    }
-
-    //[TestMethod]
-    public Task PropertiesAndParameterNamesNotEqual_ShouldMap()
-    {
-        var source =
-@"using NextGenMapper;
-
-namespace Test;
-
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
-
-public class Source
-{
-    public int Property { get; set; } = 1;
-}
-
-public class Destination
-{
-    public int Property { get; }
-
-    public Destination(int uniqueParameterName)
-    {
-        Property = uniqueParameterName;
-    }
-}
-";
-
-        return VerifyAndRun(source);
-    }
-
-    //[TestMethod]
-    public Task ParameterNotInitializeProperty_ShouldNotMap()
-    {
-        var source =
-@"using NextGenMapper;
-
-namespace Test;
-
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
-
-public class Source
-{
-    public int Property { get; set; }
-}
-
-public class Destination
-{
-    public int Property { get; }
-
-    public Destination(int Property)
-    {
-        //nothing
-    }
-}
-";
-
-        return VerifyOnly(source);
-    }
-
-    //TODO: think about diagnostic
-    //[TestMethod]
-    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
-    {
-        var source =
-@"using NextGenMapper;
-
-namespace Test;
-
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
-
-public class Source
-{
-    public int PropertyA { get; set; } = 1;
-    public int PropertyB { get; set; } = -1;
-}
-
-public class Destination
-{
-    public int PropertyA { get; }
-    public int PropertyB { get; }
-
-    public Destination(int parameter)
-    {
-        PropertyA = parameter;
-        PropertyB = parameter;
-    }
-}
-";
-
-        return VerifyAndRun(source);
     }
 
     [TestMethod]
@@ -621,7 +594,181 @@ public class Destination
         return VerifyAndRun(source);
     }
 
-    //[TestMethod]
+    [TestMethod]
+    public Task PropertiesAndParameterNamesNotEqual_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; }
+
+    public Destination(int uniqueParameterName)
+    {
+        Property = uniqueParameterName;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task PropertiesNamesNotEqual_ShouldNotMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = -1;
+}
+
+public class Destination
+{
+    public int PropertyB { get; }
+
+    public Destination(int PropertyA)
+    {
+        PropertyB = PropertyA;
+    }
+}
+";
+
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task ParameterNotInitializeProperty_ShouldNotMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; }
+}
+
+public class Destination
+{
+    public int Property { get; }
+
+    public Destination(int Property)
+    {
+        //nothing
+    }
+}
+";
+
+        return VerifyOnly(source);
+    }
+
+    //TODO: think about diagnostic
+    [TestMethod]
+    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = -1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; }
+    public int PropertyB { get; }
+
+    public Destination(int parameter)
+    {
+        PropertyA = parameter;
+        PropertyB = parameter;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task DifferentWaysInitializeProperty_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using System;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; } = 1;
+    public int? PropertyB { get; } = 1;
+    public int PropertyC { get; } = 1;
+    public int? PropertyD { get; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; }
+    public int PropertyB { get; }
+    public int PropertyC { get; }
+    public int PropertyD { get; }
+
+    public Destination(int parameterA, int? parameterB, int PropertyC, int? PropertyD)
+    {
+        PropertyA = parameterA;
+        PropertyB = parameterB ?? throw new ArgumentNullException(nameof(parameterB));
+        this.PropertyC = PropertyC;
+        this.PropertyD = PropertyD ?? throw new ArgumentNullException(nameof(PropertyD));
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
     public Task ThisConstructor_ShouldMapUsingSecondConstructor()
     {
         var source =
@@ -660,8 +807,203 @@ public class Destination
         return VerifyAndRun(source);
     }
 
-    //[TestMethod]
-    public Task RecordThisConstructor_ShouldMapUsingThisConstructor()
+    [TestMethod]
+    public Task ThisConstructorDifferentNames_ShouldMapUsingSecondConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; } = -1;
+    public int PropertyB { get; } = -1;
+
+    public Destination(int thisParameterA)
+    {
+        PropertyA = thisParameterA;
+    }
+
+    public Destination(int parameterA, int parameterB) : this(parameterA)
+    {
+        PropertyB = parameterB;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ThisConstructorOptionalArgument_ShouldMapUsingSecondConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+    public int PropertyC { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; } = -1;
+    public int PropertyB { get; } = -1;
+    public int PropertyC { get; } = -1;
+    public int PropertyD { get; } = -1;
+
+    public Destination(int parameterC, int parameterD = 1)
+    {
+        PropertyC = parameterC;
+        PropertyD = parameterD;
+    }
+
+    public Destination(int parameterA, int parameterB, int parameterC) : this(parameterC)
+    {
+        PropertyA = parameterA;
+        PropertyB = parameterB;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ThisConstructorOptionalMappedArgument_ShouldMapUsingSecondConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+    public int PropertyC { get; set; } = 1;
+    public int PropertyD { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; } = -1;
+    public int PropertyB { get; } = -1;
+    public int PropertyC { get; } = -1;
+    public int PropertyD { get; }
+
+    public Destination(int parameterC, int parameterD = -1)
+    {
+        PropertyC = parameterC;
+        PropertyD = parameterD;
+    }
+
+    public Destination(int parameterA, int parameterB, int parameterC, int parameterD) : this(parameterC, parameterD)
+    {
+        PropertyA = parameterA;
+        PropertyB = parameterB;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ThisConstructorNamedArgument_ShouldMapUsingSecondConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+    public int PropertyC { get; set; } = 1;
+    public int PropertyD { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int PropertyA { get; }
+    public int PropertyB { get; }
+    public int PropertyC { get; }
+    public int PropertyD { get; }
+
+    public Destination(int PropertyB, int PropertyC = 0, int PropertyD = 0)
+    {
+        this.PropertyB = PropertyB;
+        this.PropertyC = PropertyC;
+        this.PropertyD = PropertyD;
+    }
+
+    public Destination(int parameterA, int parameterB, int parameterC, int parameterD) 
+        : this(parameterB, PropertyD:  parameterD, PropertyC: parameterC)
+    {
+        PropertyA = parameterA;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task Record_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source(1, 1).Map<Destination>();
+}
+
+public record Source(int Property1, int Property2);
+
+public record Destination(int Property1, int Property2);
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task RecordThisConstructor_ShouldMapUsingSecondConstructor()
     {
         var source =
 @"using NextGenMapper;
@@ -689,8 +1031,8 @@ public record Destination(int PropertyA)
         return VerifyAndRun(source);
     }
 
-    //[TestMethod]
-    public Task RecordThisConstructorOptionalArguments_ShouldMapUsingThisConstructor()
+    [TestMethod]
+    public Task RecordThisConstructorOptionalArgument_ShouldMapUsingSecondConstructor()
     {
         var source =
 @"using NextGenMapper;
@@ -704,13 +1046,15 @@ public class Program
 
 public record Source(int PropertyA, int PropertyB, int PropertyC);
 
-public record Destination(int PropertyA, int PropertyB = 1, int PropertyC = -1)
+public record Destination(int PropertyC, int PropertyD = 1)
 {
-    public int PropertyD { get; } = -1;
+    public int PropertyA { get; } = -1;
+    public int PropertyB { get; } = -1;
 
-    public Destination(int parameterA, int parameterB, int parameterC, int parameterD) : this(parameterA, PropertyC: parameterC)
+    public Destination(int parameterA, int parameterB, int parameterC) : this(parameterC)
     {
-        PropertyD = parameterD;
+        PropertyA = parameterA;
+        PropertyB = parameterB;
     }
 }
 ";
@@ -718,8 +1062,8 @@ public record Destination(int PropertyA, int PropertyB = 1, int PropertyC = -1)
         return VerifyAndRun(source);
     }
 
-    //[TestMethod]
-    public Task Record_ShouldMap()
+    [TestMethod]
+    public Task RecordThisConstructorOptionalMappedArgument_ShouldMapUsingSecondConstructor()
     {
         var source =
 @"using NextGenMapper;
@@ -728,12 +1072,52 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1, 1).Map<Destination>();
+    public object RunTest() => new Source(1, 1, 1, 1).Map<Destination>();
 }
 
-public record Source(int Property1, int Property2);
+public record Source(int PropertyA, int PropertyB, int PropertyC, int PropertyD);
 
-public record Destination(int Property1, int Property2);
+public record Destination(int PropertyC, int PropertyD = -1)
+{
+    public int PropertyA { get; } = -1;
+    public int PropertyB { get; } = -1;
+
+    public Destination(int parameterA, int parameterB, int parameterC, int parameterD) : this(parameterC, parameterD)
+    {
+        PropertyA = parameterA;
+        PropertyB = parameterB;
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task RecordThisConstructorNamedArgument_ShouldMapUsingSecondConstructor()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source(1, 1, 1, 1).Map<Destination>();
+}
+
+public record Source(int PropertyA, int PropertyB, int PropertyC, int PropertyD);
+
+public record Destination(int PropertyB, int PropertyC = 0, int PropertyD = 0)
+{
+    public int PropertyA { get; } = -1;
+
+    public Destination(int parameterA, int parameterB, int parameterC, int parameterD) 
+        : this(parameterB, PropertyD:  parameterD, PropertyC: parameterC)
+    {
+        PropertyA = parameterA;
+    }
+}
 ";
 
         return VerifyAndRun(source);

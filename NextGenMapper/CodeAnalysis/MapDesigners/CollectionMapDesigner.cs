@@ -12,9 +12,9 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         private readonly TypeMapDesigner _classMapDesigner;
         private readonly DiagnosticReporter _diagnosticReporter;
 
-        public CollectionMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner)
+        public CollectionMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner, SemanticModel semanticModel)
         {
-            _classMapDesigner = new(diagnosticReporter, mapPlanner);
+            _classMapDesigner = new(diagnosticReporter, mapPlanner, semanticModel);
             _diagnosticReporter = diagnosticReporter;
         }
 

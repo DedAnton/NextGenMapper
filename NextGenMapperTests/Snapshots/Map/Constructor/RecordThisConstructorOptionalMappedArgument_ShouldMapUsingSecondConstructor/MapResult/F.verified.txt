@@ -1,0 +1,6 @@
+﻿{
+  PropertyC: 1,
+  PropertyD: 1,
+  PropertyA: 1,
+  PropertyB: 1
+}

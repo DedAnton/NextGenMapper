@@ -31,8 +31,10 @@ internal class Program
         //BenchmarkRunner.Run<CodeGeneratorsBenchmark>();
         //BenchmarkRunner.Run<CollectionCount>();
         //BenchmarkRunner.Run<SelectTests>();
-        BenchmarkRunner.Run<ForCollectionsMapping>();
-
+        //BenchmarkRunner.Run<ForCollectionsMapping>();
+        //BenchmarkRunner.Run<ConstructorAnalysys>();
+        //BenchmarkRunner.Run<GetSymbolDeclaration>();
+        //BenchmarkRunner.Run<TypeCheckingAndCasting>();
         //var benchmark = new MapDesignerBenchmark();
         //var mapPair = benchmark.GenerateCommonClassesMapPairs().ToArray().First(x => x.Name == "props_100_init");
         //GC.Collect();

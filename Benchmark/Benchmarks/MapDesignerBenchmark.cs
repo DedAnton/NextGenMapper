@@ -11,13 +11,13 @@ public class MapDesignerBenchmark : SourceGeneratorVerifier
 {
     public override string TestGroup => throw new NotImplementedException();
 
-    [BenchmarkCategory("Properties"), Benchmark]
-    [ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
-    public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
+    //[BenchmarkCategory("Properties"), Benchmark]
+    //[ArgumentsSource(nameof(GenerateCommonClassesMapPairs))]
+    //public List<TypeMap> Properties(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
 
-    [BenchmarkCategory("NestedClasses"), Benchmark]
-    [ArgumentsSource(nameof(GenerateNestedClassesMapPairs))]
-    public List<TypeMap> Nested(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
+    //[BenchmarkCategory("NestedClasses"), Benchmark]
+    //[ArgumentsSource(nameof(GenerateNestedClassesMapPairs))]
+    //public List<TypeMap> Nested(TypesMapPair mapPair) => new TypeMapDesigner(new(), new()).DesignMapsForPlanner(mapPair.From, mapPair.To, default);
 
     [BenchmarkCategory("Enums"), Benchmark]
     [ArgumentsSource(nameof(GenerateEnumsMapPairs))]
