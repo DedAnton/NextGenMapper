@@ -233,6 +233,38 @@ public class NestedClass : BaseClass
     }
 
     [TestMethod]
+    public Task MappableTypesHasUserDefinedImplicitConversion_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source { Property = 1 }.Map<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; }
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+
+    public static implicit operator Destination(Source source)
+    {
+        return new Destination { Property = source.Property };
+    }
+}
+";
+
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
     public Task MappableCollectionsHasImplicitConversion_Diagnostic()
     {
         var source =
