@@ -31,6 +31,9 @@
     <Reference Include="EnumFromDllTest">
       <HintPath>Resourses\EnumFromDllTest.dll</HintPath>
     </Reference>
+    <Reference Include="TypesFromDllTest">
+      <HintPath>Resourses\TypesFromDllTest.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

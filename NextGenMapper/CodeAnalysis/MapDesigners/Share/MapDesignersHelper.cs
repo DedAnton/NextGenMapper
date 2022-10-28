@@ -16,24 +16,28 @@ public static class MapDesignersHelper
     public static bool IsClassMapping(ITypeSymbol from, ITypeSymbol to)
         => from.TypeKind == TypeKind.Class && to.TypeKind == TypeKind.Class;
 
-    public static List<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor)
+    public static List<ISymbol> GetPropertiesInitializedByConstructorAndInitializer(this IMethodSymbol constructor, List<Assigment> assigments)
     {
-        var constructorParametersNames = new HashSet<string>(constructor.GetParametersNames().ToArray(), StringComparer.InvariantCultureIgnoreCase);
+        var propertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
+        foreach (var assigment in assigments)
+        {
+            propertiesInitializedByConstructor.Add(assigment.Property);
+        }
         var members = new List<ISymbol>();
         foreach (var parameter in constructor.Parameters)
         {
             members.Add(parameter);
         }
-        foreach (var constructorTypeProperty in constructor.ContainingType.GetPublicProperties())
+        foreach (var property in constructor.ContainingType.GetPublicProperties())
         {
-            if (constructorTypeProperty is
+            if (property is
                 {
                     IsReadOnly: false,
                     SetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
                 }
-                && !constructorParametersNames.Contains(constructorTypeProperty.Name))
+                && !propertiesInitializedByConstructor.Contains(property.Name))
             {
-                members.Add(constructorTypeProperty);
+                members.Add(property);
             }
         }
 

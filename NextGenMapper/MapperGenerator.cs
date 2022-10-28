@@ -119,7 +119,7 @@ namespace NextGenMapper
                         continue;
                     }
 
-                    var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner);
+                    var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner, mapMethodInvocation.SemanticModel);
                     var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, mapInvocationLocation);
                     foreach (var map in maps)
                     {
@@ -176,7 +176,7 @@ namespace NextGenMapper
                         }
                     }
 
-                    var designer = new TypeMapWithDesigner(diagnosticReporter, mapPlanner);
+                    var designer = new TypeMapWithDesigner(diagnosticReporter, mapPlanner, mapWithMethodInvocation.SemanticModel);
 
                     var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapInvocationLocation);
                     if (isStubMethod)
