@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Models;
-using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {

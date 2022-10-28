@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.CodeAnalysis.Validators;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.PostInitialization;
 using System;
