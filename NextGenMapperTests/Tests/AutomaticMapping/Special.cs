@@ -204,4 +204,49 @@ public class Destination
 
         return result;
     }
+
+    [TestMethod]
+    public Task MappableTypesHasImplicitConversion_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new NestedClass { Property = 1 }.Map<BaseClass>();
+}
+
+public class BaseClass
+{
+    public int Property { get; set; }
+}
+
+public class NestedClass : BaseClass
+{
+
+}
+";
+
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task MappableCollectionsHasImplicitConversion_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new int[]{ 1, 2, 3 }.Map<IEnumerable<int>>();
+}
+";
+
+        return VerifyOnly(source);
+    }
 }

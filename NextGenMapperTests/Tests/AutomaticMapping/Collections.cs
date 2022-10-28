@@ -68,7 +68,7 @@ public class MyCollection<T> : IEnumerable<T>, ICollection<T>, IList<T>, IReadOn
 
     [DataRow("List<int>", "List")]
     [DataRow("long[]", "Array")]
-    [DataRow("IEnumerable<int>", "IEnumerable")]
+    [DataRow("IEnumerable<long>", "IEnumerable")]
     [DataRow("ICollection<int>", "ICollection")]
     [DataRow("IList<int>", "IList")]
     [DataRow("IReadOnlyList<int>", "IReadOnlyList")]
@@ -90,7 +90,7 @@ public class Program
    
     public object RunTest()
     {
-        var source = new int[] { 1, 2, 3 };       
+        IEnumerable<int> source = new int[] { 1, 2, 3 };       
 
         return source.Map<" + destinationCollectionType + @">();
     }

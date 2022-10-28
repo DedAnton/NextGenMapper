@@ -1,0 +1,4 @@
+﻿{
+  PropertyA: good,
+  PropertyB: good
+}

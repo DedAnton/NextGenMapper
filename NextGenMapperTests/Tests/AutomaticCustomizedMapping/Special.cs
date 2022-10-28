@@ -309,4 +309,31 @@ public class Destination
 
         return VerifyOnly(source);
     }
+
+    [TestMethod]
+    public Task MappableTypesHasImplicitConversion_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new NestedClass { Property = -1 }.MapWith<BaseClass>(property: 1);
+}
+
+public class BaseClass
+{
+    public int Property { get; set; }
+}
+
+public class NestedClass : BaseClass
+{
+
+}
+";
+
+        return VerifyOnly(source, ignoreSourceErrors: true);
+    }
 }

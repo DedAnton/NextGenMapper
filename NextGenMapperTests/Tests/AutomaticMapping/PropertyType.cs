@@ -1,54 +1,9 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-namespace NextGenMapperTests.Tests.AutomaticMapping;
+﻿namespace NextGenMapperTests.Tests.AutomaticMapping;
 
 [TestClass]
 public class PropertyType : SourceGeneratorVerifier
 {
     public override string TestGroup => "Map";
-
-    //    [TestMethod]
-    //    public Task MapNullable_ShouldMap()
-    //    {
-    //        var source =
-    //@"
-    //using NextGenMapper;
-
-    //namespace Test;
-
-    //public class Program
-    //{
-    //    public object RunTest() => new Source().Map<Destination>();
-    //}
-
-    //#nullable enable
-    //public class Source
-    //{
-    //    public string? PropertyA { get; set; } = ""good"";
-    //    public int? PropertyB { get; set; } = 1;
-
-    //    public string PropertyC { get; set; } = ""good"";
-    //    public int PropertyD { get; set; } = 1;
-
-    //    public string? PropertyE { get; set; } = ""good"";
-    //    public int? PropertyF { get; set; } = 1;
-    //}
-
-    //public class Destination
-    //{
-    //    public string PropertyA { get; set; } = ""bad"";
-    //    public int PropertyB { get; set; } = -1;
-
-    //    public string? PropertyC { get; set; } = ""bad"";
-    //    public int? PropertyD { get; set; } = -1;
-
-    //    public string? PropertyE { get; set; } = ""bad"";
-    //    public int? PropertyF { get; set; } = -1;
-    //}
-    //#nullable disable";
-
-    //        return VerifyAndRun(source);
-    //    }
 
     [TestMethod]
     public Task CommonUsedTypes_ShouldMap()
@@ -452,5 +407,170 @@ public class Destination<T>
 }";
 
         return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task TypesThatHaveImplicitConversion_ShouldUseConversion()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public byte Property1 { get; set; } = 1;
+    public NestedClass Property2 { get; set; } = new(){ PropertyA = 1 };
+    //public string Property3 { get; set; } = ""1"";
+    public int Property4 { get; set; } = 1;
+    public int Property5 { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property1 { get; set; }
+    public BaseClass Property2 { get; set; }
+    //public string? Property3 { get; set; } need to enable nyllable context
+    public int? Property4 { get; set; }
+    public Counter Property5 { get; set; }
+}
+
+public class BaseClass
+{
+    public int PropertyA { get; set; }
+}
+
+public class NestedClass : BaseClass
+{
+
+}
+
+public class Counter
+{
+    public int Seconds { get; set; }
+ 
+    public static implicit operator Counter(int x)
+    {
+        return new Counter { Seconds = x };
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task NullableValueTypes_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int? PropertyB { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int? PropertyA { get; set; } = -1;
+    public int? PropertyB { get; set; } = -1;
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task FromNullableValueType_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public int? Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; } = -1;
+}";
+
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task NullableReferenceTypes_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+    namespace Test;
+
+    public class Program
+    {
+        public object RunTest() => new Source().Map<Destination>();
+    }
+
+    public class Source
+    {
+        public string PropertyA { get; set; } = ""good"";
+        public string? PropertyB { get; set; } = ""good"";
+    }
+
+    public class Destination
+    {
+        public string? PropertyA { get; set; } = ""bad"";
+        public string? PropertyB { get; set; } = ""bad"";
+    }";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task FromNullableReferenceType_Diagnostic()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+    namespace Test;
+
+    public class Program
+    {
+        public object RunTest() => new Source().Map<Destination>();
+    }
+
+    public class Source
+    {
+        public string? PropertyA { get; set; } = ""good"";
+    }
+
+    public class Destination
+    {
+        public string PropertyA { get; set; } = ""bad"";
+    }";
+
+        return VerifyAndRun(source);
     }
 }
