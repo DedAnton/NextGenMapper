@@ -35,6 +35,9 @@ internal class Program
         //BenchmarkRunner.Run<ConstructorAnalysys>();
         //BenchmarkRunner.Run<GetSymbolDeclaration>();
         //BenchmarkRunner.Run<TypeCheckingAndCasting>();
+        BenchmarkRunner.Run<FindImplicitConversion>();
+
+
         //var benchmark = new MapDesignerBenchmark();
         //var mapPair = benchmark.GenerateCommonClassesMapPairs().ToArray().First(x => x.Name == "props_100_init");
         //GC.Collect();

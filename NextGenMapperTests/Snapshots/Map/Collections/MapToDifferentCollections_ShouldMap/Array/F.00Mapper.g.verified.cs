@@ -5,13 +5,17 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static long[] Map<To>(this int[] source)
+        internal static long[] Map<To>(this System.Collections.Generic.IEnumerable<int> source)
         {
-            var destination = new long[source.Length];
-            var sourceSpan = new System.Span<int>(source);
-            for (var i = 0; i < source.Length; i++)
+            if (!source.TryGetSpan(out var span))
             {
-                destination[i] = sourceSpan[i];
+                span = System.Linq.Enumerable.ToArray(source);
+            }
+
+            var destination = new long[span.Length];
+            for (var i = 0; i < span.Length; i++)
+            {
+                destination[i] = span[i];
             }
 
             return destination;

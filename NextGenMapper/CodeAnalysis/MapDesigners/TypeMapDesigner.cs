@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
 using NextGenMapper.Extensions;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -15,6 +14,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         private readonly EnumMapDesigner _enumMapDesigner;
         private readonly CollectionMapDesigner _collectionMapDesigner;
         private readonly MapPlanner _mapPlanner;
+        private readonly Compilation _compilation;
 
         public TypeMapDesigner(DiagnosticReporter diagnosticReporter, MapPlanner mapPlanner, SemanticModel semanticModel)
         {
@@ -24,6 +24,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _enumMapDesigner = new(diagnosticReporter);
             _collectionMapDesigner = new(diagnosticReporter, this);
             _mapPlanner = mapPlanner;
+            _compilation = semanticModel.Compilation;
         }
 
         public List<TypeMap> DesignMapsForPlanner(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
@@ -42,6 +43,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 }
 
                 if (SymbolEqualityComparer.IncludeNullability.Equals(from, to))
+                {
+                    continue;
+                }
+
+                if (_compilation.HasImplicitConversion(from, to))
                 {
                     continue;
                 }
@@ -123,6 +129,15 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     if (memberMap == null)
                     {
                         continue;
+                    }
+                    if (SymbolEqualityComparer.Default.Equals(memberMap.FromType, memberMap.ToType)
+                        && memberMap.FromType.NullableAnnotation == NullableAnnotation.Annotated
+                        && memberMap.ToType.NullableAnnotation == NullableAnnotation.NotAnnotated)
+                    {
+                        if (_compilation.HasImplicitConversion(memberMap.FromType, memberMap.ToType))
+                        {
+                            _diagnosticReporter.ReportPossibleNullReference(mapLocation, from, memberMap.FromName, memberMap.FromType, to, memberMap.ToName, memberMap.ToType);
+                        }
                     }
                     membersMaps.Add(memberMap);
 

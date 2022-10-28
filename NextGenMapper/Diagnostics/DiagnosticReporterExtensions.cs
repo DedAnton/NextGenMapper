@@ -143,5 +143,34 @@ namespace NextGenMapper
             var diagnostic = Diagnostic.Create(Diagnostics.MapMethodMustBeInternal, location);
             diagnosticReporter.Report(diagnostic);
         }
+
+        public static void ReportMappedTypesHasImplicitConversion(this DiagnosticReporter diagnosticReporter, Location location, ITypeSymbol from, ITypeSymbol to)
+        {
+            var diagnostic = Diagnostic.Create(Diagnostics.MappedTypesHasImplicitConversion, location, from, to);
+            diagnosticReporter.Report(diagnostic);
+        }
+
+        public static void ReportPossibleNullReference(
+            this DiagnosticReporter diagnosticReporter,
+            Location location,
+            ITypeSymbol fromContainedType,
+            string fromProperty,
+            ITypeSymbol fromType,
+            ITypeSymbol toContainedType,
+            string toProperty,
+            ITypeSymbol toType)
+        {
+            var diagnostic = Diagnostic.Create(
+                Diagnostics.PossibleNullReference,
+                location,
+                fromContainedType,
+                fromProperty,
+                fromType,
+                toContainedType,
+                toProperty,
+                toType);
+
+            diagnosticReporter.Report(diagnostic);
+        }
     }
 }

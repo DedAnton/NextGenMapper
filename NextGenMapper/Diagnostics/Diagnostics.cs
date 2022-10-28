@@ -163,5 +163,21 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MappedTypesHasImplicitConversion = new(
+            id: "NGM021",
+            title: "Mapped types has implicit conversion",
+            messageFormat: "Mapped types has implicit conversion from {0} to {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor PossibleNullReference = new(
+            id: "NGM022",
+            title: "Possible null reference",
+            messageFormat: "Possible null reference exception when mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}'",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

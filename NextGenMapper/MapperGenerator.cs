@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.CodeAnalysis.Validators;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.PostInitialization;
 using System;
@@ -119,6 +118,12 @@ namespace NextGenMapper
                         continue;
                     }
 
+                    if (context.Compilation.HasImplicitConversion(fromType, method.ReturnType))
+                    {
+                        diagnosticReporter.ReportMappedTypesHasImplicitConversion(mapInvocationLocation, fromType, method.ReturnType);
+                        continue;
+                    }
+
                     var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner, mapMethodInvocation.SemanticModel);
                     var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, mapInvocationLocation);
                     foreach (var map in maps)
@@ -159,6 +164,12 @@ namespace NextGenMapper
                     if (SymbolEqualityComparer.IncludeNullability.Equals(fromType, method.ReturnType))
                     {
                         diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
+                        continue;
+                    }
+
+                    if (context.Compilation.HasImplicitConversion(fromType, method.ReturnType))
+                    {
+                        diagnosticReporter.ReportMappedTypesHasImplicitConversion(mapInvocationLocation, fromType, method.ReturnType);
                         continue;
                     }
 
@@ -251,7 +262,7 @@ namespace NextGenMapper
                 if (map is CollectionMap collectionMap
                     && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.IncludeNullability)
                     && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo)
-                    && !ImplicitNumericConversionValidator.HasImplicitConversion(collectionMap.ItemFrom, collectionMap.ItemTo))
+                    && !context.Compilation.HasImplicitConversion(collectionMap.ItemFrom, collectionMap.ItemTo))
                 {
                     diagnosticReporter.ReportMappingFunctionNotFound(collectionMap.MapLocation, collectionMap.ItemFrom, collectionMap.ItemTo);
                 }
@@ -277,7 +288,7 @@ namespace NextGenMapper
                     {
                         if (!constructorProperty.IsSameTypes
                             && !mapPlanner.IsTypesMapAlreadyPlanned(constructorProperty.FromType, constructorProperty.ToType)
-                            && !ImplicitNumericConversionValidator.HasImplicitConversion(constructorProperty.FromType, constructorProperty.ToType))
+                            && !context.Compilation.HasImplicitConversion(constructorProperty.FromType, constructorProperty.ToType))
                         {
                             diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
                                 classMap.MapLocation, classMap.From, constructorProperty.FromName, constructorProperty.FromType, classMap.To, constructorProperty.ToName, constructorProperty.ToType);
@@ -288,7 +299,7 @@ namespace NextGenMapper
                     {
                         if (!initializerProperty.IsSameTypes
                             && !mapPlanner.IsTypesMapAlreadyPlanned(initializerProperty.FromType, initializerProperty.ToType)
-                            && !ImplicitNumericConversionValidator.HasImplicitConversion(initializerProperty.FromType, initializerProperty.ToType))
+                            && !context.Compilation.HasImplicitConversion(initializerProperty.FromType, initializerProperty.ToType))
                         {
                             diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
                                 classMap.MapLocation, classMap.From, initializerProperty.FromName, initializerProperty.FromType, classMap.To, initializerProperty.ToName, initializerProperty.ToType);
@@ -297,7 +308,7 @@ namespace NextGenMapper
                 }
             }
             var mapperClassBuilder = new MapperClassBuilder();
-            var mapperSourceCode = mapperClassBuilder.Generate(mapPlanner.Maps);
+            var mapperSourceCode = mapperClassBuilder.Generate(mapPlanner.Maps, context.Compilation);
             context.AddSource($"Mapper.g", mapperSourceCode);
 
             diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Models;
-using NextGenMapper.CodeAnalysis.Validators;
 
 namespace NextGenMapper.CodeAnalysis.Maps
 {
@@ -18,7 +17,6 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public InitializerExpressionSyntax? InitializerExpressionSyntax { get; private set; }
 
         public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
-        public bool HasImplicitConversion => ImplicitNumericConversionValidator.HasImplicitConversion(FromType, ToType);
 
         public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null)
             => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, false, flattenPropertyName);

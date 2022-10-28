@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Maps;
-using NextGenMapper.CodeAnalysis.Validators;
 using System;
 using System.Collections.Generic;
 
@@ -45,7 +44,7 @@ public class MapperClassBuilder
     private const string Return = "return";
     private const string Var = "var";
 
-    public string Generate(IReadOnlyCollection<TypeMap> maps)
+    public string Generate(IReadOnlyCollection<TypeMap> maps, Compilation compilation)
     {
         var builder = new ValueStringBuilder(stackalloc char[1024]);
 
@@ -72,12 +71,12 @@ public class MapperClassBuilder
             {
                 if (classMapWith.Arguments.Length > 0)
                 {
-                    AppendClassMapWith(ref builder, classMapWith);
+                    AppendClassMapWith(ref builder, classMapWith, compilation);
                 }
             }
             else if (map is ClassMap classMap)
             {
-                AppendCommonMapMethod(ref builder, classMap);
+                AppendCommonMapMethod(ref builder, classMap, compilation);
             }
             else if (map is EnumMap enumMap)
             {
@@ -85,7 +84,7 @@ public class MapperClassBuilder
             }
             else if (map is CollectionMap collectionMap)
             {
-                AppendCollectionMapMethod(ref builder, collectionMap);
+                AppendCollectionMapMethod(ref builder, collectionMap, compilation);
             }
             builder.Append(NewLine);
             builder.Append(NewLine);
@@ -98,7 +97,7 @@ public class MapperClassBuilder
         return builder.ToString();
     }
 
-    private void AppendClassMapWith(ref ValueStringBuilder builder, ClassMapWith map)
+    private void AppendClassMapWith(ref ValueStringBuilder builder, ClassMapWith map, Compilation compilation)
     {
         AppendTabs(ref builder, 2);
         builder.Append(Internal);
@@ -165,7 +164,7 @@ public class MapperClassBuilder
                 builder.Append(Source);
                 builder.Append(Dot);
                 builder.Append(property.FromName);
-                if (!(property.IsSameTypes || property.HasImplicitConversion))
+                if (!(property.IsSameTypes || compilation.HasImplicitConversion(property.FromType, property.ToType)))
                 {
                     builder.Append(Dot);
                     builder.Append(Map);
@@ -207,7 +206,7 @@ public class MapperClassBuilder
                 builder.Append(Source);
                 builder.Append(Dot);
                 builder.Append(property.FromName);
-                if (!(property.IsSameTypes || property.HasImplicitConversion))
+                if (!(property.IsSameTypes || compilation.HasImplicitConversion(property.FromType, property.ToType)))
                 {
                     builder.Append(Dot);
                     builder.Append(Map);
@@ -296,7 +295,7 @@ public class MapperClassBuilder
         builder.Append(CloseCurlyBracket);
     }
 
-    private void AppendAbstractCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    private void AppendAbstractCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
@@ -349,7 +348,7 @@ public class MapperClassBuilder
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
             builder.Append("destination.Add(span[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -363,7 +362,7 @@ public class MapperClassBuilder
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = span[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -390,7 +389,7 @@ public class MapperClassBuilder
         builder.Append(CloseCurlyBracket);
     }
 
-    private void AppendArrayMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    private void AppendArrayMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
@@ -435,7 +434,7 @@ public class MapperClassBuilder
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
             builder.Append("destination.Add(sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -449,7 +448,7 @@ public class MapperClassBuilder
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -476,7 +475,7 @@ public class MapperClassBuilder
         builder.Append(CloseCurlyBracket);
     }
 
-    private void AppendListMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    private void AppendListMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
@@ -530,7 +529,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination.Add(sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -558,7 +557,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination[i] = sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -574,7 +573,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination[i] = source[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || ImplicitNumericConversionValidator.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -604,20 +603,20 @@ public class MapperClassBuilder
         builder.Append(CloseCurlyBracket);
     }
 
-    private void AppendCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map)
+    private void AppendCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
         if (map.CollectionFrom is CollectionType.IEnumerable or CollectionType.ICollection 
             or CollectionType.IList or CollectionType.IReadOnlyCollection or CollectionType.IReadOnlyList)
         {
-            AppendAbstractCollectionMapMethod(ref builder, map);
+            AppendAbstractCollectionMapMethod(ref builder, map, compilation);
         }
         else if (map.CollectionFrom is CollectionType.Array)
         {
-            AppendArrayMapMethod(ref builder, map);
+            AppendArrayMapMethod(ref builder, map, compilation);
         }
         else if (map.CollectionFrom is CollectionType.List)
         {
-            AppendListMapMethod(ref builder, map);
+            AppendListMapMethod(ref builder, map, compilation);
         }
         else
         {
@@ -700,7 +699,7 @@ public class MapperClassBuilder
         builder.Append(Semicolon);
     }
 
-    private void AppendCommonMapMethod(ref ValueStringBuilder builder, ClassMap map)
+    private void AppendCommonMapMethod(ref ValueStringBuilder builder, ClassMap map, Compilation compilation)
     {
         var from = map.From.ToString().AsSpan();
         var to = map.To.ToString().AsSpan();
@@ -740,7 +739,7 @@ public class MapperClassBuilder
             builder.Append(Source);
             builder.Append(Dot);
             builder.Append(property.FromName);
-            if (!(property.IsSameTypes || property.HasImplicitConversion))
+            if (!(property.IsSameTypes || compilation.HasImplicitConversion(property.FromType, property.ToType)))
             {
                 builder.Append(Dot);
                 builder.Append(Map);
@@ -774,7 +773,7 @@ public class MapperClassBuilder
             builder.Append(Source);
             builder.Append(Dot);
             builder.Append(property.FromName);
-            if (!(property.IsSameTypes || property.HasImplicitConversion))
+            if (!(property.IsSameTypes || compilation.HasImplicitConversion(property.FromType, property.ToType)))
             {
                 builder.Append(Dot);
                 builder.Append(Map);
