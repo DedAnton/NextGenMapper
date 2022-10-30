@@ -179,5 +179,13 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor MapperInternalError = new(
+            id: "NGM023",
+            title: "Mapped internal error",
+            messageFormat: "An error occurred while mapping, this is an internal mapper error that was not your fault, please create an issue on github, exception type: {0}, message: {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
     }
 }

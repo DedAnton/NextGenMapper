@@ -153,12 +153,11 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         {
             var inheritedAssigments = new List<Assigment>();
 
-            if (constructorSyntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer)
+            if (constructorSyntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer
+                && _semanticModel.GetOperation(constructorSyntax.Initializer) is IInvocationOperation thisInvocationOperation)
             {
-                var thisOperation = _semanticModel.GetOperation(constructorSyntax.Initializer) as IInvocationOperation;
-                var targetConstructor = thisOperation.TargetMethod;
-                var argumentParameterPairs = new List<(string argument, string parameter)>(thisOperation.Arguments.Length);
-                foreach(var argument in thisOperation.Arguments)
+                var argumentParameterPairs = new List<(string argument, string parameter)>(thisInvocationOperation.Arguments.Length);
+                foreach(var argument in thisInvocationOperation.Arguments)
                 {
                     if (argument is
                         {
@@ -175,7 +174,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                         argumentParameterPairs.Add((argumentName, parameterName));
                     }
                 }
-                var assigments = GetAssigments(targetConstructor);
+                var assigments = GetAssigments(thisInvocationOperation.TargetMethod);
                 foreach(var assigment in assigments)
                 {
                     var argument = argumentParameterPairs
