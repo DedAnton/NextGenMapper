@@ -1,4 +1,5 @@
 ﻿//HintName: Mapper.g.cs
+#nullable enable
 using NextGenMapper.Extensions;
 
 namespace NextGenMapper
@@ -23,9 +24,9 @@ namespace NextGenMapper
         internal static Test.Destination MapWith<To>
         (
             this Test.Source source,
-            int parameterC = default,
-            int parameterD = default,
-            int forMapWith = default
+            int parameterC = default!,
+            int parameterD = default!,
+            int forMapWith = default!
         )
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
@@ -34,10 +35,10 @@ namespace NextGenMapper
         internal static Test.Destination MapWith<To>
         (
             this Test.Source source,
-            int parameterA = default,
-            int parameterB = default,
-            int parameterC = default,
-            int forMapWith = default
+            int parameterA = default!,
+            int parameterB = default!,
+            int parameterC = default!,
+            int forMapWith = default!
         )
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");

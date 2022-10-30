@@ -12,3 +12,11 @@ internal class SourceException : Exception
 
     public Diagnostic[] Diagnostics { get; }
 }
+
+internal class NullableException : SourceException
+{
+    public NullableException(Diagnostic[] diagnostics) : base(diagnostics)
+    {
+
+    }
+}

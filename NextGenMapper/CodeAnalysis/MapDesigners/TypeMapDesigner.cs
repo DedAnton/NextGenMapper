@@ -42,7 +42,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     continue;
                 }
 
-                if (SymbolEqualityComparer.IncludeNullability.Equals(from, to))
+                if (SymbolEqualityComparer.Default.Equals(from, to))
                 {
                     continue;
                 }

@@ -1,4 +1,5 @@
 ﻿//HintName: Mapper.g.cs
+#nullable enable
 using NextGenMapper.Extensions;
 
 namespace NextGenMapper
@@ -40,27 +41,27 @@ namespace NextGenMapper
         internal static Test.Destination MapWith<To>
         (
             this Test.Source source,
-            byte property1 = default,
-            sbyte property2 = default,
-            short property3 = default,
-            ushort property4 = default,
-            int property5 = default,
-            uint property6 = default,
-            long property7 = default,
-            ulong property8 = default,
-            float property9 = default,
-            double property10 = default,
-            decimal property11 = default,
-            bool property12 = default,
-            char property13 = default,
-            string property14 = default,
-            object property15 = default,
-            System.DateTime property16 = default,
-            System.DateTimeOffset property17 = default,
-            System.DateOnly property18 = default,
-            System.TimeOnly property19 = default,
-            System.TimeSpan property20 = default,
-            int forMapWith = default
+            byte property1 = default!,
+            sbyte property2 = default!,
+            short property3 = default!,
+            ushort property4 = default!,
+            int property5 = default!,
+            uint property6 = default!,
+            long property7 = default!,
+            ulong property8 = default!,
+            float property9 = default!,
+            double property10 = default!,
+            decimal property11 = default!,
+            bool property12 = default!,
+            char property13 = default!,
+            string property14 = default!,
+            object property15 = default!,
+            System.DateTime property16 = default!,
+            System.DateTimeOffset property17 = default!,
+            System.DateOnly property18 = default!,
+            System.TimeOnly property19 = default!,
+            System.TimeSpan property20 = default!,
+            int forMapWith = default!
         )
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
