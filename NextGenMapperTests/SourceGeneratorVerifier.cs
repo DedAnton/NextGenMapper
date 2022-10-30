@@ -7,11 +7,11 @@ using System.Runtime.CompilerServices;
 
 namespace NextGenMapperTests;
 
-partial class VerifyExtensions
+static class VerifyExtensions
 {
-    public static SettingsTask UseMySettings(this SettingsTask settingsTask, string directory) => settingsTask
+    public static SettingsTask UseMySettings(this SettingsTask settingsTask, string directory, string methodName, string? variant) => settingsTask
         .UseDirectory(directory)
-        .UseFileName("F")
+        .UseFileName(variant is null ? methodName : $"{methodName}_{variant}")
         //.AutoVerify()
         ;
 }
@@ -31,6 +31,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
     public async Task VerifyAndRun(string[] sources, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
     {
         var generatorResults = RunGenerator(sources, out var sourceErrors, out var outputCompilation);
+
         if (!ignoreSourceErrors && sourceErrors.Length > 0)
         {
             if (sourceErrors.All(x => x.Id == "CS8604"))
@@ -42,10 +43,10 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         }
         var functionResult = RunMappingFunction(outputCompilation, caller);
 
-        var directory = GetPath(caller, variant);
+        GetPath(out var generatorResultDirectory, out var mapResultDirectory);
         await Task.WhenAll(
-            Verify(generatorResults).UseGeneratorResultSettings(directory),
-            Verify(functionResult).UseMapResultSettings(directory));
+            Verify(generatorResults).UseMySettings(generatorResultDirectory, caller, variant),
+            Verify(functionResult).UseMySettings(mapResultDirectory, caller, variant));
     }
 
     public async Task VerifyOnly(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
@@ -64,14 +65,15 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             throw new SourceException(sourceErrors);
         }
 
-        var directory = GetPath(caller, variant);
-        await Verify(generatorResults).UseGeneratorResultSettings(directory);
+        GetPath(out var directory, out _);
+        await Verify(generatorResults).UseMySettings(directory, caller, variant);
     }
 
-    private protected string GetPath(string methodName, string? variant)
-        => variant is not null
-            ? Path.Combine("Snapshots", TestGroup, GetType().Name, methodName, variant)
-            : Path.Combine("Snapshots", TestGroup, GetType().Name, methodName);
+    private protected void GetPath(out string generatorResult, out string mapResult)
+    {
+        generatorResult = Path.Combine("Snapshots", TestGroup, GetType().Name);
+        mapResult = Path.Combine(generatorResult, "MapResult");
+    }
 
     private protected GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation, MapperGenerator? mapperGenerator = null)
     {
