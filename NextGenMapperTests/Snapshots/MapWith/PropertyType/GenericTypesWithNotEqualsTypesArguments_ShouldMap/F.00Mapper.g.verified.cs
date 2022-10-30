@@ -1,4 +1,5 @@
 ﻿//HintName: Mapper.g.cs
+#nullable enable
 using NextGenMapper.Extensions;
 
 namespace NextGenMapper
@@ -28,8 +29,8 @@ namespace NextGenMapper
         internal static Test.Destination<Test.ClassB> MapWith<To>
         (
             this Test.Source<Test.ClassA> source,
-            Test.ClassB property = default,
-            int forMapWith = default
+            Test.ClassB property = default!,
+            int forMapWith = default!
         )
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");

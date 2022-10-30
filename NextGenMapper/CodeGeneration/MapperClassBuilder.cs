@@ -9,7 +9,7 @@ public class MapperClassBuilder
 {
     private const int TabWidth = 4;
 
-    private const string Usings = "using NextGenMapper.Extensions;";
+    private const string Usings = @"using NextGenMapper.Extensions;";
     private const string Namespace = "namespace NextGenMapper";
     private const string Class = "internal static partial class Mapper";
 
@@ -48,6 +48,8 @@ public class MapperClassBuilder
     {
         var builder = new ValueStringBuilder(stackalloc char[1024]);
 
+        builder.Append("#nullable enable");
+        builder.Append(NewLine);
         builder.Append(Usings);
         builder.Append(NewLine);
         builder.Append(NewLine);
@@ -99,12 +101,15 @@ public class MapperClassBuilder
 
     private void AppendClassMapWith(ref ValueStringBuilder builder, ClassMapWith map, Compilation compilation)
     {
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
+
         AppendTabs(ref builder, 2);
         builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(WhiteSpace);
         builder.Append(MapWith);
         builder.Append(OpenAngleBracket);
@@ -117,7 +122,7 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 3);
         builder.Append(This);
         builder.Append(WhiteSpace);
-        builder.Append(map.From.ToString());
+        builder.Append(from);
         builder.Append(WhiteSpace);
         builder.Append(Source);
         builder.Append(Comma);
@@ -145,7 +150,7 @@ public class MapperClassBuilder
         builder.Append(WhiteSpace);
         builder.Append(New);
         builder.Append(WhiteSpace);
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(NewLine);
         AppendTabs(ref builder, 2);
         builder.Append(OpenBracket);
@@ -231,12 +236,15 @@ public class MapperClassBuilder
 
     private void AppendPlaceholderClassMapWith(ref ValueStringBuilder builder, ClassMapWithStub map)
     {
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
+
         AppendTabs(ref builder, 2);
         builder.Append(Internal);
         builder.Append(WhiteSpace);
         builder.Append(Static);
         builder.Append(WhiteSpace);
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(WhiteSpace);
         builder.Append(MapWith);
         builder.Append(OpenAngleBracket);
@@ -249,7 +257,7 @@ public class MapperClassBuilder
         AppendTabs(ref builder, 3);
         builder.Append(This);
         builder.Append(WhiteSpace);
-        builder.Append(map.From.ToString());
+        builder.Append(from);
         builder.Append(WhiteSpace);
         builder.Append(Source);
         if (map.Parameters.Length > 0)
@@ -267,7 +275,7 @@ public class MapperClassBuilder
             builder.Append(WhiteSpace);
             builder.Append(Equal);
             builder.Append(WhiteSpace);
-            builder.Append("default");
+            builder.Append("default!");
 
             if (counter < map.Parameters.Length)
             {
@@ -297,11 +305,14 @@ public class MapperClassBuilder
 
     private void AppendAbstractCollectionMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
+
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(" Map<To>(this ");
-        builder.Append(map.From.ToString());
+        builder.Append(from);
         builder.Append(" source)");
         builder.Append(NewLine);
         AppendTabs(ref builder, 2);
@@ -348,7 +359,7 @@ public class MapperClassBuilder
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
             builder.Append("destination.Add(span[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -362,7 +373,7 @@ public class MapperClassBuilder
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = span[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -391,11 +402,14 @@ public class MapperClassBuilder
 
     private void AppendArrayMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
+
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(" Map<To>(this ");
-        builder.Append(map.From.ToString());
+        builder.Append(from);
         builder.Append(" source)");
         builder.Append(NewLine);
         AppendTabs(ref builder, 2);
@@ -434,7 +448,7 @@ public class MapperClassBuilder
         if (map.CollectionTo is CollectionType.List or CollectionType.IReadOnlyList or CollectionType.IReadOnlyCollection)
         {
             builder.Append("destination.Add(sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -448,7 +462,7 @@ public class MapperClassBuilder
         else if (map.CollectionTo is CollectionType.Array or CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList)
         {
             builder.Append("destination[i] = sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -477,11 +491,14 @@ public class MapperClassBuilder
 
     private void AppendListMapMethod(ref ValueStringBuilder builder, CollectionMap map, Compilation compilation)
     {
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
+
         AppendTabs(ref builder, 2);
         builder.Append("internal static ");
-        builder.Append(map.To.ToString());
+        builder.Append(to);
         builder.Append(" Map<To>(this ");
-        builder.Append(map.From.ToString());
+        builder.Append(from);
         builder.Append(" source)");
         builder.Append(NewLine);
         AppendTabs(ref builder, 2);
@@ -529,7 +546,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination.Add(sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(");");
             }
@@ -557,7 +574,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination[i] = sourceSpan[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -573,7 +590,7 @@ public class MapperClassBuilder
             builder.Append(NewLine);
             AppendTabs(ref builder, 4);
             builder.Append("destination[i] = source[i]");
-            if (SymbolEqualityComparer.IncludeNullability.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            if (SymbolEqualityComparer.Default.Equals(map.ItemFrom, map.ItemTo) || compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
             {
                 builder.Append(";");
             }
@@ -701,8 +718,8 @@ public class MapperClassBuilder
 
     private void AppendCommonMapMethod(ref ValueStringBuilder builder, ClassMap map, Compilation compilation)
     {
-        var from = map.From.ToString().AsSpan();
-        var to = map.To.ToString().AsSpan();
+        var from = map.From.ToDisplayString(NullableFlowState.None);
+        var to = map.To.ToDisplayString(NullableFlowState.None);
 
         AppendTabs(ref builder, 2);
         builder.Append(Internal);

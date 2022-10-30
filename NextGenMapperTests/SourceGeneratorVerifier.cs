@@ -33,6 +33,11 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         var generatorResults = RunGenerator(sources, out var sourceErrors, out var outputCompilation);
         if (!ignoreSourceErrors && sourceErrors.Length > 0)
         {
+            if (sourceErrors.All(x => x.Id == "CS8604"))
+            {
+                throw new NullableException(sourceErrors);
+            }
+
             throw new SourceException(sourceErrors);
         }
         var functionResult = RunMappingFunction(outputCompilation, caller);
@@ -51,6 +56,11 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         var generatorResults = RunGenerator(sources, out var sourceErrors, out var _);
         if (!ignoreSourceErrors && sourceErrors.Length > 0)
         {
+            if (sourceErrors.All(x => x.Id == "CS8604"))
+            {
+                throw new NullableException(sourceErrors);
+            }
+
             throw new SourceException(sourceErrors);
         }
 
@@ -146,8 +156,9 @@ public abstract class SourceGeneratorVerifier : VerifyBase
     {
         var compilationOptions = new CSharpCompilationOptions(OutputKind);
 
-        return compilationOptions.WithSpecificDiagnosticOptions(
-            compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
+        return compilationOptions
+            //.WithNullableContextOptions(NullableContextOptions.Enable)
+            .WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(GetNullableWarningsFromCompiler()));
     }
 
     private protected static ImmutableDictionary<string, ReportDiagnostic> GetNullableWarningsFromCompiler()

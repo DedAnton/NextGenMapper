@@ -368,4 +368,77 @@ public class Destination
 
         return VerifyOnly(source, ignoreSourceErrors: true);
     }
+
+    [DataRow("Source?", "Destination", "FromNullableClass")]
+    [DataRow("Source", "Destination?", "ToNullableClass")]
+    [DataTestMethod]
+    public async Task NullableReferenceType_ShouldRemoveNullableAnnotation(string from, string to, string variant)
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => MapWrap(new());
+
+    private " + to + @" MapWrap(" + from + @" source) => source.MapWith<" + to + @">(forMapWith: 1);
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+    public int ForMapWith { get; set; }
+}";
+
+        await VerifyOnly(source, ignoreSourceErrors: true, variant: variant);
+    }
+
+    [DataRow("Source", "Destination", "Class")]
+    [DataTestMethod]
+    [ExpectedException(typeof(NullableException))]
+    public async Task NullableAndNotNullableTogether_ShouldGenerateOneMapMethod(string from, string to, string variant)
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => 1;
+
+    private " + to + @" FromNullable(" + from + @"? source) => source.MapWith<" + to + @">(forMapWith1: 1);
+    private " + to + @"? ToNullable(" + from + @" source) => source.MapWith<" + to + @"?>(forMapWith2: 1);
+    private " + to + @"? FromNullableToNullable(" + from + @"? source) => source.MapWith<" + to + @"?>(forMapWith3: 1);
+    private " + to + @" NotNullable(" + from + @" source) => source.MapWith<" + to + @">(forMapWith4: 1);
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+    public byte ForMapWith1 { get; set; }
+    public short ForMapWith2 { get; set; }
+    public int ForMapWith3 { get; set; }
+    public long ForMapWith4 { get; set; }
+}";
+
+        await VerifyOnly(source, ignoreSourceErrors: true, variant: variant);
+        await VerifyOnly(source, variant: variant);
+    }
 }

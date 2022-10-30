@@ -281,4 +281,112 @@ public class Program
 
         return VerifyOnly(source);
     }
+
+    [DataRow("Source?", "Destination", "FromNullableClass")]
+    [DataRow("List<Source>?", "List<Destination>", "FromNullableCollectionList")]
+    [DataRow("Source[]?", "List<Destination>", "FromNullableCollectionArray")]
+    [DataRow("IEnumerable<Source>?", "List<Destination>", "FromNullableCollectionIEnumerable")]
+    [DataRow("List<Source?>?", "List<Destination>", "FromNullableCollectionItem")]
+    [DataTestMethod]
+    [ExpectedException(typeof(NullableException))]
+    public async Task FromNullableReferenceType_ShouldRemoveNullableAnnotation(string from, string to, string variant)
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => MapWrap(null);
+
+    private " + to + @" MapWrap(" + from + @" source) => source.Map<" + to + @">();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+}";
+
+        await VerifyOnly(source, ignoreSourceErrors: true, variant: variant);
+        await VerifyOnly(source, variant: variant);
+    }
+
+    [DataRow("Source", "Destination?", "ToNullableClass")]
+    [DataRow("List<Source>", "List<Destination>?", "ToNullableCollection")]
+    [DataRow("List<Source>", "List<Destination?>", "ToNullableCollectionItem")]
+    [DataTestMethod]
+    public async Task ToNullableReferenceType_ShouldRemoveNullableAnnotation(string from, string to, string variant)
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object? RunTest() => MapWrap(new());
+
+    private " + to + @" MapWrap(" + from + @" source) => source.Map<" + to + @">();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+}";
+
+        await VerifyAndRun(source, variant: variant);
+    }
+
+    [DataRow("Source", "Destination", "Class")]
+    [DataRow("List<Source>", "List<Destination>", "Collection")]
+    [DataRow("List<Source>", "List<Destination>", "CollectionItem")]
+    [DataTestMethod]
+    [ExpectedException(typeof(NullableException))]
+    public async Task NullableAndNotNullableTogether_ShouldGenerateOneMapMethod(string from, string to, string variant)
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => 1;
+
+    private " + to + @" FromNullable(" + from + @"? source) => source.Map<" + to + @">();
+    private " + to + @"? ToNullable(" + from + @" source) => source.Map<" + to + @"?>();
+    private " + to + @"? FromNullableToNullable(" + from + @"? source) => source.Map<" + to + @"?>();
+    private " + to + @" NotNullable(" + from + @" source) => source.Map<" + to + @">();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+}";
+
+        await VerifyOnly(source, ignoreSourceErrors: true, variant: variant);
+        await VerifyOnly(source, variant: variant);
+    }
 }

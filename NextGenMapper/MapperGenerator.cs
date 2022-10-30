@@ -112,7 +112,7 @@ namespace NextGenMapper
                         continue;
                     }
 
-                    if (SymbolEqualityComparer.IncludeNullability.Equals(fromType, method.ReturnType))
+                    if (SymbolEqualityComparer.Default.Equals(fromType, method.ReturnType))
                     {
                         diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
                         continue;
@@ -161,7 +161,7 @@ namespace NextGenMapper
                         continue;
                     }
 
-                    if (SymbolEqualityComparer.IncludeNullability.Equals(fromType, method.ReturnType))
+                    if (SymbolEqualityComparer.Default.Equals(fromType, method.ReturnType))
                     {
                         diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
                         continue;
@@ -238,7 +238,7 @@ namespace NextGenMapper
                                             for (var i = 0; i < classMapWith.Arguments.Length; i++)
                                             {
                                                 isParametersEqualArguments = isParametersEqualArguments
-                                                    && SymbolEqualityComparer.IncludeNullability.Equals(classMapWith.Arguments[i].Type, mapWithStub.Parameters[i].Type);
+                                                    && SymbolEqualityComparer.Default.Equals(classMapWith.Arguments[i].Type, mapWithStub.Parameters[i].Type);
                                             }
                                             if (!isParametersEqualArguments)
                                             {
@@ -260,7 +260,7 @@ namespace NextGenMapper
             foreach (var map in mapPlanner.Maps)
             {
                 if (map is CollectionMap collectionMap
-                    && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.IncludeNullability)
+                    && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.Default)
                     && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo)
                     && !context.Compilation.HasImplicitConversion(collectionMap.ItemFrom, collectionMap.ItemTo))
                 {

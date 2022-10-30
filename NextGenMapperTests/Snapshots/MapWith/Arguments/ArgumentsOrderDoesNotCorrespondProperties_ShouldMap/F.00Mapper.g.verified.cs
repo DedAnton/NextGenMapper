@@ -1,4 +1,5 @@
 ﻿//HintName: Mapper.g.cs
+#nullable enable
 using NextGenMapper.Extensions;
 
 namespace NextGenMapper

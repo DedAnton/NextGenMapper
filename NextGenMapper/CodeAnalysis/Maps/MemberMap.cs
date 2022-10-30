@@ -16,7 +16,7 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public ArgumentSyntax? ArgumentSyntax { get; private set; }
         public InitializerExpressionSyntax? InitializerExpressionSyntax { get; private set; }
 
-        public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.IncludeNullability);
+        public bool IsSameTypes => FromType.Equals(ToType, SymbolEqualityComparer.Default);
 
         public static MemberMap Counstructor(IPropertySymbol from, IParameterSymbol to, string? flattenPropertyName = null)
             => new(from.Type, from.Name, to.Type, to.Name, MemberMapType.Constructor, false, flattenPropertyName);

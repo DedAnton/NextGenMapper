@@ -26,7 +26,7 @@ public class SymbolEquality : SourceGeneratorVerifier
     }
 
     [BenchmarkCategory("Equality"), Benchmark]
-    public bool Symbol() => SymbolEqualityComparer.IncludeNullability.Equals(symbolFrom, symbolTo);
+    public bool Symbol() => SymbolEqualityComparer.Default.Equals(symbolFrom, symbolTo);
     [BenchmarkCategory("Equality"), Benchmark]
     public bool Text() => textFrom == textTo;
     [BenchmarkCategory("Equality"), Benchmark]
