@@ -48,12 +48,13 @@ public class Destination
         }
         var functionResult2 = RunMappingFunction(outputCompilation2, methodName);
 
-        var directory1 = GetPath(methodName, variant: "FirstRun");
-        var directory2 = GetPath(methodName, variant: "SecondRun");
+        GetPath(out var generatorRunDirectory, out var mapRunDirectory);
+        generatorRunDirectory = Path.Combine("..", "..", generatorRunDirectory);
+        mapRunDirectory = Path.Combine("..", "..", mapRunDirectory);
         await Task.WhenAll(
-            Verify(generatorResults1).UseGeneratorResultSettings(Path.Combine("..", "..", directory1)),
-            Verify(functionResult1).UseMapResultSettings(Path.Combine("..", "..", directory1)),
-            Verify(generatorResults2).UseGeneratorResultSettings(Path.Combine("..", "..", directory2)),
-            Verify(functionResult2).UseMapResultSettings(Path.Combine("..", "..", directory2)));
+            Verify(generatorResults1).UseMySettings(generatorRunDirectory, methodName, "FirstRun"),
+            Verify(functionResult1).UseMySettings(mapRunDirectory, methodName, "FirstRun"),
+            Verify(generatorResults2).UseMySettings(generatorRunDirectory, methodName, "SecondRun"),
+            Verify(functionResult2).UseMySettings(mapRunDirectory, methodName, "SecondRun"));
     }
 }
