@@ -33,6 +33,18 @@ namespace NextGenMapper
 
         public void Execute(GeneratorExecutionContext context)
         {
+            try
+            {
+                ExecuteInternal(context);
+            }
+            catch (Exception ex)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.MapperInternalError, null, ex.GetType(), ex.Message));
+            }
+        }
+
+        private void ExecuteInternal(GeneratorExecutionContext context)
+        {
             var mapPlanner = new MapPlanner();
             var diagnosticReporter = new DiagnosticReporter();
 
@@ -52,34 +64,31 @@ namespace NextGenMapper
                     && method.Parameters.Length == 1
                     && method.ReturnType is not ITypeParameterSymbol)
                 {
+                    var methodLocation = userMapMethod.Node.GetLocation();
                     if (!method.IsExtensionMethod)
                     {
-                        //TODO: Research for OutOfRangeException
-                        diagnosticReporter.ReportMapMethodMustBeExtension(method.Locations[0]);
+                        diagnosticReporter.ReportMapMethodMustBeExtension(methodLocation);
                         mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
                         continue;
                     }
 
                     if (!method.IsGenericMethod || method.TypeParameters.Length != 1)
                     {
-                        //TODO: Research for OutOfRangeException
-                        diagnosticReporter.ReportMapMethodMustBeGeneric(method.Locations[0]);
+                        diagnosticReporter.ReportMapMethodMustBeGeneric(methodLocation);
                         mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
                         continue;
                     }
 
                     if (method.ReturnsVoid)
                     {
-                        //TODO: Research for OutOfRangeException
-                        diagnosticReporter.ReportMapMethodMustNotReturnVoid(method.Locations[0]);
+                        diagnosticReporter.ReportMapMethodMustNotReturnVoid(methodLocation);
                         mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
                         continue;
                     }
 
                     if (method.DeclaredAccessibility != Accessibility.Internal)
                     {
-                        //TODO: Research for OutOfRangeException
-                        diagnosticReporter.ReportMapMethodMustBeInternal(method.Locations[0]);
+                        diagnosticReporter.ReportMapMethodMustBeInternal(methodLocation);
                         mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
                         continue;
                     }
