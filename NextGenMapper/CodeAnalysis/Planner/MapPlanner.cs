@@ -15,14 +15,14 @@ namespace NextGenMapper.CodeAnalysis
 
         public void AddMap(TypeMap map)
         {
-            if (_mapTypes.Contains((map.From, map.To)))
+            if (_mapTypes.Contains((map.FromType, map.ToType)))
             {
                 //TODO: maybe add diagnostic
                 return;
             }
 
             _maps.Add(map);
-            _mapTypes.Add((map.From, map.To));
+            _mapTypes.Add((map.FromType, map.ToType));
         }
 
         public void AddUserDefinedMap(ITypeSymbol from, ITypeSymbol to)
@@ -38,21 +38,21 @@ namespace NextGenMapper.CodeAnalysis
 
         public void AddMapWith(ClassMapWith map)
         {
-            if (_mapWithTypes.Contains((map.From, map.To, map.Arguments)))
+            if (_mapWithTypes.Contains((map.FromType, map.ToType, map.Arguments)))
             {
                 //TODO: maybe add diagnostic
                 return;
             }
 
             _maps.Add(map);
-            _mapWithTypes.Add((map.From, map.To, map.Arguments));
+            _mapWithTypes.Add((map.FromType, map.ToType, map.Arguments));
             //_mapWithStub.Add((map.From, map.To));
         }
 
         public void AddMapWithStub(ClassMapWithStub map)
         {
             _maps.Add(map);
-            _mapWithStub.Add((map.From, map.To, map.Parameters));
+            _mapWithStub.Add((map.FromType, map.ToType, map.Parameters));
         }
 
         public bool IsTypesMapAlreadyPlanned(ITypeSymbol from, ITypeSymbol to) => _mapTypes.Contains((from, to));

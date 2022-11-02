@@ -5,8 +5,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
 {
     public class ClassMap : TypeMap
     {
-        public List<MemberMap> InitializerProperties { get; } = new List<MemberMap>();
-        public List<MemberMap> ConstructorProperties { get; } = new List<MemberMap>();
+        public List<MemberMap> InitializerProperties { get; } = new();
+        public List<MemberMap> ConstructorProperties { get; } = new();
 
         public ClassMap(ITypeSymbol from, ITypeSymbol to, IEnumerable<MemberMap> properties, Location mapLocation)
             : base(from, to, mapLocation)
