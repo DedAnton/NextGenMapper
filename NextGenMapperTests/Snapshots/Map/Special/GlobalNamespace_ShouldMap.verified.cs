@@ -6,12 +6,9 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static Destination Map<To>(this Source source) => new Destination
-        (
-        )
+        internal static Destination Map<To>(this Source source) => new Destination()
         {
             Property = source.Property
         };
-
     }
 }

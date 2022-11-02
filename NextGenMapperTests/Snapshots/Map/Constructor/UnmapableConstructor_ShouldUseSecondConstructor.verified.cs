@@ -13,6 +13,5 @@ namespace NextGenMapper
         {
             Property2 = source.Property2
         };
-
     }
 }

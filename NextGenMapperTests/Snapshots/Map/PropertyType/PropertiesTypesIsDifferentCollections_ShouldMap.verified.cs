@@ -6,24 +6,22 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination
-        (
-        )
+        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination()
         {
             SameProperty = source.SameProperty.Map<System.Collections.Generic.List<int>>()
         };
 
         internal static System.Collections.Generic.List<int> Map<To>(this int[] source)
         {
-            var destination = new System.Collections.Generic.List<int>(source.Length);
-            var sourceSpan = new System.Span<int>(source);
-            for (var i = 0; i < source.Length; i++)
+            var sourceCollection = new System.Span<int>(source);
+            var length = sourceCollection.Length;
+            var destination = new System.Collections.Generic.List<int>(length);
+            for (var i = 0; i < length; i++)
             {
-                destination.Add(sourceSpan[i]);
+                destination.Add(sourceCollection[i]);
             }
 
             return destination;
         }
-
     }
 }

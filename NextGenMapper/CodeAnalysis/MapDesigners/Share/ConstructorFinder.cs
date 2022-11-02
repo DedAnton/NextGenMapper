@@ -23,7 +23,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         public (IMethodSymbol? constructor, List<Assigment> assigments) GetOptimalConstructor(ITypeSymbol from, ITypeSymbol to, HashSet<string> byUser)
         {
             var constructors = to.GetPublicConstructors();
-            BubbleSort.SortSpan(ref constructors, _constructorComparer);
+            BubbleSort.Sort(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
             {
                 return (null, new());

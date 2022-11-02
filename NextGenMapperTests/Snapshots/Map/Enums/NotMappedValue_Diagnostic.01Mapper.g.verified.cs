@@ -10,8 +10,7 @@ namespace NextGenMapper
         {
             Test.Source.A => Test.Destination.A,
             Test.Source.B => Test.Destination.B,
-            _ => throw new System.ArgumentOutOfRangeException("Error when mapping Test.Source to Test.Destination")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(source), "Error when mapping Test.Source to Test.Destination")
         };
-
     }
 }

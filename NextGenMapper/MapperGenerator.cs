@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.CodeAnalysis.Maps;
@@ -204,14 +205,14 @@ namespace NextGenMapper
                         diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapInvocationLocation);
                         foreach (var mapWithStub in mapWithStubs)
                         {
-                            if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.From, mapWithStub.To, mapWithStub.Parameters))
+                            if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, mapWithStub.Parameters))
                             {
                                 var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
                                 for (var i = 0; i < mapWithStub.Parameters.Length; i++)
                                 {
                                     argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
                                 }
-                                if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.From, mapWithStub.To, argumentsFromParameters))
+                                if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, argumentsFromParameters))
                                 {
                                     mapPlanner.AddMapWithStub(mapWithStub);
                                 }
@@ -226,7 +227,7 @@ namespace NextGenMapper
                         {
                             if (map is ClassMapWith classMapWith)
                             {
-                                if (mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.From, classMapWith.To, classMapWith.Arguments))
+                                if (mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.FromType, classMapWith.ToType, classMapWith.Arguments))
                                 {
                                     diagnosticReporter.ReportDuplicateMapWithFunction(mapInvocationLocation, fromType, method.ReturnType);
                                 }
@@ -234,14 +235,14 @@ namespace NextGenMapper
 
                                 foreach (var mapWithStub in mapWithStubs)
                                 {
-                                    if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.From, mapWithStub.To, mapWithStub.Parameters))
+                                    if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, mapWithStub.Parameters))
                                     {
                                         var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
                                         for (var i = 0; i < mapWithStub.Parameters.Length; i++)
                                         {
                                             argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
                                         }
-                                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.From, mapWithStub.To, argumentsFromParameters))
+                                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, argumentsFromParameters))
                                         {
                                             var isParametersEqualArguments = classMapWith.Arguments.Length == mapWithStub.Parameters.Length;
                                             for (var i = 0; i < classMapWith.Arguments.Length; i++)
@@ -280,16 +281,16 @@ namespace NextGenMapper
                 {
                     if (classMap is ClassMapWith classMapWith)
                     {
-                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.From, classMapWith.To, classMapWith.Arguments))
+                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.FromType, classMapWith.ToType, classMapWith.Arguments))
                         {
-                            diagnosticReporter.ReportMappingFunctionNotFound(classMapWith.MapLocation, classMapWith.From, classMapWith.To);
+                            diagnosticReporter.ReportMappingFunctionNotFound(classMapWith.MapLocation, classMapWith.FromType, classMapWith.ToType);
                         }
                     }
                     else
                     {
-                        if (!mapPlanner.IsTypesMapAlreadyPlanned(classMap.From, classMap.To))
+                        if (!mapPlanner.IsTypesMapAlreadyPlanned(classMap.FromType, classMap.ToType))
                         {
-                            diagnosticReporter.ReportMappingFunctionNotFound(classMap.MapLocation, classMap.From, classMap.To);
+                            diagnosticReporter.ReportMappingFunctionNotFound(classMap.MapLocation, classMap.FromType, classMap.ToType);
                         }
                     }
 
@@ -300,7 +301,7 @@ namespace NextGenMapper
                             && !context.Compilation.HasImplicitConversion(constructorProperty.FromType, constructorProperty.ToType))
                         {
                             diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
-                                classMap.MapLocation, classMap.From, constructorProperty.FromName, constructorProperty.FromType, classMap.To, constructorProperty.ToName, constructorProperty.ToType);
+                                classMap.MapLocation, classMap.FromType, constructorProperty.FromName, constructorProperty.FromType, classMap.ToType, constructorProperty.ToName, constructorProperty.ToType);
                         }
                     }
 
@@ -311,13 +312,13 @@ namespace NextGenMapper
                             && !context.Compilation.HasImplicitConversion(initializerProperty.FromType, initializerProperty.ToType))
                         {
                             diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
-                                classMap.MapLocation, classMap.From, initializerProperty.FromName, initializerProperty.FromType, classMap.To, initializerProperty.ToName, initializerProperty.ToType);
+                                classMap.MapLocation, classMap.FromType, initializerProperty.FromName, initializerProperty.FromType, classMap.ToType, initializerProperty.ToName, initializerProperty.ToType);
                         }
                     }
                 }
             }
-            var mapperClassBuilder = new MapperClassBuilder();
-            var mapperSourceCode = mapperClassBuilder.Generate(mapPlanner.Maps, context.Compilation);
+            var mapperClassBuilder = new MapperSourceBuilder(context.Compilation);
+            var mapperSourceCode = mapperClassBuilder.BuildMapperClass(mapPlanner.Maps);
             context.AddSource($"Mapper.g", mapperSourceCode);
 
             diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));

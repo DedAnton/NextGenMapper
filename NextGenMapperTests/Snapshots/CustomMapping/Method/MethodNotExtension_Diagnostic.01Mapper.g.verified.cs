@@ -6,5 +6,6 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
+
     }
 }

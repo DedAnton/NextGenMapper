@@ -20,9 +20,6 @@ namespace NextGenMapper
             property2,
             property3,
             property4
-        )
-        {
-        };
-
+        );
     }
 }

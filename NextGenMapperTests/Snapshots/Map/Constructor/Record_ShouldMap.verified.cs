@@ -10,9 +10,6 @@ namespace NextGenMapper
         (
             source.Property1,
             source.Property2
-        )
-        {
-        };
-
+        );
     }
 }

@@ -11,8 +11,7 @@ namespace NextGenMapper
             Test.Source.Min => Test.Destination.Min,
             Test.Source.Normal => Test.Destination.Normal,
             Test.Source.Max => Test.Destination.Max,
-            _ => throw new System.ArgumentOutOfRangeException("Error when mapping Test.Source to Test.Destination")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(source), "Error when mapping Test.Source to Test.Destination")
         };
-
     }
 }

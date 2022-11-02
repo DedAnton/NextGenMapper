@@ -8,15 +8,15 @@ namespace NextGenMapper
     {
         internal static int[] Map<To>(this byte[] source)
         {
-            var destination = new int[source.Length];
-            var sourceSpan = new System.Span<byte>(source);
-            for (var i = 0; i < source.Length; i++)
+            var sourceCollection = new System.Span<byte>(source);
+            var length = sourceCollection.Length;
+            var destination = new int[length];
+            for (var i = 0; i < length; i++)
             {
-                destination[i] = sourceSpan[i];
+                destination[i] = sourceCollection[i];
             }
 
             return destination;
         }
-
     }
 }

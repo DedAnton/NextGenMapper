@@ -9,6 +9,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public CollectionType CollectionFrom { get; }
         public CollectionType CollectionTo { get; }
 
+        public bool IsItemsTypesEquals => SymbolEqualityComparer.Default.Equals(ItemFrom, ItemTo);
+
         public CollectionMap(
             ITypeSymbol from, 
             ITypeSymbol to, 
@@ -36,5 +38,21 @@ namespace NextGenMapper.CodeAnalysis.Maps
         IEnumerable,
         IReadOnlyCollection,
         IReadOnlyList
+    }
+
+    public static class CollectionTypeExtensions
+    {
+        public static bool IsInterface(this CollectionType type) => type is CollectionType.IEnumerable or CollectionType.ICollection
+            or CollectionType.IList or CollectionType.IReadOnlyCollection or CollectionType.IReadOnlyList;
+
+        public static bool IsListInterface(this CollectionType type)
+            => type is CollectionType.IReadOnlyCollection or CollectionType.IReadOnlyList;
+
+        public static bool IsArrayInterface(this CollectionType type)
+            => type is CollectionType.IEnumerable or CollectionType.ICollection or CollectionType.IList;
+
+        public static bool IsArray(this CollectionType type) => type is CollectionType.Array;
+
+        public static bool IsList(this CollectionType type) => type is CollectionType.List;
     }
 }

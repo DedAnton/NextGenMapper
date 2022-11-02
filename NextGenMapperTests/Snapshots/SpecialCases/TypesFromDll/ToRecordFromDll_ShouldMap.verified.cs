@@ -9,9 +9,6 @@ namespace NextGenMapper
         internal static TypesFromDllTest.RecordFromDll Map<To>(this Test.Source source) => new TypesFromDllTest.RecordFromDll
         (
             source.Property
-        )
-        {
-        };
-
+        );
     }
 }

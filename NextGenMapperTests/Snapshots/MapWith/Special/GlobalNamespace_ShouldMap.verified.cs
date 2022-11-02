@@ -12,11 +12,8 @@ namespace NextGenMapper
             int property
         )
         => new Destination
-        (
-        )
         {
             Property = property
         };
-
     }
 }

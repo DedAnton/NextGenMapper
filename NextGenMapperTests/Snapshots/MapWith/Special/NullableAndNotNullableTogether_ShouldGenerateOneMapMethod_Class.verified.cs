@@ -12,8 +12,6 @@ namespace NextGenMapper
             byte forMapWith1
         )
         => new Test.Destination
-        (
-        )
         {
             Property = source.Property,
             ForMapWith1 = forMapWith1
@@ -38,8 +36,6 @@ namespace NextGenMapper
             short forMapWith2
         )
         => new Test.Destination
-        (
-        )
         {
             Property = source.Property,
             ForMapWith2 = forMapWith2
@@ -51,8 +47,6 @@ namespace NextGenMapper
             int forMapWith3
         )
         => new Test.Destination
-        (
-        )
         {
             Property = source.Property,
             ForMapWith3 = forMapWith3
@@ -64,12 +58,9 @@ namespace NextGenMapper
             long forMapWith4
         )
         => new Test.Destination
-        (
-        )
         {
             Property = source.Property,
             ForMapWith4 = forMapWith4
         };
-
     }
 }

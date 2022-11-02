@@ -12,11 +12,8 @@ namespace NextGenMapper
             int propertyB
         )
         => new Test.Destination
-        (
-        )
         {
             PropertyB = propertyB
         };
-
     }
 }

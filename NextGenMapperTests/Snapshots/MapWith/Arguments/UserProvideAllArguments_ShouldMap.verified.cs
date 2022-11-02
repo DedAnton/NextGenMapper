@@ -15,14 +15,11 @@ namespace NextGenMapper
             int property4
         )
         => new Test.Destination
-        (
-        )
         {
             Property1 = property1,
             Property2 = property2,
             Property3 = property3,
             Property4 = property4
         };
-
     }
 }

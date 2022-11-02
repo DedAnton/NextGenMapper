@@ -15,9 +15,7 @@ namespace NextGenMapper
         (
             source.PropertyA,
             forMapWith
-        )
-        {
-        };
+        );
 
         internal static Test.Destination MapWith<To>
         (
@@ -28,6 +26,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

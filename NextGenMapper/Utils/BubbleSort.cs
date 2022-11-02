@@ -5,7 +5,7 @@ namespace NextGenMapper.Utils;
 
 internal static class BubbleSort
 {
-    public static void SortSpan<T, C>(ref Span<T> span, C comparer) where C : IComparer<T>
+    public static void Sort<T, C>(ref Span<T> span, C comparer) where C : IComparer<T>
     {
         var n = span.Length;
         bool swapRequired;

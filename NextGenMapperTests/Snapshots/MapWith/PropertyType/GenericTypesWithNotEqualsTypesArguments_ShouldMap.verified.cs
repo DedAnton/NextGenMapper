@@ -6,9 +6,7 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static Test.ClassB Map<To>(this Test.ClassA source) => new Test.ClassB
-        (
-        )
+        internal static Test.ClassB Map<To>(this Test.ClassA source) => new Test.ClassB()
         {
             Property = source.Property
         };
@@ -19,8 +17,6 @@ namespace NextGenMapper
             int forMapWith
         )
         => new Test.Destination<Test.ClassB>
-        (
-        )
         {
             Property = source.Property.Map<Test.ClassB>(),
             ForMapWith = forMapWith
@@ -35,6 +31,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

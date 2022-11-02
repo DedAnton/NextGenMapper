@@ -4,14 +4,18 @@ namespace NextGenMapper.CodeAnalysis.Maps
 {
     public abstract class TypeMap
     {
-        public ITypeSymbol From { get; }
-        public ITypeSymbol To { get; }
+        public string From { get; }
+        public string To { get; }
+        public ITypeSymbol FromType { get; }
+        public ITypeSymbol ToType { get; }
         public Location MapLocation { get; }
 
         public TypeMap(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
         {
-            From = from;
-            To = to;
+            From = from.ToDisplayString(NullableFlowState.None);
+            To = to.ToDisplayString(NullableFlowState.None);
+            FromType = from;
+            ToType = to;
             MapLocation = mapLocation;
         }
     }
