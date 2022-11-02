@@ -12,8 +12,6 @@ namespace NextGenMapper
             int forMapWith1
         )
         => new Test.Destination
-        (
-        )
         {
             ForMapWith1 = forMapWith1
         };
@@ -34,11 +32,8 @@ namespace NextGenMapper
             long forMapWith2
         )
         => new Test.Destination
-        (
-        )
         {
             ForMapWith2 = forMapWith2
         };
-
     }
 }

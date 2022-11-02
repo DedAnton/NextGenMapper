@@ -12,9 +12,6 @@ namespace NextGenMapper
             source.PropertyB,
             source.PropertyC,
             source.PropertyD
-        )
-        {
-        };
-
+        );
     }
 }

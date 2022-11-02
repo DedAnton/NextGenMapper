@@ -11,8 +11,7 @@ namespace NextGenMapper
             TypesFromDllTest.EnumFromDll.A => Test.Destination.A,
             TypesFromDllTest.EnumFromDll.B => Test.Destination.B,
             TypesFromDllTest.EnumFromDll.C => Test.Destination.C,
-            _ => throw new System.ArgumentOutOfRangeException("Error when mapping TypesFromDllTest.EnumFromDll to Test.Destination")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(source), "Error when mapping Test.Source to Test.Destination")
         };
-
     }
 }

@@ -21,16 +21,10 @@ internal ref partial struct MapperSourceBuilder
         _builder.Append(
 $@"        internal static {map.To} MapWith<To>
         (
-            this {map.From} source,
-");
-        var lastIndex = map.Arguments.Length - 1;
+            this {map.From} source");
         for (var i = 0; i < map.Arguments.Length; i++)
         {
-            _builder.Append($"            {map.Arguments[i].Type} {map.Arguments[i].Name}");
-            if (i < lastIndex)
-            {
-                _builder.Append(",\r\n");
-            }
+            _builder.Append($",\r\n            {map.Arguments[i].Type} {map.Arguments[i].Name}");
         }
         _builder.Append("\r\n        )");
     }

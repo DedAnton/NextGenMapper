@@ -9,9 +9,7 @@ namespace NextGenMapper
         internal static Test.B Map<To>(this Test.A source) => new Test.B
         (
             source.InnerProperty
-        )
-        {
-        };
+        );
 
         internal static Test.Destination<Test.B> MapWith<To>
         (
@@ -19,8 +17,6 @@ namespace NextGenMapper
             int forMapWith
         )
         => new Test.Destination<Test.B>
-        (
-        )
         {
             Property = source.Property.Map<Test.B>(),
             ForMapWith = forMapWith
@@ -35,6 +31,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

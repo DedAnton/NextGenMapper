@@ -55,6 +55,7 @@ internal ref partial struct MapperSourceBuilder
     {
         if (members.Length == 0)
         {
+            _builder.Append("()");
             return;
         }
 

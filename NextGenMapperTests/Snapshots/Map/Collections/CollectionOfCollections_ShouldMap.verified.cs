@@ -8,11 +8,12 @@ namespace NextGenMapper
     {
         internal static System.Collections.Generic.List<int> Map<To>(this int[] source)
         {
-            var destination = new System.Collections.Generic.List<int>(source.Length);
-            var sourceSpan = new System.Span<int>(source);
-            for (var i = 0; i < source.Length; i++)
+            var sourceCollection = new System.Span<int>(source);
+            var length = sourceCollection.Length;
+            var destination = new System.Collections.Generic.List<int>(length);
+            for (var i = 0; i < length; i++)
             {
-                destination.Add(sourceSpan[i]);
+                destination.Add(sourceCollection[i]);
             }
 
             return destination;
@@ -20,15 +21,15 @@ namespace NextGenMapper
 
         internal static System.Collections.Generic.List<System.Collections.Generic.List<int>> Map<To>(this int[][] source)
         {
-            var destination = new System.Collections.Generic.List<System.Collections.Generic.List<int>>(source.Length);
-            var sourceSpan = new System.Span<int[]>(source);
-            for (var i = 0; i < source.Length; i++)
+            var sourceCollection = new System.Span<int[]>(source);
+            var length = sourceCollection.Length;
+            var destination = new System.Collections.Generic.List<System.Collections.Generic.List<int>>(length);
+            for (var i = 0; i < length; i++)
             {
-                destination.Add(sourceSpan[i].Map<System.Collections.Generic.List<int>>());
+                destination.Add(sourceCollection[i].Map<System.Collections.Generic.List<int>>());
             }
 
             return destination;
         }
-
     }
 }

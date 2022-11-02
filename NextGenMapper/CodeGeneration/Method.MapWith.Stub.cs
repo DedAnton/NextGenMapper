@@ -15,16 +15,11 @@ internal ref partial struct MapperSourceBuilder
         _builder.Append(
 $@"        internal static {map.To} MapWith<To>
         (
-            this {map.From} source,
-");
+            this {map.From} source");
         var lastIndex = map.Parameters.Length - 1;
         for (var i = 0; i < map.Parameters.Length; i++)
         {
-            _builder.Append($"            {map.Parameters[i].Type} {map.Parameters[i].Name} = defatult!");
-            if (i < lastIndex)
-            {
-                _builder.Append(",\r\n");
-            }
+            _builder.Append($",\r\n            {map.Parameters[i].Type} {map.Parameters[i].Name} = default!");
         }
         _builder.Append("\r\n        )\r\n        {\r\n            ");
         _builder.Append("throw new System.NotImplementedException(\"This method is a stub and is not intended to be called\");\r\n        }");

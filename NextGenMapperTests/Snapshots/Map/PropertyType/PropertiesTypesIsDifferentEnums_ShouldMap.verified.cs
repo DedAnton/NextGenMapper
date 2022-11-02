@@ -6,9 +6,7 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination
-        (
-        )
+        internal static Test.Destination Map<To>(this Test.Source source) => new Test.Destination()
         {
             SameProperty = source.SameProperty.Map<Test.EnumB>()
         };
@@ -17,8 +15,7 @@ namespace NextGenMapper
         {
             Test.EnumA.Good => Test.EnumB.Good,
             Test.EnumA.Bad => Test.EnumB.Bad,
-            _ => throw new System.ArgumentOutOfRangeException("Error when mapping Test.EnumA to Test.EnumB")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(source), "Error when mapping Test.Source to Test.Destination")
         };
-
     }
 }

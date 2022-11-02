@@ -8,11 +8,12 @@ namespace NextGenMapper
     {
         internal static System.Collections.Generic.List<int> Map<To>(this int[] source)
         {
-            var destination = new System.Collections.Generic.List<int>(source.Length);
-            var sourceSpan = new System.Span<int>(source);
-            for (var i = 0; i < source.Length; i++)
+            var sourceCollection = new System.Span<int>(source);
+            var length = sourceCollection.Length;
+            var destination = new System.Collections.Generic.List<int>(length);
+            for (var i = 0; i < length; i++)
             {
-                destination.Add(sourceSpan[i]);
+                destination.Add(sourceCollection[i]);
             }
 
             return destination;
@@ -24,8 +25,6 @@ namespace NextGenMapper
             int forMapWith
         )
         => new Test.Destination
-        (
-        )
         {
             SameProperty = source.SameProperty.Map<System.Collections.Generic.List<int>>(),
             ForMapWith = forMapWith
@@ -40,6 +39,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

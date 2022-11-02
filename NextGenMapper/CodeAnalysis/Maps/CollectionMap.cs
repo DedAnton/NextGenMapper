@@ -9,6 +9,8 @@ namespace NextGenMapper.CodeAnalysis.Maps
         public CollectionType CollectionFrom { get; }
         public CollectionType CollectionTo { get; }
 
+        public bool IsItemsTypesEquals => SymbolEqualityComparer.Default.Equals(ItemFrom, ItemTo);
+
         public CollectionMap(
             ITypeSymbol from, 
             ITypeSymbol to, 

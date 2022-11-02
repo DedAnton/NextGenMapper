@@ -1,4 +1,5 @@
-﻿using NextGenMapper.CodeAnalysis.Maps;
+﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.CodeAnalysis.Maps;
 using System;
 
 namespace NextGenMapper.CodeGeneration;
@@ -77,12 +78,26 @@ internal ref partial struct MapperSourceBuilder
     {
         if (map.CollectionTo.IsArray() || map.CollectionTo.IsArrayInterface())
         {
-            _builder.Append("                destination[i] = sourceCollection[i];");
+            _builder.Append("                destination[i] = sourceCollection[i]");
+
+            if (!map.IsItemsTypesEquals && !_compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                _builder.Append($".Map<{map.ItemTo}>()");
+            }
         }
 
         if (map.CollectionTo.IsList() || map.CollectionTo.IsListInterface())
         {
-            _builder.Append("                destination.Add(sourceCollection[i]);");
+            _builder.Append("                destination.Add(sourceCollection[i]");
+
+            if (!map.IsItemsTypesEquals && !_compilation.HasImplicitConversion(map.ItemFrom, map.ItemTo))
+            {
+                _builder.Append($".Map<{map.ItemTo}>()");
+            }
+
+            _builder.Append(')');
         }
+
+        _builder.Append(';');
     }
 }

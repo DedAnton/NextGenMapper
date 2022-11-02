@@ -12,8 +12,6 @@ namespace NextGenMapper
             int forMapWith
         )
         => new Test.Destination
-        (
-        )
         {
             ForMapWith = forMapWith
         };
@@ -27,6 +25,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

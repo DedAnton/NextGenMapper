@@ -8,19 +8,18 @@ namespace NextGenMapper
     {
         internal static System.Collections.Generic.IEnumerable<long> Map<To>(this System.Collections.Generic.IEnumerable<int> source)
         {
-            if (!source.TryGetSpan(out var span))
+            if (!source.TryGetSpan(out var sourceCollection))
             {
-                span = System.Linq.Enumerable.ToArray(source);
+                sourceCollection = System.Linq.Enumerable.ToArray(source);
             }
-
-            var destination = new long[span.Length];
-            for (var i = 0; i < span.Length; i++)
+            var length = sourceCollection.Length;
+            var destination = new long[length];
+            for (var i = 0; i < length; i++)
             {
-                destination[i] = span[i];
+                destination[i] = sourceCollection[i];
             }
 
             return destination;
         }
-
     }
 }

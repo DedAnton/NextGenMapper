@@ -24,9 +24,6 @@ namespace NextGenMapper
             source.Property14,
             source.Property15,
             source.Property16
-        )
-        {
-        };
-
+        );
     }
 }

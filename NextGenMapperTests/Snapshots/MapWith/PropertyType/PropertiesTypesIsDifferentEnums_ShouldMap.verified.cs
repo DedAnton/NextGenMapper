@@ -10,7 +10,7 @@ namespace NextGenMapper
         {
             Test.EnumA.Good => Test.EnumB.Good,
             Test.EnumA.Bad => Test.EnumB.Bad,
-            _ => throw new System.ArgumentOutOfRangeException("Error when mapping Test.EnumA to Test.EnumB")
+            _ => throw new System.ArgumentOutOfRangeException(nameof(source), "Error when mapping Test.Source to Test.Destination")
         };
 
         internal static Test.Destination MapWith<To>
@@ -19,8 +19,6 @@ namespace NextGenMapper
             int forMapWith
         )
         => new Test.Destination
-        (
-        )
         {
             SameProperty = source.SameProperty.Map<Test.EnumB>(),
             ForMapWith = forMapWith
@@ -35,6 +33,5 @@ namespace NextGenMapper
         {
             throw new System.NotImplementedException("This method is a stub and is not intended to be called");
         }
-
     }
 }

@@ -6,12 +6,9 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static TypesFromDllTest.ClassFromDll Map<To>(this Test.Source source) => new TypesFromDllTest.ClassFromDll
-        (
-        )
+        internal static TypesFromDllTest.ClassFromDll Map<To>(this Test.Source source) => new TypesFromDllTest.ClassFromDll()
         {
             PropertyA = source.PropertyA
         };
-
     }
 }
