@@ -2,10 +2,12 @@
 {
     public static class StartMapperSource
     {
-        public static string MapFunctionFullName { get; set; } = "NextGenMapper.Mapper.Map<To>(object)";
-        public static string MapWithFunctionFullName { get; set; } = "NextGenMapper.Mapper.MapWith<To>(object)";
+        public const string MapMethodName = "Map";
+        public const string ConfiguredMapMethodName = "MapWith";
+        public const string MapMethodFullName = "NextGenMapper.Mapper.Map<To>(object)";
+        public const string MapWithMethodFullName = "NextGenMapper.Mapper.MapWith<To>(object)";
 
-        public static string StartMapper { get; set; } =
+        public const string StartMapper =
 @"using System;
 
 namespace NextGenMapper

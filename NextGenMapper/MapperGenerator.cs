@@ -1,327 +1,312 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.MapDesigners;
-using NextGenMapper.CodeAnalysis.Maps;
+using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.CodeGeneration;
+using NextGenMapper.Mapping.Comparers;
+using NextGenMapper.Mapping.Designers;
+using NextGenMapper.Mapping.Maps;
+using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.PostInitialization;
+using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace NextGenMapper
+namespace NextGenMapper;
+
+public class MapperGenerator : IIncrementalGenerator
 {
-    [Generator]
-    public class MapperGenerator : ISourceGenerator
+    public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        public void Initialize(GeneratorInitializationContext context)
+        PostInitialization(context);
+
+        var configuredMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsConfiguredMapMethodInvocationSynaxNode(node),
+            static (context, _) => TargetFinder.GetConfiguredMapTarget(context.Node, context.SemanticModel));
+
+        var configuredMapsTargetsDiagnostics = configuredMapsTargets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+        context.ReportDiagnostics(configuredMapsTargetsDiagnostics);
+
+        var filteredConfiguredMapsTargets = configuredMapsTargets
+            .Where(static x => x.Type is TargetType.ConfiguredMap)
+            .Select(static (x, _) => x.ConfiguredMapTarget);
+
+        var configuredMapWithoutArgumentsDiagnostics = filteredConfiguredMapsTargets
+            .Where(static x => !x.IsCompleteMethod)
+            .Select(static (x, _) => Diagnostics.MapWithMethodWithoutArgumentsError(x.Location));
+        context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
+
+        var NotNamedArgumentsDiagnostics = filteredConfiguredMapsTargets
+            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Select(static (x, _) => Diagnostics.MapWithArgumentMustBeNamed(x.Location));
+        context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
+
+        var configuredMapsAndRelated = filteredConfiguredMapsTargets
+            .SelectMany(static (x, _) => ConfiguredMapDesigner.DesignConfiguredMaps(x));
+
+        var configuredMapsDiagnostics = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.Error)
+            .Select(static (x, _) => x.ErrorMap.Diagnostic);
+        context.ReportDiagnostics(configuredMapsDiagnostics);
+
+        var configuredMaps = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.ConfiguredMap)
+            .Select(static (x, _) => x.ConfiguredMap)
+            .Collect()
+            .Distinct(new ConfiguredMapComparer());
+
+        context.RegisterSourceOutput(configuredMaps, (sourceProductionContext, maps) =>
         {
-            //#if DEBUG
-            //if (!System.Diagnostics.Debugger.IsAttached)
-            //{
-            //    System.Diagnostics.Debugger.Launch();
-            //}
-            //#endif 
-            context.RegisterForPostInitialization(i =>
+            var sourceBuilder = new ConfiguredMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_ConfiguredMaps.g", mapperClassSource);
+        });
+
+        var configuredMapsMockMethods = configuredMaps
+            .Select((x, _) =>
             {
-                i.AddSource("MapperExtensions.g", ExtensionsSource.Source);
-                i.AddSource("StartMapper.g", StartMapperSource.StartMapper);
+                var mockMethodsHashSet = new HashSet<ConfiguredMapMockMethod>(new ConfiguredMapMockMethodComparer());
+                var mockMethodsMaxCount = x.Sum(y => y.MockMethods.Length);
+                var mockMethodsCount = 0;
+                Span<ConfiguredMapMockMethod> mockMethods = new ConfiguredMapMockMethod[mockMethodsMaxCount];
+                foreach (var map in x.AsSpan())
+                {
+                    mockMethodsHashSet.Add(new ConfiguredMapMockMethod(map.Source, map.Destination, map.UserArguments));
+                    foreach (var mockMethod in map.MockMethods.AsSpan())
+                    {
+                        if (!mockMethodsHashSet.Contains(mockMethod))
+                        {
+                            mockMethodsHashSet.Add(mockMethod);
+                            mockMethods[mockMethodsCount] = mockMethod;
+                            mockMethodsCount++;
+                        }
+                    }
+                }
+
+                return Unsafe.CastSpanToImmutableArray(mockMethods.Slice(0, mockMethodsCount));
             });
 
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-        }
-
-        public void Execute(GeneratorExecutionContext context)
+        context.RegisterSourceOutput(configuredMapsMockMethods, (sourceProductionContext, mockMethods) =>
         {
-            try
-            {
-                ExecuteInternal(context);
-            }
-            catch (Exception ex)
-            {
-                context.ReportDiagnostic(Diagnostic.Create(Diagnostics.MapperInternalError, null, ex.GetType(), ex.Message));
-            }
-        }
+            var sourceBuilder = new ConfiguredMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(mockMethods);
 
-        private void ExecuteInternal(GeneratorExecutionContext context)
+            sourceProductionContext.AddSource("Mapper_ConfiguredMaps_MockMethods.g", mapperClassSource);
+        });
+
+        var userMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsUserMapMethodDeclarationSyntaxNode(node),
+            static (context, _) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel));
+
+        var userMapsTargetsDiagnostics = userMapsTargets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+        context.ReportDiagnostics(userMapsTargetsDiagnostics);
+
+        var userMapsHashSet = userMapsTargets
+            .Where(static x => x.Type is TargetType.UserMap)
+            .Select(static (x, _) => UserMapDesigner.DesingUserMaps(x.UserMapTarget))
+            .Collect()
+            .Select(static (x, _) => new HashSet<UserMap>(x));
+
+        var mapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsMapMethodInvocationSyntaxNode(node),
+            static (context, _) => TargetFinder.GetMapTarget(context.Node, context.SemanticModel));
+
+        var mapsTargetsDiagnostics = mapsTargets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+        context.ReportDiagnostics(userMapsTargetsDiagnostics);
+
+        var maps = mapsTargets
+            .Where(static x => x.Type is TargetType.Map)
+            .SelectMany(static (x, _) => MapDesigner.DesignMaps(x.MapTarget));
+
+        var mapsDiagnostics = maps
+            .Where(static x => x.Type is MapType.Error)
+            .Select(static (x, _) => x.ErrorMap.Diagnostic);
+        context.ReportDiagnostics(mapsDiagnostics);
+
+        var relatedClassMaps = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.ClassMap)
+            .Select(static (x, _) => x.ClassMap);
+
+        var classMaps = maps
+            .Where(static x => x.Type is MapType.ClassMap)
+            .Select(static (x, _) => x.ClassMap)
+            .Concat(relatedClassMaps)
+            .Distinct(EqualityComparer<ClassMap>.Default)
+            .RemoveUserMaps(userMapsHashSet);
+
+        context.RegisterSourceOutput(classMaps, (sourceProductionContext, maps) =>
         {
-            var mapPlanner = new MapPlanner();
-            var diagnosticReporter = new DiagnosticReporter();
+            var sourceBuilder = new ClassMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
-            if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+            sourceProductionContext.AddSource("Mapper_ClassMaps.g", mapperClassSource);
+        });
+
+        var relatedCollectionMaps = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.CollectionMap)
+            .Select(static (x, _) => x.CollectionMap);
+
+        var collectionMaps = maps
+            .Where(static x => x.Type is MapType.CollectionMap)
+            .Select(static (x, _) => x.CollectionMap)
+            .Concat(relatedCollectionMaps)
+            .Distinct(EqualityComparer<CollectionMap>.Default)
+            .RemoveUserMaps(userMapsHashSet);
+
+        context.RegisterSourceOutput(collectionMaps, (sourceProductionContext, maps) =>
+        {
+            var sourceBuilder = new CollectionMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_CollectionMaps.g", mapperClassSource);
+        });
+
+        var relatedEnumMaps = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.EnumMap)
+            .Select(static (x, _) => x.EnumMap);
+
+        var enumMaps = maps
+            .Where(static x => x.Type is MapType.EnumMap)
+            .Select(static (x, _) => x.EnumMap)
+            .Concat(relatedEnumMaps)
+            .Distinct(EqualityComparer<EnumMap>.Default)
+            .RemoveUserMaps(userMapsHashSet);
+
+        context.RegisterSourceOutput(enumMaps, (sourceProductionContext, maps) =>
+        {
+            var sourceBuilder = new EnumMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_EnumMaps.g", mapperClassSource);
+        });
+
+        var mapsPostValidationDiagnostics = classMaps
+            .Combine(collectionMaps)
+            .Combine(enumMaps)
+            .Combine(configuredMaps)
+            .Combine(userMapsHashSet)
+            .SelectMany(static (x, _) =>
             {
-                return;
-            }
+                var ((((classMaps, collectionMaps), enumMaps), configuredMaps), userMaps) = x;
+                var mapsHashSet = new HashSet<IMap>();
+                var diagnostics = new List<Diagnostic>();
 
-            foreach (var userMapMethod in receiver.UserMapMethods)
-            {
-                if (userMapMethod.SemanticModel.GetDeclaredSymbol(userMapMethod.Node) is IMethodSymbol method
-                    && !method.IsAsync
-                    && method.MethodKind == MethodKind.Ordinary
-                    && method.IsDefinition
-                    && method.IsStatic
-                    && method.Name == "Map"
-                    && method.Parameters.Length == 1
-                    && method.ReturnType is not ITypeParameterSymbol)
+                foreach (var map in classMaps.AsSpan())
                 {
-                    var methodLocation = userMapMethod.Node.GetLocation();
-                    if (!method.IsExtensionMethod)
+                    if (!mapsHashSet.Contains(map))
                     {
-                        diagnosticReporter.ReportMapMethodMustBeExtension(methodLocation);
-                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
-                        continue;
-                    }
-
-                    if (!method.IsGenericMethod || method.TypeParameters.Length != 1)
-                    {
-                        diagnosticReporter.ReportMapMethodMustBeGeneric(methodLocation);
-                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
-                        continue;
-                    }
-
-                    if (method.ReturnsVoid)
-                    {
-                        diagnosticReporter.ReportMapMethodMustNotReturnVoid(methodLocation);
-                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
-                        continue;
-                    }
-
-                    if (method.DeclaredAccessibility != Accessibility.Internal)
-                    {
-                        diagnosticReporter.ReportMapMethodMustBeInternal(methodLocation);
-                        mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
-                        continue;
-                    }
-
-                    mapPlanner.AddUserDefinedMap(method.Parameters[0].Type, method.ReturnType);
-                }
-            }
-
-            foreach (var mapMethodInvocation in receiver.MapMethodInvocations)
-            {
-                if (mapMethodInvocation.SemanticModel.GetSymbolInfo(mapMethodInvocation.Node.Expression).Symbol is IMethodSymbol method
-                    && method.MethodKind == MethodKind.ReducedExtension
-                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapFunctionFullName
-                    && mapMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapMethodInvocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type is ITypeSymbol fromType
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(fromType, method.ReturnType))
-                {
-                    var mapInvocationLocation = memberAccess.GetLocation();
-
-                    if (fromType.TypeKind != method.ReturnType.TypeKind
-                        && !MapDesignersHelper.IsCollectionMapping(fromType, method.ReturnType))
-                    {
-                        diagnosticReporter.ReportTypesKindsMismatch(mapInvocationLocation, fromType, method.ReturnType);
-                        continue;
-                    }
-
-                    if (fromType.TypeKind == TypeKind.Struct || method.ReturnType.TypeKind == TypeKind.Struct)
-                    {
-                        diagnosticReporter.ReportStructNotSupported(mapInvocationLocation);
-                        continue;
-                    }
-
-                    if (SymbolEqualityComparer.Default.Equals(fromType, method.ReturnType))
-                    {
-                        diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
-                        continue;
-                    }
-
-                    if (context.Compilation.HasImplicitConversion(fromType, method.ReturnType))
-                    {
-                        diagnosticReporter.ReportMappedTypesHasImplicitConversion(mapInvocationLocation, fromType, method.ReturnType);
-                        continue;
-                    }
-
-                    var designer = new TypeMapDesigner(diagnosticReporter, mapPlanner, mapMethodInvocation.SemanticModel);
-                    var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, mapInvocationLocation);
-                    foreach (var map in maps)
-                    {
-                        mapPlanner.AddMap(map);
+                        mapsHashSet.Add(map);
                     }
                 }
-            }
-
-            foreach (var mapWithMethodInvocation in receiver.MapWithMethodInvocations)
-            {
-                var invocationMethodSymbolInfo = mapWithMethodInvocation.SemanticModel.GetSymbolInfo(mapWithMethodInvocation.Node.Expression);
-                var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
-                var isStubMethod = true;
-                if (invocationMethodSymbol is null
-                    && invocationMethodSymbolInfo.CandidateSymbols.Length == 1
-                    && invocationMethodSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
-                    && mapWithMethodInvocation.Arguments.Length > 0)
+                foreach (var map in collectionMaps.AsSpan())
                 {
-                    invocationMethodSymbol = invocationMethodSymbolInfo.CandidateSymbols[0];
-                    isStubMethod = false;
+                    if (!mapsHashSet.Contains(map))
+                    {
+                        mapsHashSet.Add(map);
+                    }
+                }
+                foreach (var map in enumMaps.AsSpan())
+                {
+                    if (!mapsHashSet.Contains(map))
+                    {
+                        mapsHashSet.Add(map);
+                    }
+                }
+                foreach (var map in configuredMaps.AsSpan())
+                {
+                    if (!mapsHashSet.Contains(map))
+                    {
+                        mapsHashSet.Add(map);
+                    }
+                }
+                foreach (var map in userMaps)
+                {
+                    if (!mapsHashSet.Contains(map))
+                    {
+                        mapsHashSet.Add(map);
+                    }
                 }
 
-                if (invocationMethodSymbol is IMethodSymbol method
-                    && method.MethodKind == MethodKind.ReducedExtension
-                    && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithFunctionFullName
-                    && mapWithMethodInvocation.Node.Expression is MemberAccessExpressionSyntax memberAccess
-                    && mapWithMethodInvocation.SemanticModel.GetTypeInfo(memberAccess.Expression).Type is ITypeSymbol fromType)
+                void ValidatePropertyMap(IMap map, PropertyMap propertyMap)
                 {
-                    var mapInvocationLocation = memberAccess.GetLocation();
-
-                    if (!MapDesignersHelper.IsClassMapping(fromType, method.ReturnType))
+                    if (!propertyMap.IsTypesEquals
+                        && !propertyMap.HasImplicitConversion
+                        && !mapsHashSet.Contains(propertyMap))
                     {
-                        diagnosticReporter.ReportNotSupportetForMapWith(mapInvocationLocation, fromType, method.ReturnType);
+                        var diagnostic = Diagnostics.MappingFunctionForPropertiesNotFound(
+                            Location.None,
+                            map.Source,
+                            propertyMap.SourceName,
+                            propertyMap.SourceType,
+                            map.Destination,
+                            propertyMap.DestinationName,
+                            propertyMap.DestinationType);
+                        diagnostics.Add(diagnostic);
+                    }
+                }
+
+                foreach (var map in classMaps.AsSpan())
+                {
+                    foreach(var propertyMap in map.ConstructorProperties)
+                    {
+                        ValidatePropertyMap(map, propertyMap);
+                    }
+                    foreach (var propertyMap in map.InitializerProperties)
+                    {
+                        ValidatePropertyMap(map, propertyMap);
+                    }
+                }
+
+                foreach(var map in collectionMaps)
+                {
+                    if (map.IsItemsEquals || map.IsItemsHasImpicitConversion)
+                    {
                         continue;
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(fromType, method.ReturnType))
+                    var collectionItemsMap = (IMap)new UserMap(map.SourceItem, map.DestinationItem);
+                    if (!mapsHashSet.Contains(collectionItemsMap))
                     {
-                        diagnosticReporter.ReportMappedTypesEquals(mapInvocationLocation);
-                        continue;
-                    }
-
-                    if (context.Compilation.HasImplicitConversion(fromType, method.ReturnType))
-                    {
-                        diagnosticReporter.ReportMappedTypesHasImplicitConversion(mapInvocationLocation, fromType, method.ReturnType);
-                        continue;
-                    }
-
-                    var argumentsNames = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-                    foreach (var argument in mapWithMethodInvocation.Arguments)
-                    {
-                        var argumentName = argument.NameColon?.Name.Identifier.ValueText;
-                        if (argumentName is not null)
-                        {
-                            argumentsNames.Add(argumentName);
-                        }
-                        else
-                        {
-                            diagnosticReporter.ReportMapWithArgumentMustBeNamed(mapInvocationLocation);
-                        }
-                    }
-
-                    var designer = new TypeMapWithDesigner(diagnosticReporter, mapPlanner, mapWithMethodInvocation.SemanticModel);
-
-                    var mapWithStubs = designer.DesignStubMethodMap(fromType, method.ReturnType, mapInvocationLocation);
-                    if (isStubMethod)
-                    {
-                        diagnosticReporter.ReportMapWithMethodWithoutArgumentsError(mapInvocationLocation);
-                        foreach (var mapWithStub in mapWithStubs)
-                        {
-                            if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, mapWithStub.Parameters))
-                            {
-                                var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
-                                for (var i = 0; i < mapWithStub.Parameters.Length; i++)
-                                {
-                                    argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
-                                }
-                                if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, argumentsFromParameters))
-                                {
-                                    mapPlanner.AddMapWithStub(mapWithStub);
-                                }
-                            }
-                        }
-                        continue;
-                    }
-                    else
-                    {
-                        var maps = designer.DesignMapsForPlanner(fromType, method.ReturnType, argumentsNames, mapInvocationLocation);
-                        foreach (var map in maps)
-                        {
-                            if (map is ClassMapWith classMapWith)
-                            {
-                                if (mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.FromType, classMapWith.ToType, classMapWith.Arguments))
-                                {
-                                    diagnosticReporter.ReportDuplicateMapWithFunction(mapInvocationLocation, fromType, method.ReturnType);
-                                }
-                                mapPlanner.AddMapWith(classMapWith);
-
-                                foreach (var mapWithStub in mapWithStubs)
-                                {
-                                    if (!mapPlanner.IsTypesMapWithStubAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, mapWithStub.Parameters))
-                                    {
-                                        var argumentsFromParameters = new MapWithInvocationAgrument[mapWithStub.Parameters.Length];
-                                        for (var i = 0; i < mapWithStub.Parameters.Length; i++)
-                                        {
-                                            argumentsFromParameters[i] = new MapWithInvocationAgrument(mapWithStub.Parameters[i].Name, mapWithStub.Parameters[i].Type);
-                                        }
-                                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(mapWithStub.FromType, mapWithStub.ToType, argumentsFromParameters))
-                                        {
-                                            var isParametersEqualArguments = classMapWith.Arguments.Length == mapWithStub.Parameters.Length;
-                                            for (var i = 0; i < classMapWith.Arguments.Length; i++)
-                                            {
-                                                isParametersEqualArguments = isParametersEqualArguments
-                                                    && SymbolEqualityComparer.Default.Equals(classMapWith.Arguments[i].Type, mapWithStub.Parameters[i].Type);
-                                            }
-                                            if (!isParametersEqualArguments)
-                                            {
-                                                mapPlanner.AddMapWithStub(mapWithStub);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                mapPlanner.AddMap(map);
-                            }
-                        }
+                        var diagnostic = Diagnostics.MappingFunctionNotFound(Location.None, map.Source, map.Destination);
+                        diagnostics.Add(diagnostic);
                     }
                 }
-            }
 
-            foreach (var map in mapPlanner.Maps)
-            {
-                if (map is CollectionMap collectionMap
-                    && !collectionMap.ItemFrom.Equals(collectionMap.ItemTo, SymbolEqualityComparer.Default)
-                    && !mapPlanner.IsTypesMapAlreadyPlanned(collectionMap.ItemFrom, collectionMap.ItemTo)
-                    && !context.Compilation.HasImplicitConversion(collectionMap.ItemFrom, collectionMap.ItemTo))
+                foreach (var map in configuredMaps.AsSpan())
                 {
-                    diagnosticReporter.ReportMappingFunctionNotFound(collectionMap.MapLocation, collectionMap.ItemFrom, collectionMap.ItemTo);
-                }
-
-                if (map is ClassMap classMap)
-                {
-                    if (classMap is ClassMapWith classMapWith)
+                    foreach (var propertyMap in map.ConstructorProperties)
                     {
-                        if (!mapPlanner.IsTypesMapWithAlreadyPlanned(classMapWith.FromType, classMapWith.ToType, classMapWith.Arguments))
-                        {
-                            diagnosticReporter.ReportMappingFunctionNotFound(classMapWith.MapLocation, classMapWith.FromType, classMapWith.ToType);
-                        }
+                        ValidatePropertyMap(map, propertyMap);
                     }
-                    else
+                    foreach (var propertyMap in map.InitializerProperties)
                     {
-                        if (!mapPlanner.IsTypesMapAlreadyPlanned(classMap.FromType, classMap.ToType))
-                        {
-                            diagnosticReporter.ReportMappingFunctionNotFound(classMap.MapLocation, classMap.FromType, classMap.ToType);
-                        }
-                    }
-
-                    foreach (var constructorProperty in classMap.ConstructorProperties)
-                    {
-                        if (!constructorProperty.IsSameTypes
-                            && !mapPlanner.IsTypesMapAlreadyPlanned(constructorProperty.FromType, constructorProperty.ToType)
-                            && !context.Compilation.HasImplicitConversion(constructorProperty.FromType, constructorProperty.ToType))
-                        {
-                            diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
-                                classMap.MapLocation, classMap.FromType, constructorProperty.FromName, constructorProperty.FromType, classMap.ToType, constructorProperty.ToName, constructorProperty.ToType);
-                        }
-                    }
-
-                    foreach (var initializerProperty in classMap.InitializerProperties)
-                    {
-                        if (!initializerProperty.IsSameTypes
-                            && !mapPlanner.IsTypesMapAlreadyPlanned(initializerProperty.FromType, initializerProperty.ToType)
-                            && !context.Compilation.HasImplicitConversion(initializerProperty.FromType, initializerProperty.ToType))
-                        {
-                            diagnosticReporter.ReportMappingFunctionForPropertyNotFound(
-                                classMap.MapLocation, classMap.FromType, initializerProperty.FromName, initializerProperty.FromType, classMap.ToType, initializerProperty.ToName, initializerProperty.ToType);
-                        }
+                        ValidatePropertyMap(map, propertyMap);
                     }
                 }
-            }
-            var mapperClassBuilder = new MapperSourceBuilder(context.Compilation);
-            var mapperSourceCode = mapperClassBuilder.BuildMapperClass(mapPlanner.Maps);
-            context.AddSource($"Mapper.g", mapperSourceCode);
 
-            diagnosticReporter.GetDiagnostics().ForEach(x => context.ReportDiagnostic(x));
-        }
+                var diagnosticsArray = diagnostics.ToArray();
+                return Unsafe.CastArrayToImmutableArray(ref diagnosticsArray);
+            });
+        context.ReportDiagnostics(mapsPostValidationDiagnostics);
+    }
+
+    private void PostInitialization(IncrementalGeneratorInitializationContext context)
+    {
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            "MapperExtensions.g",
+            SourceText.From(ExtensionsSource.Source, Encoding.UTF8)));
+
+        context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
+            "StartMapper.g",
+            SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8)));
     }
 }

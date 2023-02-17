@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace NextGenMapper.Utils;
 
-internal ref partial struct ValueListBuilder<T>
+internal ref struct ValueListBuilder<T>
 {
     private Span<T> _span;
     private T[]? _arrayFromPool;
@@ -18,6 +18,13 @@ internal ref partial struct ValueListBuilder<T>
     {
         _span = initialSpan;
         _arrayFromPool = null;
+        _pos = 0;
+    }
+
+    public ValueListBuilder(int initialCapacity)
+    {
+        _arrayFromPool = ArrayPool<T>.Shared.Rent(initialCapacity);
+        _span = _arrayFromPool;
         _pos = 0;
     }
 

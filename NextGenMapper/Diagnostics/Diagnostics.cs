@@ -1,10 +1,18 @@
 ﻿using Microsoft.CodeAnalysis;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace NextGenMapper
 {
     public static class Diagnostics
     {
-        public static readonly DiagnosticDescriptor CircularReferenceError = new(
+        public static Diagnostic CircularReferenceError(Location location, IEnumerable<ITypeSymbol> circularReferencedTypes)
+        {
+            var circularReferencePath = string.Join(" => ", circularReferencedTypes.Select(x => x.Name));
+
+            return Diagnostic.Create(CircularReferenceErrorDiscriptor, location, circularReferencePath);
+        }
+        public static readonly DiagnosticDescriptor CircularReferenceErrorDiscriptor = new(
             id: "NGM001",
             title: "Circular reference was found",
             messageFormat: "Circular reference {0}",
@@ -12,7 +20,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor ConstructorNotFoundError = new(
+        public static Diagnostic ConstructorNotFoundError(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ConstructorNotFoundErrorDiscriptor, location, from, to);
+        public static readonly DiagnosticDescriptor ConstructorNotFoundErrorDiscriptor = new(
             id: "NGM002",
             title: "Constructor was not found",
             messageFormat: "Constructor for mapping from {0} to {1} was not found, make sure that the {1} has a public constructor whose parameters correspond to the properties of the {0}",
@@ -20,7 +30,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor UndefinedCollectionTypeError = new(
+        public static Diagnostic UndefinedCollectionTypeError(Location location)
+            => Diagnostic.Create(ConstructorNotFoundErrorDiscriptor, location);
+        public static readonly DiagnosticDescriptor UndefinedCollectionTypeErrorDescriptor = new(
             id: "NGM003",
             title: "Mapped collection type was undefined",
             messageFormat: "Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>",
@@ -28,15 +40,20 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor UnmappedEnumValueError = new(
+        public static Diagnostic UnmappedEnumValue(Location location, ITypeSymbol from, ITypeSymbol to, string notMappedValue)
+            => Diagnostic.Create(UnmappedEnumValueDescriptor, location, from, to, notMappedValue);
+        public static readonly DiagnosticDescriptor UnmappedEnumValueDescriptor = new(
             id: "NGM004",
             title: "Enum value was unmapped",
-            messageFormat: "Value {0}.{2} cant be mapped to {1} enum, make sure that {2} has value with same name or constant value",
+            messageFormat: "Enum value {0}.{2} can not be mapped to {1}, make sure that {1} has value with same name or constant value",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapWithMethodWithoutArgumentsError = new(
+
+        public static Diagnostic MapWithMethodWithoutArgumentsError(Location location)
+            => Diagnostic.Create(MapWithMethodWithoutArgumentsErrorDescriptor, location);
+        public static readonly DiagnosticDescriptor MapWithMethodWithoutArgumentsErrorDescriptor = new(
             id: "NGM005",
             title: "'MapWith' method without arguments",
             messageFormat: "Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.",
@@ -44,7 +61,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapWithArgumentMustBeNamed = new(
+        public static Diagnostic MapWithArgumentMustBeNamed(Location location)
+            => Diagnostic.Create(MapWithArgumentMustBeNamedDescriptor, location);
+        public static readonly DiagnosticDescriptor MapWithArgumentMustBeNamedDescriptor = new(
             id: "NGM006",
             title: "All arguments for method 'MapWith' must be named",
             messageFormat: "All arguments for method 'MapWith' must be named",
@@ -52,7 +71,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapWithNotSupportedForMapWith = new(
+        public static Diagnostic MapWithNotSupportedForMapWith(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(MapWithNotSupportedForMapWithDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor MapWithNotSupportedForMapWithDescriptor = new(
             id: "NGM007",
             title: "Not supported for 'MapWith' method",
             messageFormat: "Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping",
@@ -60,7 +81,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MappingFunctionNotFound = new(
+        public static Diagnostic MappingFunctionNotFound(Location location, string from, string to)
+            => Diagnostic.Create(MappingFunctionNotFoundDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor MappingFunctionNotFoundDescriptor = new(
             id: "NGM008",
             title: "Mapping function was not found",
             messageFormat: "Mapping function for mapping '{0}' to '{1}' was not found",
@@ -68,7 +91,24 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MappingFunctionForPropertiesNotFound = new(
+        public static Diagnostic MappingFunctionForPropertiesNotFound(
+            Location location,
+            string fromContainedType,
+            string fromProperty,
+            string fromType,
+            string toContainedType,
+            string toProperty,
+            string toType)
+            => Diagnostic.Create(
+                MappingFunctionForPropertiesNotFoundDescriptor, 
+                location, 
+                fromContainedType, 
+                fromProperty, 
+                fromType, 
+                toContainedType, 
+                toProperty, 
+                toType);
+        public static readonly DiagnosticDescriptor MappingFunctionForPropertiesNotFoundDescriptor = new(
             id: "NGM009",
             title: "Mapping function for properties was not found",
             messageFormat: "Mapping function for mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' was not found",
@@ -76,7 +116,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor DuplicateMapWithFunction = new(
+        public static Diagnostic DuplicateMapWithFunction(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(DuplicateMapWithFunctionDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor DuplicateMapWithFunctionDescriptor = new(
             id: "NGM010",
             title: "Duplicate 'MapWith' function",
             messageFormat: "Can`t use two different custom mapping functions 'MapWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type",
@@ -84,7 +126,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInSource = new(
+        public static Diagnostic SuitablePropertyNotFoundInSource(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(SuitablePropertyNotFoundInSourceDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInSourceDescriptor = new(
             id: "NGM011",
             title: "Suitable property for mapping was not found",
             messageFormat: "Source class {0} has no properties suitable for mapping to {1}",
@@ -92,7 +136,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInDestination = new(
+        public static Diagnostic SuitablePropertyNotFoundInDestination(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(SuitablePropertyNotFoundInDestinationDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor SuitablePropertyNotFoundInDestinationDescriptor = new(
             id: "NGM012",
             title: "Suitable property for mapping was not found",
             messageFormat: "Destination class {1} has no properties suitable for mapping from {0}",
@@ -100,7 +146,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor NoPropertyMatches = new(
+        public static Diagnostic NoPropertyMatches(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(NoPropertyMatchesDiscriptor, location, from, to);
+        public static readonly DiagnosticDescriptor NoPropertyMatchesDiscriptor = new(
             id: "NGM013",
             title: "No property matches",
             messageFormat: "None of the properties of class {0} match the properties of class {1}",
@@ -108,7 +156,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor StructNotSupported = new(
+
+        public static Diagnostic StructNotSupported(Location location) 
+            => Diagnostic.Create(StructNotSupportedDescriptor, location);
+        public static readonly DiagnosticDescriptor StructNotSupportedDescriptor = new(
             id: "NGM014",
             title: "Struct not supported",
             messageFormat: "Mapping from/to struct is not supported",
@@ -116,7 +167,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MappedTypesEquals = new(
+
+        public static Diagnostic MappedTypesEquals(Location location) 
+            => Diagnostic.Create(MappedTypesEqualsDescriptor, location);
+        public static readonly DiagnosticDescriptor MappedTypesEqualsDescriptor = new(
             id: "NGM015",
             title: "Mapped types are equals",
             messageFormat: "Types for mapping must not be equals",
@@ -124,7 +178,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor TypesKindsMismatch = new(
+
+        public static Diagnostic TypesKindsMismatch(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(TypesKindsMismatchDescriptor, location, from, to, from.TypeKind, to.TypeKind);
+        public static readonly DiagnosticDescriptor TypesKindsMismatchDescriptor = new(
             id: "NGM016",
             title: "Types kinds does not match",
             messageFormat: "Error when mapping {0} to {1}, mapping from {2} to {3} is not supported",
@@ -132,7 +189,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapMethodMustBeExtension = new(
+        public static Diagnostic MapMethodMustBeExtension(Location location)
+            => Diagnostic.Create(MapMethodMustBeExtensionDescriptor, location);
+        public static readonly DiagnosticDescriptor MapMethodMustBeExtensionDescriptor = new(
             id: "NGM017",
             title: "Map method must be extension",
             messageFormat: "Custom map method must be extension method",
@@ -140,7 +199,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapMethodMustBeGeneric = new(
+        public static Diagnostic MapMethodMustBeGeneric(Location location)
+            => Diagnostic.Create(MapMethodMustBeGenericDescriptor, location);
+        public static readonly DiagnosticDescriptor MapMethodMustBeGenericDescriptor = new(
             id: "NGM018",
             title: "Map method must be generic with single type parameter",
             messageFormat: "Custom map method must be generic method with single type parameter",
@@ -148,15 +209,19 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapMethodMustNotReturnVoid = new(
+        public static Diagnostic MapMethodMustNotReturnVoid(Location location)
+            => Diagnostic.Create(MapMethodMustNotReturnVoidDescriptor, location);
+        public static readonly DiagnosticDescriptor MapMethodMustNotReturnVoidDescriptor = new(
             id: "NGM019",
             title: "Map method must not return void",
             messageFormat: "Custom map method must not return void, map method must return destination type",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
-        
-        public static readonly DiagnosticDescriptor MapMethodMustBeInternal = new(
+
+        public static Diagnostic MapMethodMustBeInternal(Location location)
+            => Diagnostic.Create(MapMethodMustBeInternalDescriptor, location);
+        public static readonly DiagnosticDescriptor MapMethodMustBeInternalDescriptor = new(
             id: "NGM020",
             title: "Map method must be internal",
             messageFormat: "Custom map method must have 'internal' access modifier",
@@ -164,7 +229,10 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MappedTypesHasImplicitConversion = new(
+
+        public static Diagnostic MappedTypesHasImplicitConversion(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(MappedTypesHasImplicitConversionDescriptor, location, from, to);
+        private static readonly DiagnosticDescriptor MappedTypesHasImplicitConversionDescriptor = new(
             id: "NGM021",
             title: "Mapped types has implicit conversion",
             messageFormat: "Mapped types has implicit conversion from {0} to {1}",
@@ -172,7 +240,17 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor PossibleNullReference = new(
+
+        public static Diagnostic PossibleNullReference(
+            Location location, 
+            ITypeSymbol fromContainedType,
+            string fromProperty,
+            ITypeSymbol fromType,
+            ITypeSymbol toContainedType,
+            string toProperty,
+            ITypeSymbol toType)
+            => Diagnostic.Create(PossibleNullReferenceDescriptor, location, fromContainedType, fromProperty, fromType, toContainedType, toProperty, toType);
+        public static readonly DiagnosticDescriptor PossibleNullReferenceDescriptor = new(
             id: "NGM022",
             title: "Possible null reference",
             messageFormat: "Possible null reference exception when mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}'",
@@ -180,12 +258,24 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static readonly DiagnosticDescriptor MapperInternalError = new(
+        public static Diagnostic MapperInternalError(Location location, System.Exception exception)
+            => Diagnostic.Create(MapperInternalErrorDescriptor, location, exception.GetType().Name, exception.Message);
+        public static readonly DiagnosticDescriptor MapperInternalErrorDescriptor = new(
             id: "NGM023",
             title: "Mapped internal error",
             messageFormat: "An error occurred while mapping, this is an internal mapper error that was not your fault, please create an issue on github, exception type: {0}, message: {1}",
             category: "NextGenMapper",
-            DiagnosticSeverity.Warning,
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic MappingNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(MappingNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor MappingNotSupportedDescriptor = new(
+            id: "NGM024",
+            title: "Mapping not supported",
+            messageFormat: "Mapping from {0} to {1} not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
             isEnabledByDefault: true);
     }
 }

@@ -23,11 +23,7 @@ namespace Benchmark.Benchmarks
                 syntaxTrees: syntaxTrees,
                 references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            var driver = CSharpGeneratorDriver.Create(
-                generators: ImmutableArray.Create(new MapperGenerator()),
-                additionalTexts: ImmutableArray<AdditionalText>.Empty,
-                parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                optionsProvider: null);
+            var driver = CSharpGeneratorDriver.Create(new MapperGenerator());
 
             var sw = new Stopwatch();
             sw.Start();

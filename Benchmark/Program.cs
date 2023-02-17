@@ -7,7 +7,7 @@ internal class Program
 {
     private static void Main()
     {
-        BenchmarkRunner.Run<SourceStringBuilding>();
+        BenchmarkRunner.Run<ListVsLinkedList>();
 
         //OldBigBanchmark.Run(1000);
         // 1    - 00:00:00.9161159 -> 00:00:00.8977854

@@ -295,6 +295,41 @@ public class DestinationC
     }
 
     [TestMethod]
+    public Task TwoPropertiesWithSameClass_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
+
+public class Source
+{
+    public InnerSource Inner1 { get; set; } = new();
+    public InnerSource Inner2 { get; set; } = new(); 
+}
+public class InnerSource
+{
+    public int Property { get; set; } = 1;
+}
+public class Destination
+{
+    public InnerDestination Inner1 { get; set; } = new();
+    public InnerDestination Inner2 { get; set; } = new(); 
+}
+public class InnerDestination
+{
+    public int Property { get; set; } = 1;
+}
+";
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
     public Task TypesNotEqualsAndCanNotBeMapped_Diagnostic()
     {
         var source =

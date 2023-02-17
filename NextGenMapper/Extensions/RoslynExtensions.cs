@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis.Models;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace NextGenMapper.Extensions
@@ -28,18 +28,18 @@ namespace NextGenMapper.Extensions
             return false;
         }
 
-        public static EnumField[] GetFields(this EnumDeclarationSyntax enumDeclaration)
-        {
-            var fields = new EnumField[enumDeclaration.Members.Count];
-            for (int i = 0; i < enumDeclaration.Members.Count; i++)
-            {
-                fields[i] = new EnumField(
-                    enumDeclaration.Members[i].Identifier.ValueText,
-                    enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value?.UnboxToLong());
-            }
+        //public static EnumField[] GetFields(this EnumDeclarationSyntax enumDeclaration)
+        //{
+        //    var fields = new EnumField[enumDeclaration.Members.Count];
+        //    for (int i = 0; i < enumDeclaration.Members.Count; i++)
+        //    {
+        //        fields[i] = new EnumField(
+        //            enumDeclaration.Members[i].Identifier.ValueText,
+        //            enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value?.UnboxToLong());
+        //    }
 
-            return fields;
-        }
+        //    return fields;
+        //}
 
         public static Span<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
         {
@@ -94,6 +94,25 @@ namespace NextGenMapper.Extensions
             return properties.Slice(0, count);
         }
 
+        public static Dictionary<string, IPropertySymbol> GetPublicPropertiesDictionary(this ITypeSymbol type)
+        {
+            var members = type.GetMembers().AsSpan();
+            var properties = new Dictionary<string, IPropertySymbol>(members.Length, StringComparer.InvariantCulture);
+            foreach (var member in members)
+            {
+                if (member is IPropertySymbol
+                    {
+                        CanBeReferencedByName: true,
+                        DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
+                    } property)
+                {
+                    properties.Add(property.Name, property);
+                }
+            }
+
+            return properties;
+        }
+
         public static Span<string> GetPublicPropertiesNames(this ITypeSymbol type)
         {
             var properties = type.GetPublicProperties();
@@ -135,5 +154,7 @@ namespace NextGenMapper.Extensions
         }
 
         public static bool IsPrimitive(this ITypeSymbol type) => (sbyte)type.SpecialType >= 7 && (sbyte)type.SpecialType <= 20;
+
+        public static string ToNotNullableString(this ITypeSymbol type) => type.ToDisplayString(NullableFlowState.None);
     }
 }

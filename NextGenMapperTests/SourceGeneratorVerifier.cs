@@ -75,10 +75,10 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         mapResult = Path.Combine(generatorResult, "MapResult");
     }
 
-    private protected GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation, MapperGenerator? mapperGenerator = null)
+    private protected GeneratorDriverRunResult RunGenerator(string[] sources, out Diagnostic[] sourceErrors, out Compilation outputCompilation, IIncrementalGenerator? mapperGenerator = null)
     {
         var compilation = CreateCompilation(sources, GetType().Name);
-        mapperGenerator ??= new();
+        mapperGenerator ??= new MapperGenerator();
         GeneratorDriver driver = CreateDriver(mapperGenerator);
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out var _);
 
@@ -118,10 +118,11 @@ public abstract class SourceGeneratorVerifier : VerifyBase
         throw new Exception($"can not find type '{TestNamespace}.{TestClassName}' with method '{TestFunctionName}' in assembly '{compilation.AssemblyName}'");
     }
 
-    private protected CSharpGeneratorDriver CreateDriver(params ISourceGenerator[] generators)
+    private protected CSharpGeneratorDriver CreateDriver(params IIncrementalGenerator[] generators)
     {
-        var parseOptions = CreateParseOptions();
-        return CSharpGeneratorDriver.Create(generators, parseOptions: parseOptions);
+        //var parseOptions = CreateParseOptions();
+        //return CSharpGeneratorDriver.Create(generators, parseOptions: parseOptions);
+        return CSharpGeneratorDriver.Create(generators);
     }
 
     protected Compilation CreateCompilation(string[] sources, string assemblyName)

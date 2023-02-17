@@ -318,10 +318,4 @@ public ref struct ValueStringBuilder
             ArrayPool<char>.Shared.Return(toReturn);
         }
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public void ClearPosition()
-    {
-        _pos = 0;
-    }
 }
