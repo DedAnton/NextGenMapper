@@ -15,7 +15,7 @@ namespace Benchmark.Benchmarks
             for (var i = 1; i <= n; i++)
             {
                 var source = Source.GetSourceCode(i);
-                var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9));
+                var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions());
                 syntaxTrees.Add(syntaxTree);
             }
             var compilation = CSharpCompilation.Create(

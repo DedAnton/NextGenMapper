@@ -14,24 +14,31 @@ namespace NextGenMapper.Mapping.Designers;
 
 internal static class ConfiguredMapDesigner
 {
-    public static Map[] DesignConfiguredMaps(ConfiguredMapTarget target)
-        => DesignConfiguredMaps(target.Source, target.Destination, target.Arguments, target.IsCompleteMethod, target.Location, target.SemanticModel).ToArray();
+    public static ImmutableArray<Map> DesignConfiguredMaps(ConfiguredMapTarget target)
+    {
+        var maps = new ValueListBuilder<Map>(8);
+        DesignConfiguredMaps(target.Source, target.Destination, target.Arguments, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps);
 
-    private static MapsList DesignConfiguredMaps(
+        return Unsafe.SpanToImmutableArray(maps.AsSpan());
+    }
+
+    private static void DesignConfiguredMaps(
         ITypeSymbol source,
         ITypeSymbol destination,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool isCompleteMethod,
         Location location,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        ref ValueListBuilder<Map> maps)
     {
         var constructorFinder = new ConstructorFinder(semanticModel);
         var (constructor, assigments) = constructorFinder.GetOptimalConstructor(source, destination, arguments);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
-            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
+            return;
         }
         var referencesHistory = ImmutableList.Create(source);
 
@@ -40,7 +47,6 @@ internal static class ConfiguredMapDesigner
 
         var sourcePublicProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var maps = new MapsList();
         var constructorProperties = new PropertyMap[destinationParameters.Length];
         var constructorPropertiesCount = 0;
         var configuredMapArguments = new NameTypePair[arguments.Count];
@@ -91,8 +97,9 @@ internal static class ConfiguredMapDesigner
                         if (IsPotentialNullReference(sourceProperty.Type, destinationParameter.Type, isTypesEquals, isTypesHasImplicitConversion))
                         {
                             var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationParameter.Name, destinationParameter.Type);
+                            maps.Append(Map.Error(source, destination, diagnostic));
 
-                            return MapsList.Create(Map.Error(source, destination, diagnostic));
+                            return;
                         }
 
                         constructorProperties[constructorPropertiesCount] = propertyMap;
@@ -100,8 +107,7 @@ internal static class ConfiguredMapDesigner
 
                         if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
                         {
-                            var propertyTypesMaps = MapDesigner.DesignMaps(sourceProperty.Type, destinationParameter.Type, location, semanticModel, referencesHistory);
-                            maps.Append(propertyTypesMaps);
+                            MapDesigner.DesignMaps(sourceProperty.Type, destinationParameter.Type, location, semanticModel, referencesHistory, ref maps);
                         }
                     }
                 }
@@ -152,8 +158,9 @@ internal static class ConfiguredMapDesigner
                     if (IsPotentialNullReference(sourceProperty.Type, destinationProperty.Type, isTypesEquals, isTypesHasImplicitConversion))
                     {
                         var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+                        maps.Append(Map.Error(source, destination, diagnostic));
 
-                        return MapsList.Create(Map.Error(source, destination, diagnostic));
+                        return;
                     }
 
                     initializerProperties[initializerPropertiesCount] = propertyMap;
@@ -161,8 +168,7 @@ internal static class ConfiguredMapDesigner
 
                     if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
                     {
-                        var propertyTypesMaps = MapDesigner.DesignMaps(sourceProperty.Type, destinationProperty.Type, location, semanticModel, referencesHistory);
-                        maps.Append(propertyTypesMaps);
+                        MapDesigner.DesignMaps(sourceProperty.Type, destinationProperty.Type, location, semanticModel, referencesHistory, ref maps);
                     }
                 }
             }
@@ -171,8 +177,9 @@ internal static class ConfiguredMapDesigner
         if (constructorPropertiesCount + initializerPropertiesCount == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
 
         var constructorPropertiesImmutable = constructorProperties.Length == constructorPropertiesCount
@@ -201,9 +208,7 @@ internal static class ConfiguredMapDesigner
             mockMethods,
             isCompleteMethod);
 
-        maps.AddFirst(map);
-
-        return maps;
+        maps.Append(map);
     }
 
     private static bool ContainsArgument(this SeparatedSyntaxList<ArgumentSyntax> arguments, string argumentName)

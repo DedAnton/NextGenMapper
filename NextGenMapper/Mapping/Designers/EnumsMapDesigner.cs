@@ -12,7 +12,7 @@ namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
 {
-    private static Map DesignEnumsMap(ITypeSymbol source, ITypeSymbol destination, Location location)
+    private static void DesignEnumsMap(ITypeSymbol source, ITypeSymbol destination, Location location, ref ValueListBuilder<Map> maps)
     {
         var sourceFields = GetFields(source);
         var destinationFields = GetFields(destination);
@@ -24,8 +24,9 @@ internal static partial class MapDesigner
             if (destinationFieldIdentifier is null)
             {
                 var diagnostic = Diagnostics.UnmappedEnumValue(location, source, destination, sourceFields[i].Identifier);
-                
-                return Map.Error(source, destination, diagnostic);
+                maps.Append(Map.Error(source, destination, diagnostic));
+
+                return;
             }
 
             fieldsMaps[i] = new EnumFieldMap(sourceFields[i].Identifier, destinationFieldIdentifier);
@@ -33,7 +34,8 @@ internal static partial class MapDesigner
         }
         var immutableFieldsMap = Unsafe.CastArrayToImmutableArray(ref fieldsMaps);
 
-        return Map.Enum(source.ToNotNullableString(), destination.ToNotNullableString(), immutableFieldsMap);
+        var map = Map.Enum(source.ToNotNullableString(), destination.ToNotNullableString(), immutableFieldsMap);
+        maps.Append(map);
     }
 
     private static Span<EnumField> GetFields(ITypeSymbol enumTypeSymbol)

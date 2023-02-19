@@ -13,25 +13,26 @@ internal static partial class MapDesigner
     private const string LIST_NAME = "List";
     private const string LIST_FULL_NAME = "System.Collections.Generic.List<T>";
 
-    private static MapsList DesignCollectionsMap(
+    private static void DesignCollectionsMap(
         ITypeSymbol source,
         ITypeSymbol destination,
         Location location,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        ref ValueListBuilder<Map> maps)
     {
         var sourceKind = GetCollectionKind(source);
         var destinationKind = GetCollectionKind(destination);
         if (sourceKind == CollectionKind.Undefined || destinationKind == CollectionKind.Undefined)
         {
             var diagnostic = Diagnostics.UndefinedCollectionTypeError(location);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
 
         var sourceItemType = GetCollectionItemType(source);
         var destinationItemType = GetCollectionItemType(destination);
 
-        var maps = new MapsList();
         var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceItemType, destinationItemType);
         var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceItemType, destinationItemType, semanticModel);
         var map = Map.Collection(
@@ -45,23 +46,21 @@ internal static partial class MapDesigner
             destinationItemType.NullableAnnotation == NullableAnnotation.Annotated,
             isTypeEquals,
             isTypesHasImplicitConversion);
-        maps.AddFirst(map);
+        maps.Append(map);
 
         if (IsPotentialNullReference(sourceItemType, destinationItemType, isTypeEquals, isTypesHasImplicitConversion))
         {
             var diagnostic = Diagnostics.PossibleNullReference(location, sourceItemType, destinationItemType);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
 
         if (!isTypeEquals && !isTypesHasImplicitConversion)
         {
             //TODO: check situation when collection type contains property with same collection (potential circular reference)
-            var collectionsElementsTypesMaps = DesignMaps(sourceItemType, destinationItemType, location, semanticModel, ImmutableList<ITypeSymbol>.Empty);
-            maps.Append(collectionsElementsTypesMaps);
+            DesignMaps(sourceItemType, destinationItemType, location, semanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps);
         }
-
-        return maps;
     }
 
     private static ITypeSymbol GetCollectionItemType(ITypeSymbol collection)

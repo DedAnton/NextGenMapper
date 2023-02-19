@@ -9,35 +9,41 @@ namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
 {
-    public static Map[] DesignMaps(MapTarget target)
-        => DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty).ToArray();
+    public static ImmutableArray<Map> DesignMaps(MapTarget target)
+    {
+        var maps = new ValueListBuilder<Map>(8);
+        DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps);
 
-    internal static MapsList DesignMaps(ITypeSymbol source, ITypeSymbol destination, Location location, SemanticModel semanticModel, ImmutableList<ITypeSymbol> referencesHistory)
+        return Unsafe.SpanToImmutableArray(maps.AsSpan());
+    }
+
+    internal static void DesignMaps(
+        ITypeSymbol source, 
+        ITypeSymbol destination, 
+        Location location, 
+        SemanticModel semanticModel, 
+        ImmutableList<ITypeSymbol> referencesHistory,
+        ref ValueListBuilder<Map> maps)
     {
         if (referencesHistory.FindIndex(x => SymbolEqualityComparer.Default.Equals(x, source)) != -1)
         {
             var diagnostic = Diagnostics.CircularReferenceError(location, referencesHistory.Add(source));
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
 
         if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
         {
-            return DesignCollectionsMap(source, destination, location, semanticModel);
-        }
-
-        if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
+            DesignCollectionsMap(source, destination, location, semanticModel, ref maps);
+        } 
+        else if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            return DesignClassesMaps(source, destination, location, semanticModel, referencesHistory);
+            DesignClassesMaps(source, destination, location, semanticModel, referencesHistory, ref maps);
         }
-
-        if (SourceCodeAnalyzer.IsTypesAreEnums(source, destination))
+        else if (SourceCodeAnalyzer.IsTypesAreEnums(source, destination))
         {
-            var map = DesignEnumsMap(source, destination, location);
-
-            return MapsList.Create(map);
+            DesignEnumsMap(source, destination, location, ref maps);
         }
-
-        return new MapsList();
     }
 }

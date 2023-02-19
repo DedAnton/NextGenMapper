@@ -11,18 +11,20 @@ namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
 {
-    private static MapsList DesignClassesMaps(
+    private static void DesignClassesMaps(
         ITypeSymbol source, 
         ITypeSymbol destination, 
         Location location, 
         SemanticModel semanticModel, 
-        ImmutableList<ITypeSymbol> referencesHistory)
+        ImmutableList<ITypeSymbol> referencesHistory,
+        ref ValueListBuilder<Map> maps)
     {
         if (referencesHistory.FindIndex(x => SymbolEqualityComparer.Default.Equals(x, source)) != -1)
         {
             var diagnostic = Diagnostics.CircularReferenceError(location, referencesHistory.Add(source));
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
         var newReferencesHistory = referencesHistory.Add(source);
 
@@ -30,8 +32,9 @@ internal static partial class MapDesigner
         if (!HasSuitableProperty(sourceProperties))
         {
             var diagnostic = Diagnostics.SuitablePropertyNotFoundInSource(location, source, destination);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
-            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
+            return;
         }
 
         var constructorFinder = new ConstructorFinder(semanticModel);
@@ -39,8 +42,9 @@ internal static partial class MapDesigner
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
-            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
+            return;
         }
 
         var destinationParameters = constructor.Parameters.AsSpan();
@@ -48,13 +52,13 @@ internal static partial class MapDesigner
         if (destinationProperties.Length == 0 && destinationParameters.Length == 0)
         {
             var diagnostic = Diagnostics.SuitablePropertyNotFoundInDestination(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return;
         }
 
         var sourcePublicProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var maps = new MapsList();
         Span<PropertyMap> constructorProperties = new PropertyMap[destinationParameters.Length];
         var constructorPropertiesCount = 0;
         foreach (var destinationParameter in destinationParameters)
@@ -80,8 +84,9 @@ internal static partial class MapDesigner
                     if (IsPotentialNullReference(sourceProperty.Type, destinationParameter.Type, isTypeEquals, isTypesHasImplicitConversion))
                     {
                         var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationParameter.Name, destinationParameter.Type);
+                        maps.Append(Map.Error(source, destination, diagnostic));
 
-                        return MapsList.Create(Map.Error(source, destination, diagnostic));
+                        return;
                     }
 
                     constructorProperties[constructorPropertiesCount] = propertyMap;
@@ -89,8 +94,7 @@ internal static partial class MapDesigner
 
                     if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
                     {
-                        var propertyTypesMaps = DesignMaps(sourceProperty.Type, destinationParameter.Type, location, semanticModel, newReferencesHistory);
-                        maps.Append(propertyTypesMaps);
+                        DesignMaps(sourceProperty.Type, destinationParameter.Type, location, semanticModel, newReferencesHistory, ref maps);
                     }
                 }
             }
@@ -117,8 +121,9 @@ internal static partial class MapDesigner
                 if (IsPotentialNullReference(sourceProperty.Type, destinationProperty.Type, isTypeEquals, isTypesHasImplicitConversion))
                 {
                     var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+                    maps.Append(Map.Error(source, destination, diagnostic));
 
-                    return MapsList.Create(Map.Error(source, destination, diagnostic));
+                    return;
                 }
 
                 initializerProperties[initializerPropertiesCount] = propertyMap;
@@ -126,8 +131,7 @@ internal static partial class MapDesigner
 
                 if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
                 {
-                    var propertyTypesMaps = DesignMaps(sourceProperty.Type, destinationProperty.Type, location, semanticModel, newReferencesHistory);
-                    maps.Append(propertyTypesMaps);
+                    DesignMaps(sourceProperty.Type, destinationProperty.Type, location, semanticModel, newReferencesHistory, ref maps);
                 }
             }
         }
@@ -135,8 +139,9 @@ internal static partial class MapDesigner
         if (constructorPropertiesCount + initializerPropertiesCount == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
-            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
+            return;
         }
 
         var classMap = Map.Class(
@@ -145,9 +150,7 @@ internal static partial class MapDesigner
             Unsafe.SpanToImmutableArray(constructorProperties.Slice(0, constructorPropertiesCount)),
             Unsafe.SpanToImmutableArray(initializerProperties.Slice(0, initializerPropertiesCount)));
 
-        maps.AddFirst(classMap);
-
-        return maps;
+        maps.Append(classMap);
     }
 
     private static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination, bool isTypesEquals, bool hasImplicitConvertion)
