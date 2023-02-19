@@ -177,10 +177,10 @@ internal static class ConfiguredMapDesigner
 
         var constructorPropertiesImmutable = constructorProperties.Length == constructorPropertiesCount
             ? Unsafe.CastArrayToImmutableArray(ref constructorProperties)
-            : Unsafe.CastSpanToImmutableArray(constructorProperties.AsSpan().Slice(0, constructorPropertiesCount));
+            : Unsafe.SpanToImmutableArray(constructorProperties.AsSpan().Slice(0, constructorPropertiesCount));
         var initializerPropertiesImmutable = initializerProperties.Length == initializerPropertiesCount
             ? Unsafe.CastArrayToImmutableArray(ref initializerProperties)
-            : Unsafe.CastSpanToImmutableArray(initializerProperties.AsSpan().Slice(0, initializerPropertiesCount));
+            : Unsafe.SpanToImmutableArray(initializerProperties.AsSpan().Slice(0, initializerPropertiesCount));
 
         if (configuredMapArgumentsCount != arguments.Count)
         {
@@ -268,10 +268,10 @@ internal static class ConfiguredMapDesigner
 
         return mockMethods.Length == mockMethodsCount
             ? Unsafe.CastArrayToImmutableArray(ref mockMethods)
-            : Unsafe.CastSpanToImmutableArray(mockMethods.AsSpan().Slice(0, mockMethodsCount));
+            : Unsafe.SpanToImmutableArray(mockMethods.AsSpan().Slice(0, mockMethodsCount));
     }
 
-    private static bool CompareArgumentsAndParameters(NameTypePair[] parameters, NameTypePair[] arguments)
+    private static bool CompareArgumentsAndParameters(NameTypePair[] parameters, ReadOnlySpan<NameTypePair> arguments)
     {
         if (parameters.Length != arguments.Length)
         {
@@ -289,36 +289,6 @@ internal static class ConfiguredMapDesigner
         return true;
     }
 
-    //public List<ClassMapWithStub> DesignStubMethodMap(ITypeSymbol from, ITypeSymbol to, Location mapLocation)
-    //{
-    //    var maps = new List<ClassMapWithStub>();
-    //    var constructors = to.GetPublicConstructors();
-    //    foreach (var constructor in constructors)
-    //    {
-    //        var assigments = _constructorFinder.GetAssigments(constructor);
-    //        var toMembers = constructor.GetPropertiesInitializedByConstructorAndInitializer(assigments);
-    //        var mapWithParameters = new ParameterDescriptor[toMembers.Count];
-    //        for (var i = 0; i < toMembers.Count; i++)
-    //        {
-    //            var mapWithParameter = toMembers[i] switch
-    //            {
-    //                IParameterSymbol parameter => new ParameterDescriptor(parameter.Name.ToCamelCase(), parameter.Type),
-    //                IPropertySymbol property => new ParameterDescriptor(property.Name.ToCamelCase(), property.Type),
-    //                _ => null
-    //            };
-
-    //            if (mapWithParameter is not null)
-    //            {
-    //                mapWithParameters[i] = mapWithParameter;
-    //            }
-    //        }
-
-    //        maps.Add(new ClassMapWithStub(from, to, mapWithParameters, mapLocation));
-    //    }
-
-    //    return maps;
-    //}
-
     private static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination, bool isTypesEquals, bool hasImplicitConvertion)
         => (source.NullableAnnotation, destination.NullableAnnotation, isTypesEquals || hasImplicitConvertion) switch
         {
@@ -327,24 +297,7 @@ internal static class ConfiguredMapDesigner
             _ => true
         };
 
-    private static bool HasSuitableProperty(Span<IPropertySymbol> properties)
-    {
-        foreach (var property in properties)
-        {
-            if (property is
-                {
-                    IsWriteOnly: false,
-                    GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
-                })
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static Span<IPropertySymbol> GetMappableProperties(IMethodSymbol constructor, List<Assigment> assigments)
+    private static Span<IPropertySymbol> GetMappableProperties(IMethodSymbol constructor, ReadOnlySpan<Assigment> assigments)
     {
         var propertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assigment in assigments)

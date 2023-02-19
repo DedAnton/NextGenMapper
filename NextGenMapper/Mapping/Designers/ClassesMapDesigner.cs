@@ -142,8 +142,8 @@ internal static partial class MapDesigner
         var classMap = Map.Class(
             source.ToNotNullableString(),
             destination.ToNotNullableString(),
-            Unsafe.CastSpanToImmutableArray(constructorProperties.Slice(0, constructorPropertiesCount)),
-            Unsafe.CastSpanToImmutableArray(initializerProperties.Slice(0, initializerPropertiesCount)));
+            Unsafe.SpanToImmutableArray(constructorProperties.Slice(0, constructorPropertiesCount)),
+            Unsafe.SpanToImmutableArray(initializerProperties.Slice(0, initializerPropertiesCount)));
 
         maps.AddFirst(classMap);
 
@@ -175,7 +175,7 @@ internal static partial class MapDesigner
         return false;
     }
 
-    private static Span<IPropertySymbol> GetMappableProperties(IMethodSymbol constructor, System.Collections.Generic.List<Assigment> assigments)
+    private static Span<IPropertySymbol> GetMappableProperties(IMethodSymbol constructor, ReadOnlySpan<Assigment> assigments)
     {
         var propertiesInitializedByConstructor = new System.Collections.Generic.HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assigment in assigments)

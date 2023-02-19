@@ -81,7 +81,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                return Unsafe.CastSpanToImmutableArray(diagnostics.AsSpan());
+                return Unsafe.SpanToImmutableArray(diagnostics.AsSpan());
             });
         context.ReportDiagnostics(duplicateConfiguredMapDiagnostics);
 
@@ -124,7 +124,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                return Unsafe.CastSpanToImmutableArray(mockMethods.Slice(0, mockMethodsCount));
+                return Unsafe.SpanToImmutableArray(mockMethods.Slice(0, mockMethodsCount));
             });
 
         context.RegisterSourceOutput(configuredMapsMockMethods, (sourceProductionContext, mockMethods) =>
@@ -262,7 +262,7 @@ public class MapperGenerator : IIncrementalGenerator
             {
                 var (((((classMaps, collectionMaps), enumMaps), configuredMaps), userMaps), potentialErrors) = x;
                 var mapsHashSet = new HashSet<IMap>(new SimpleMapComparer());
-                var diagnostics = new List<Diagnostic>();
+                var diagnostics = new ValueListBuilder<Diagnostic>();
 
                 foreach (var map in classMaps.AsSpan())
                 {
@@ -285,7 +285,7 @@ public class MapperGenerator : IIncrementalGenerator
                     mapsHashSet.Add(map);
                 }
 
-                void ValidatePropertyMap(IMap map, PropertyMap propertyMap)
+                void ValidatePropertyMap(IMap map, PropertyMap propertyMap, ref ValueListBuilder<Diagnostic> diagnostics)
                 {
                     if (!propertyMap.IsTypesEquals
                         && !propertyMap.HasImplicitConversion
@@ -299,7 +299,7 @@ public class MapperGenerator : IIncrementalGenerator
                             map.Destination,
                             propertyMap.DestinationName,
                             propertyMap.DestinationType);
-                        diagnostics.Add(diagnostic);
+                        diagnostics.Append(diagnostic);
                     }
                 }
 
@@ -307,11 +307,11 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     foreach(var propertyMap in map.ConstructorProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap);
+                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
                     }
                     foreach (var propertyMap in map.InitializerProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap);
+                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
                     }
                 }
 
@@ -326,7 +326,7 @@ public class MapperGenerator : IIncrementalGenerator
                     if (!mapsHashSet.Contains(collectionItemsMap))
                     {
                         var diagnostic = Diagnostics.MappingFunctionNotFound(Location.None, map.SourceItem, map.DestinationItem);
-                        diagnostics.Add(diagnostic);
+                        diagnostics.Append(diagnostic);
                     }
                 }
 
@@ -334,11 +334,11 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     foreach (var propertyMap in map.ConstructorProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap);
+                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
                     }
                     foreach (var propertyMap in map.InitializerProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap);
+                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
                     }
                 }
 
@@ -346,12 +346,11 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     if (!mapsHashSet.Contains(potentialError))
                     {
-                        diagnostics.Add(potentialError.Diagnostic);
+                        diagnostics.Append(potentialError.Diagnostic);
                     }
                 }
 
-                var diagnosticsArray = diagnostics.ToArray();
-                return Unsafe.CastArrayToImmutableArray(ref diagnosticsArray);
+                return Unsafe.SpanToImmutableArray(diagnostics.AsSpan());
             });
         context.ReportDiagnostics(mapsPostValidationDiagnostics);
     }

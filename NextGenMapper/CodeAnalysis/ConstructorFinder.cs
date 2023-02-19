@@ -10,6 +10,36 @@ using System.Linq;
 
 namespace NextGenMapper.CodeAnalysis
 {
+    public readonly ref struct ConstructorForMapping
+    {
+        public IMethodSymbol? ConstructorSymbol { get; }
+        public ReadOnlySpan<Assigment> Assigments { get; }
+
+        public ConstructorForMapping()
+        {
+            ConstructorSymbol = null;
+            Assigments = Array.Empty<Assigment>();
+        }
+
+        public ConstructorForMapping(IMethodSymbol constructorMethodSymbol)
+        {
+            ConstructorSymbol = constructorMethodSymbol;
+            Assigments = Array.Empty<Assigment>();
+        }
+
+        public ConstructorForMapping(IMethodSymbol constructorMethodSymbol, ReadOnlySpan<Assigment> assigments)
+        {
+            ConstructorSymbol = constructorMethodSymbol;
+            Assigments = assigments;
+        }
+
+        public void Deconstruct(out IMethodSymbol? constructorSymbol, out ReadOnlySpan<Assigment> assigments)
+        {
+            constructorSymbol = ConstructorSymbol;
+            assigments = Assigments;
+        }
+    }
+
     //TODO: refactoring
     public class ConstructorFinder
     {
@@ -21,7 +51,7 @@ namespace NextGenMapper.CodeAnalysis
             _semanticModel = semanticModel;
         }
 
-        public (IMethodSymbol? constructor, List<Assigment> assigments) GetOptimalConstructor(
+        public ConstructorForMapping GetOptimalConstructor(
             ITypeSymbol from,
             ITypeSymbol to,
             SeparatedSyntaxList<ArgumentSyntax>? userArguments = null)
@@ -43,7 +73,7 @@ namespace NextGenMapper.CodeAnalysis
             BubbleSort.Sort(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
             {
-                return (null, new());
+                return new ConstructorForMapping();
             }
 
             var publicPropertiesNames = from.GetPublicPropertiesNames();
@@ -52,7 +82,7 @@ namespace NextGenMapper.CodeAnalysis
             {
                 fromPropertiesNames.Add(publicProperty);
             }
-            bool ValidateCommonCostructor(IMethodSymbol constructor, List<Assigment> constructorAssigments)
+            bool ValidateCommonCostructor(IMethodSymbol constructor, ReadOnlySpan<Assigment> constructorAssigments)
             {
                 foreach (var parameter in constructor.Parameters)
                 {
@@ -77,29 +107,25 @@ namespace NextGenMapper.CodeAnalysis
                 return true;
             }
 
-            IMethodSymbol? commonConstructor = null;
-            List<Assigment> constructorAssigments = new();
-
             foreach (var constructor in constructors)
             {
                 if (constructor.IsImplicitlyDeclared)
                 {
-                    return (constructor, new());
+                    return new ConstructorForMapping(constructor);
                 }
                 var location = constructor.Locations.FirstOrDefault();
                 if (location?.SourceTree is null)
                 {
-                    constructorAssigments = GetAssigmentsBySemantic(constructor);
+                    var constructorAssigments = GetAssigmentsBySemantic(constructor);
                     if (ValidateCommonCostructor(constructor, constructorAssigments))
                     {
-                        commonConstructor = constructor;
-                        break;
+                        return new ConstructorForMapping(constructor, constructorAssigments);
                     }
                 }
                 else
                 {
                     var syntax = location.SourceTree.GetCompilationUnitRoot().FindNode(location.SourceSpan);
-                    constructorAssigments = syntax switch
+                    var constructorAssigments = syntax switch
                     {
                         ConstructorDeclarationSyntax constructorSyntax => GetConstructorAssigments(constructorSyntax),
                         RecordDeclarationSyntax => GetRecordAssigments(constructor),
@@ -107,16 +133,15 @@ namespace NextGenMapper.CodeAnalysis
                     };
                     if (ValidateCommonCostructor(constructor, constructorAssigments))
                     {
-                        commonConstructor = constructor;
-                        break;
+                        return new ConstructorForMapping(constructor, constructorAssigments);
                     }
                 }
             }
 
-            return (commonConstructor, constructorAssigments);
+            return new ConstructorForMapping();
         }
 
-        public List<Assigment> GetAssigments(IMethodSymbol constructor)
+        public ReadOnlySpan<Assigment> GetAssigments(IMethodSymbol constructor)
         {
             if (constructor.IsImplicitlyDeclared)
             {
@@ -136,9 +161,9 @@ namespace NextGenMapper.CodeAnalysis
             };
         }
 
-        private List<Assigment> GetAssigmentsBySemantic(IMethodSymbol constructor)
+        private ReadOnlySpan<Assigment> GetAssigmentsBySemantic(IMethodSymbol constructor)
         {
-            var assigments = new List<Assigment>(constructor.Parameters.Length);
+            var assigments = new ValueListBuilder<Assigment>(constructor.Parameters.Length);
             var properties = constructor.ContainingType.GetPublicPropertiesNames();
             foreach (var parameter in constructor.Parameters)
             {
@@ -146,29 +171,29 @@ namespace NextGenMapper.CodeAnalysis
                 {
                     if (parameter.Name.Equals(property, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        assigments.Add(new Assigment(property, parameter.Name));
+                        assigments.Append(new Assigment(property, parameter.Name));
                         break;
                     }
                 }
             }
 
-            return assigments;
+            return assigments.AsSpan();
         }
 
-        private List<Assigment> GetRecordAssigments(IMethodSymbol methodSymbol)
+        private ReadOnlySpan<Assigment> GetRecordAssigments(IMethodSymbol methodSymbol)
         {
-            var assigments = new List<Assigment>(methodSymbol.Parameters.Length);
+            var assigments = new ValueListBuilder<Assigment>(methodSymbol.Parameters.Length);
             foreach (var parameter in methodSymbol.Parameters)
             {
-                assigments.Add(new Assigment(parameter.Name, parameter.Name));
+                assigments.Append(new Assigment(parameter.Name, parameter.Name));
             }
 
-            return assigments;
+            return assigments.AsSpan();
         }
 
-        private List<Assigment> GetConstructorAssigments(ConstructorDeclarationSyntax constructorSyntax)
+        private ReadOnlySpan<Assigment> GetConstructorAssigments(ConstructorDeclarationSyntax constructorSyntax)
         {
-            var inheritedAssigments = new List<Assigment>();
+            var inheritedAssigments = new ValueListBuilder<Assigment>(8);
 
             if (constructorSyntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer
                 && _semanticModel.GetOperation(constructorSyntax.Initializer) is IInvocationOperation thisInvocationOperation)
@@ -200,14 +225,14 @@ namespace NextGenMapper.CodeAnalysis
                         .FirstOrDefault();
                     if (argument is not null)
                     {
-                        inheritedAssigments.Add(new Assigment(assigment.Property, argument));
+                        inheritedAssigments.Append(new Assigment(assigment.Property, argument));
                     }
                 }
             }
 
             if (constructorSyntax.Body is not null)
             {
-                List<Assigment> assigments = new(constructorSyntax.Body.Statements.Count);
+                var assigments = new ValueListBuilder<Assigment>(constructorSyntax.Body.Statements.Count + inheritedAssigments.Length);
                 for (int i = 0; i < constructorSyntax.Body.Statements.Count; i++)
                 {
                     if (constructorSyntax.Body.Statements[i] is ExpressionStatementSyntax
@@ -216,13 +241,16 @@ namespace NextGenMapper.CodeAnalysis
                         var assigment = GetAssigment(assignmentExpression);
                         if (assigment is not null)
                         {
-                            assigments.Add(assigment);
+                            assigments.Append(assigment);
                         }
                     }
                 }
-                assigments.AddRange(inheritedAssigments);
+                foreach(var assigment in inheritedAssigments.AsSpan())
+                {
+                    assigments.Append(assigment);
+                }
 
-                return assigments;
+                return assigments.AsSpan();
             }
             else
             {
@@ -232,14 +260,14 @@ namespace NextGenMapper.CodeAnalysis
 
                     if (assigment is not null)
                     {
-                        inheritedAssigments.Add(assigment);
+                        inheritedAssigments.Append(assigment);
 
-                        return inheritedAssigments;
+                        return inheritedAssigments.AsSpan();
                     }
                 }
             }
 
-            return inheritedAssigments;
+            return inheritedAssigments.AsSpan();
         }
 
         private Assigment? GetAssigment(AssignmentExpressionSyntax assignmentExpression)

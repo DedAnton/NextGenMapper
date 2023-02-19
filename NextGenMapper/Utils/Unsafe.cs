@@ -8,14 +8,14 @@ internal static class Unsafe
     public static ImmutableArray<T> CastArrayToImmutableArray<T>(ref T[] array)
         => SystemUnsafe.As<T[], ImmutableArray<T>>(ref array);
 
-    public static ImmutableArray<T> CastSpanToImmutableArray<T>(Span<T> span)
+    public static ImmutableArray<T> SpanToImmutableArray<T>(Span<T> span)
     {
         var newArray = span.ToArray();
 
         return CastArrayToImmutableArray(ref newArray);
     }
 
-    public static ImmutableArray<T> CastSpanToImmutableArray<T>(ReadOnlySpan<T> span)
+    public static ImmutableArray<T> SpanToImmutableArray<T>(ReadOnlySpan<T> span)
     {
         var newArray = span.ToArray();
 

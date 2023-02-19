@@ -76,7 +76,7 @@ internal static class IncrementalValueProviderExtensions
                 }
             }
 
-            return Unsafe.CastSpanToImmutableArray(filteredMaps.Slice(0, filteredMapsCount));
+            return Unsafe.SpanToImmutableArray(filteredMaps.Slice(0, filteredMapsCount));
         });
 }
 
