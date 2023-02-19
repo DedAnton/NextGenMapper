@@ -1,4 +1,4 @@
-﻿//HintName: Mapper.g.cs
+﻿//HintName: Mapper_EnumMaps.g.cs
 #nullable enable
 using NextGenMapper.Extensions;
 

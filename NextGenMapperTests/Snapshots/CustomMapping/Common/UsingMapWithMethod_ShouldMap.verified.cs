@@ -1,4 +1,4 @@
-﻿//HintName: Mapper.g.cs
+﻿//HintName: Mapper_ConfiguredMaps.g.cs
 #nullable enable
 using NextGenMapper.Extensions;
 
@@ -9,11 +9,11 @@ namespace NextGenMapper
         internal static Test.Destination MapWith<To>
         (
             this Test.Source source,
-            int property
+            int Property
         )
         => new Test.Destination
         {
-            Property = property
+            Property = Property
         };
     }
 }

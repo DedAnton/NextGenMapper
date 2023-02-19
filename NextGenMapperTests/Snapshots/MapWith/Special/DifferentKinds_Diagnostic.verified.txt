@@ -1,0 +1,43 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM007,
+      Title: Not supported for 'MapWith' method,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (10,8)-(10,43),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Message: Customized mapping from Test.Source to Test.DestinationStruct with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM007,
+      Title: Not supported for 'MapWith' method,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (11,8)-(11,41),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Message: Customized mapping from Test.Source to Test.DestinationEnum with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM007,
+      Title: Not supported for 'MapWith' method,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (12,8)-(12,31),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Message: Customized mapping from Test.Source to int[] with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

@@ -1,9 +1,10 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using NextGenMapper.Mapping.Maps.Models;
 
 namespace NextGenMapper.Mapping.Maps;
 
-internal readonly struct EnumMap : IMap
+internal readonly struct EnumMap : IMap, IEquatable<EnumMap>
 {
     public EnumMap(string source, string destination, ImmutableArray<EnumFieldMap> fields)
     {
@@ -15,4 +16,6 @@ internal readonly struct EnumMap : IMap
     public string Source { get; }
     public string Destination { get; }
     public ImmutableArray<EnumFieldMap> Fields { get; }
+
+    public bool Equals(EnumMap other) => Source == other.Source && Destination == other.Destination;
 }

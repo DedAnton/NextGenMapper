@@ -583,7 +583,6 @@ using NextGenMapper;
     }
 
     [TestMethod]
-    [ExpectedException(typeof(SourceException), "Possible null reference assignment.")]
     public async Task FromNullableReferenceType_Diagnostic()
     {
         var source =
@@ -607,7 +606,6 @@ using NextGenMapper;
         public string PropertyA { get; set; } = ""bad"";
     }";
 
-        await VerifyOnly(source, ignoreSourceErrors: true);
         await VerifyOnly(source);
     }
 }

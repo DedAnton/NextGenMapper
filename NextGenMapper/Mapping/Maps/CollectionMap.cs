@@ -1,7 +1,8 @@
 ﻿using NextGenMapper.Mapping.Maps.Models;
+using System;
 
 namespace NextGenMapper.Mapping.Maps;
-internal readonly struct CollectionMap : IMap
+internal readonly struct CollectionMap : IMap, IEquatable<CollectionMap>
 {
     public CollectionMap(
         string source,
@@ -10,6 +11,8 @@ internal readonly struct CollectionMap : IMap
         CollectionKind destinationKind,
         string sourceItem,
         string destinationItem,
+        bool isSourceItemNullable,
+        bool isDestinationItemNullable,
         bool isItemsEquals,
         bool isItemsHasImpicitConversion)
     {
@@ -19,6 +22,8 @@ internal readonly struct CollectionMap : IMap
         DestinationKind = destinationKind;
         SourceItem = sourceItem;
         DestinationItem = destinationItem;
+        IsSourceItemNullable = isSourceItemNullable;
+        IsDestinationItemNullable = isDestinationItemNullable;
         IsItemsEquals = isItemsEquals;
         IsItemsHasImpicitConversion = isItemsHasImpicitConversion;
     }
@@ -29,6 +34,10 @@ internal readonly struct CollectionMap : IMap
     public CollectionKind DestinationKind { get; }
     public string SourceItem { get; }
     public string DestinationItem { get; }
+    public bool IsSourceItemNullable { get; }
+    public bool IsDestinationItemNullable { get; }
     public bool IsItemsEquals { get; }
     public bool IsItemsHasImpicitConversion { get; }
+
+    public bool Equals(CollectionMap other) => Source == other.Source && Destination == other.Destination;
 }

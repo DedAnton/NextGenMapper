@@ -14,8 +14,14 @@ internal static class IncrementalValueProviderExtensions
         IEqualityComparer<TSource> equalityComparer)
         => source.Select((x, _) =>
         {
+            if (x.Length < 2)
+            {
+                return x;
+            }
+
             var hashSet = new HashSet<TSource>(x, equalityComparer);
-            var newArray = hashSet.ToArray();
+            var newArray = new TSource[hashSet.Count];
+            hashSet.CopyTo(newArray);
 
             return Unsafe.CastArrayToImmutableArray(ref newArray);
         });
@@ -28,6 +34,15 @@ internal static class IncrementalValueProviderExtensions
         .Combine(right.Collect())
         .Select(static (x, _) =>
         {
+            if (x.Left.Length == 0)
+            {
+                return x.Right;
+            }
+            if (x.Right.Length == 0)
+            {
+                return x.Left;
+            }
+
             var newArray = new TSource[x.Left.Length + x.Right.Length];
             x.Left.CopyTo(newArray);
             x.Right.CopyTo(newArray, x.Left.Length);
@@ -42,8 +57,12 @@ internal static class IncrementalValueProviderExtensions
         .Combine(userMaps)
         .Select(static (x, _) =>
         {
-            var maps = x.Left;
-            var userMaps = x.Right;
+            var (maps, userMaps) = x;
+
+            if (maps.Length == 0 || userMaps.Count == 0)
+            {
+                return maps;
+            }
 
             Span<TSource> filteredMaps = new TSource[maps.Length];
             var filteredMapsCount = 0;
@@ -53,6 +72,7 @@ internal static class IncrementalValueProviderExtensions
                 if (!userMaps.Contains(userMapFromMap))
                 {
                     filteredMaps[filteredMapsCount] = maps[i];
+                    filteredMapsCount++;
                 }
             }
 

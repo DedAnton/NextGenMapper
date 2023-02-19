@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM006,
+      Title: All arguments for method 'MapWith' must be named,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,67),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: All arguments for method 'MapWith' must be named,
+      Message: All arguments for method 'MapWith' must be named,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM013,
+      Title: No property matches,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,67),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: None of the properties of class {0} match the properties of class {1},
+      Message: None of the properties of class Test.Source match the properties of class Test.Destination,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

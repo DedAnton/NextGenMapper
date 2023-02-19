@@ -1,8 +1,9 @@
 ﻿using Microsoft.CodeAnalysis;
+using System;
 
 namespace NextGenMapper.Mapping.Maps;
 
-internal readonly struct PotentialErrorMap
+internal readonly struct PotentialErrorMap : IMap, IEquatable<PotentialErrorMap>
 {
     public PotentialErrorMap(string source, string destination, Diagnostic diagnostic)
     {
@@ -14,4 +15,9 @@ internal readonly struct PotentialErrorMap
     public string Source { get; }
     public string Destination { get; }
     public Diagnostic Diagnostic { get; }
+
+    public bool Equals(PotentialErrorMap other)
+        => Source == other.Source
+        && Destination == other.Destination
+        && Diagnostic == other.Diagnostic;
 }

@@ -25,6 +25,8 @@ internal ref struct MapsList
 
     public int Count => _count;
 
+    public static MapsList Empty => new();
+
     public static MapsList Create(Map value)
     {
         var node = new Node(value);
@@ -67,7 +69,7 @@ internal ref struct MapsList
 
     public Map[] ToArray()
     {
-        var current = _tail;
+        var current = _head;
         var array = new Map[_count];
         var count = 0;
 

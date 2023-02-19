@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM004,
+      Title: Enum value was unmapped,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,58),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Enum value {0}.{2} can not be mapped to {1}, make sure that {1} has value with same name or constant value,
+      Message: Enum value Test.Source.C can not be mapped to Test.Destination, make sure that Test.Destination has value with same name or constant value,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

@@ -28,23 +28,17 @@ internal static partial class MapDesigner
         var newReferencesHistory = referencesHistory.Add(source);
 
         var sourceProperties = source.GetPublicProperties();
-        var sourceHasSuitableProperty = HasSuitableProperty(sourceProperties);
-        if (!sourceHasSuitableProperty)
+        if (!HasSuitableProperty(sourceProperties))
         {
             var diagnostic = Diagnostics.SuitablePropertyNotFoundInSource(location, source, destination);
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
         }
 
         var constructorFinder = new ConstructorFinder(semanticModel);
-        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(source, destination, new System.Collections.Generic.HashSet<string>());
+        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(source, destination);
         if (constructor == null)
         {
-            //if (!_mapPlanner.IsTypesMapAlreadyPlanned(from, to))
-            //{
-            //    _diagnosticReporter.ReportConstructorNotFoundError(mapLocation, from, to);
-            //}
-
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
 
             return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
@@ -59,7 +53,7 @@ internal static partial class MapDesigner
             return MapsList.Create(Map.Error(source, destination, diagnostic));
         }
 
-        var sourcePublicProperties = source.GetPublicPropertiesDictionary();
+        var sourcePublicProperties = source.GetPublicReadablePropertiesDictionary();
 
         var maps = new MapsList();
         Span<PropertyMap> constructorProperties = new PropertyMap[destinationParameters.Length];
@@ -72,19 +66,21 @@ internal static partial class MapDesigner
                 if (assigment.Parameter == destinationParameter.Name
                     && sourcePublicProperties.TryGetValue(assigment.Property, out var sourceProperty))
                 {
+                    var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationParameter.Type);
+                    var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationParameter.Type, semanticModel);
                     var propertyMap = new PropertyMap(
                         assigment.Property,
                         assigment.Property,
-                        sourceProperty.Type.ToString(),
-                        destinationParameter.Type.ToString(),
+                        sourceProperty.Type.ToNotNullableString(),
+                        destinationParameter.Type.ToNotNullableString(),
                         sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
                         destinationParameter.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                        SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationParameter.Type),
-                        SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationParameter.Type, semanticModel));
+                        isTypeEquals,
+                        isTypesHasImplicitConversion);
 
-                    if (IsPotentialNullReference(propertyMap))
+                    if (IsPotentialNullReference(sourceProperty.Type, destinationParameter.Type, isTypeEquals, isTypesHasImplicitConversion))
                     {
-                        var diagnostic = Diagnostics.PossibleNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationParameter.Name, destinationParameter.Type);
+                        var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationParameter.Name, destinationParameter.Type);
 
                         return MapsList.Create(Map.Error(source, destination, diagnostic));
                     }
@@ -107,19 +103,21 @@ internal static partial class MapDesigner
         {
             if (sourcePublicProperties.TryGetValue(destinationProperty.Name, out var sourceProperty))
             {
+                var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type);
+                var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationProperty.Type, semanticModel);
                 var propertyMap = new PropertyMap(
                     sourceProperty.Name,
                     destinationProperty.Name,
-                    sourceProperty.Type.ToString(),
-                    destinationProperty.Type.ToString(),
+                    sourceProperty.Type.ToNotNullableString(),
+                    destinationProperty.Type.ToNotNullableString(),
                     sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
                     destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                    SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type),
-                    SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationProperty.Type, semanticModel));
+                    isTypeEquals,
+                    isTypesHasImplicitConversion);
 
-                if (IsPotentialNullReference(propertyMap))
+                if (IsPotentialNullReference(sourceProperty.Type, destinationProperty.Type, isTypeEquals, isTypesHasImplicitConversion))
                 {
-                    var diagnostic = Diagnostics.PossibleNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+                    var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
 
                     return MapsList.Create(Map.Error(source, destination, diagnostic));
                 }
@@ -139,7 +137,7 @@ internal static partial class MapDesigner
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
 
-            return MapsList.Create(Map.Error(source, destination, diagnostic));
+            return MapsList.Create(Map.PotentialError(source, destination, diagnostic));
         }
 
         var classMap = Map.Class(
@@ -153,11 +151,13 @@ internal static partial class MapDesigner
         return maps;
     }
 
-    private static bool IsPotentialNullReference(PropertyMap propertyMap) =>
-        (propertyMap.IsTypesEquals
-        || propertyMap.HasImplicitConversion)
-        && propertyMap.IsSourceNullable
-        && !propertyMap.IsDestinationNullable;
+    private static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination, bool isTypesEquals, bool hasImplicitConvertion)
+        => (source.NullableAnnotation, destination.NullableAnnotation, isTypesEquals || hasImplicitConvertion) switch
+        {
+            (NullableAnnotation.NotAnnotated or NullableAnnotation.None, _, _) => false,
+            (NullableAnnotation.Annotated, NullableAnnotation.Annotated, true) => false,
+            _ => true
+        };
 
     private static bool HasSuitableProperty(Span<IPropertySymbol> properties)
     {

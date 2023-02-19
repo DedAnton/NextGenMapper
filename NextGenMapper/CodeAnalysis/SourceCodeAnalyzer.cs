@@ -67,7 +67,7 @@ internal static class SourceCodeAnalyzer
                 MethodKind: MethodKind.ReducedExtension
             } method
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapMethodFullName
-            && semanticModel.GetTypeInfo(mapMethodInvocation.Expression).Type is ITypeSymbol
+            && semanticModel.GetTypeInfo(memberAccessExpression.Expression).Type is ITypeSymbol
             {
                 TypeKind: not TypeKind.Error
             } source

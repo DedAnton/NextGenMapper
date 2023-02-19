@@ -15,7 +15,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -48,7 +48,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1).ToString();
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1).ToString();
 }
 
 public class Source
@@ -102,7 +102,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class SourceBase
@@ -141,7 +141,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -183,7 +183,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -235,7 +235,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -288,7 +288,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -366,7 +366,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -396,7 +396,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -453,7 +453,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source

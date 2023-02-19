@@ -94,7 +94,7 @@ namespace NextGenMapper.Extensions
             return properties.Slice(0, count);
         }
 
-        public static Dictionary<string, IPropertySymbol> GetPublicPropertiesDictionary(this ITypeSymbol type)
+        public static Dictionary<string, IPropertySymbol> GetPublicReadablePropertiesDictionary(this ITypeSymbol type)
         {
             var members = type.GetMembers().AsSpan();
             var properties = new Dictionary<string, IPropertySymbol>(members.Length, StringComparer.InvariantCulture);
@@ -103,7 +103,9 @@ namespace NextGenMapper.Extensions
                 if (member is IPropertySymbol
                     {
                         CanBeReferencedByName: true,
-                        DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
+                        IsWriteOnly: false,
+                        DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal,
+                        GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
                     } property)
                 {
                     properties.Add(property.Name, property);

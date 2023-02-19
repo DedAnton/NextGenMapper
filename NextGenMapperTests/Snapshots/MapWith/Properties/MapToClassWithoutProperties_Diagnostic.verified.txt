@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM005,
+      Title: 'MapWith' method without arguments,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,66),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.,
+      Message: Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM013,
+      Title: No property matches,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,66),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: None of the properties of class {0} match the properties of class {1},
+      Message: None of the properties of class Test.Source match the properties of class Test.Destination,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

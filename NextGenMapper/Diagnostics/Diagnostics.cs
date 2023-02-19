@@ -116,7 +116,7 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static Diagnostic DuplicateMapWithFunction(Location location, ITypeSymbol from, ITypeSymbol to)
+        public static Diagnostic DuplicateMapWithFunction(Location location, string from, string to)
             => Diagnostic.Create(DuplicateMapWithFunctionDescriptor, location, from, to);
         public static readonly DiagnosticDescriptor DuplicateMapWithFunctionDescriptor = new(
             id: "NGM010",
@@ -241,7 +241,7 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
 
-        public static Diagnostic PossibleNullReference(
+        public static Diagnostic PossiblePropertyNullReference(
             Location location, 
             ITypeSymbol fromContainedType,
             string fromProperty,
@@ -249,8 +249,8 @@ namespace NextGenMapper
             ITypeSymbol toContainedType,
             string toProperty,
             ITypeSymbol toType)
-            => Diagnostic.Create(PossibleNullReferenceDescriptor, location, fromContainedType, fromProperty, fromType, toContainedType, toProperty, toType);
-        public static readonly DiagnosticDescriptor PossibleNullReferenceDescriptor = new(
+            => Diagnostic.Create(PossiblePropertyNullReferenceDescriptor, location, fromContainedType, fromProperty, fromType, toContainedType, toProperty, toType);
+        public static readonly DiagnosticDescriptor PossiblePropertyNullReferenceDescriptor = new(
             id: "NGM022",
             title: "Possible null reference",
             messageFormat: "Possible null reference exception when mapping '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}'",
@@ -258,10 +258,23 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+        public static Diagnostic PossibleNullReference(
+            Location location,
+            ITypeSymbol source,
+            ITypeSymbol destination)
+            => Diagnostic.Create(PossibleNullReferenceDescriptor, location, source, destination);
+        public static readonly DiagnosticDescriptor PossibleNullReferenceDescriptor = new(
+            id: "NGM023",
+            title: "Possible null reference",
+            messageFormat: "Possible null reference exception when mapping '{0}' to {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
         public static Diagnostic MapperInternalError(Location location, System.Exception exception)
             => Diagnostic.Create(MapperInternalErrorDescriptor, location, exception.GetType().Name, exception.Message);
         public static readonly DiagnosticDescriptor MapperInternalErrorDescriptor = new(
-            id: "NGM023",
+            id: "NGM024",
             title: "Mapped internal error",
             messageFormat: "An error occurred while mapping, this is an internal mapper error that was not your fault, please create an issue on github, exception type: {0}, message: {1}",
             category: "NextGenMapper",
@@ -271,7 +284,7 @@ namespace NextGenMapper
         public static Diagnostic MappingNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
             => Diagnostic.Create(MappingNotSupportedDescriptor, location, from, to);
         public static readonly DiagnosticDescriptor MappingNotSupportedDescriptor = new(
-            id: "NGM024",
+            id: "NGM025",
             title: "Mapping not supported",
             messageFormat: "Mapping from {0} to {1} not supported",
             category: "NextGenMapper",

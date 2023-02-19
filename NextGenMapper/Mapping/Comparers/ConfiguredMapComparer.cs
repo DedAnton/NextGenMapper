@@ -14,8 +14,8 @@ internal class ConfiguredMapComparer : IEqualityComparer<ConfiguredMap>
             return false;
         }
 
-        var spanX = x.UserArguments;
-        var spanY = y.UserArguments;
+        var spanX = x.UserArguments.AsSpan();
+        var spanY = y.UserArguments.AsSpan();
 
         for (var i = 0; i < x.UserArguments.Length; i++)
         {

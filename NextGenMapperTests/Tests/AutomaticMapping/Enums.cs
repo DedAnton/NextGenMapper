@@ -22,6 +22,36 @@ public enum Source
 {
     A = 1,
     B = 2,
+    C = 3
+}
+
+public enum Destination
+{
+    A = 4,
+    B = 5,
+    C = 6
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task NamesAreEqualsButDifferentCase_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => Source.B.Map<Destination>();
+}
+
+public enum Source
+{
+    A = 1,
+    B = 2,
     c = 3
 }
 

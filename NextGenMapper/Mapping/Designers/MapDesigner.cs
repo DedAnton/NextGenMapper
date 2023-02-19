@@ -21,9 +21,14 @@ internal static partial class MapDesigner
             return MapsList.Create(Map.Error(source, destination, diagnostic));
         }
 
+        if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
+        {
+            return DesignCollectionsMap(source, destination, location, semanticModel);
+        }
+
         if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            return DesignClassesMaps(source, destination, location, semanticModel, referencesHistory.Add(source));
+            return DesignClassesMaps(source, destination, location, semanticModel, referencesHistory);
         }
 
         if (SourceCodeAnalyzer.IsTypesAreEnums(source, destination))
@@ -31,11 +36,6 @@ internal static partial class MapDesigner
             var map = DesignEnumsMap(source, destination, location);
 
             return MapsList.Create(map);
-        }
-
-        if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
-        {
-            return DesignCollectionsMap(source, destination, location, semanticModel);
         }
 
         return new MapsList();

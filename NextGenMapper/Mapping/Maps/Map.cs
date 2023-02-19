@@ -1,11 +1,12 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps.Models;
+using System;
 using System.Collections.Immutable;
 
 namespace NextGenMapper.Mapping.Maps;
 
-internal readonly struct Map
+internal readonly struct Map : IEquatable<Map>
 {
     public ClassMap ClassMap { get; }
     public CollectionMap CollectionMap { get; }
@@ -30,6 +31,8 @@ internal readonly struct Map
         CollectionKind destinationKind,
         string sourceItem,
         string destinationItem,
+        bool isSourceItemNullable,
+        bool isDestinationItemNullable,
         bool isItemsEquals,
         bool isItemsHasImpicitConversion)
         => new(MapType.CollectionMap, collectionMap: new CollectionMap(
@@ -39,6 +42,8 @@ internal readonly struct Map
             destinationKind,
             sourceItem,
             destinationItem,
+            isSourceItemNullable,
+            isDestinationItemNullable,
             isItemsEquals,
             isItemsHasImpicitConversion));
 
@@ -51,14 +56,16 @@ internal readonly struct Map
         ImmutableArray<PropertyMap> constructorProperties,
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> arguments,
-        ImmutableArray<ConfiguredMapMockMethod> mockMethods)
+        ImmutableArray<ConfiguredMapMockMethod> mockMethods,
+        bool isSuccess)
         => new(MapType.ConfiguredMap, configuredMap: new ConfiguredMap(
             source,
             destination,
             constructorProperties,
             initializerProperties,
             arguments,
-            mockMethods));
+            mockMethods,
+            isSuccess));
 
     public static Map User(string source, string destination)
         => new(MapType.UserMap, userMap: new UserMap(source, destination));
@@ -70,6 +77,20 @@ internal readonly struct Map
         => new(
             MapType.PotentialError,
             potentialErrorMap: new PotentialErrorMap(source.ToNotNullableString(), destination.ToNotNullableString(), diagnostic));
+
+    public bool Equals(Map other)
+        => Type == other.Type
+        && Type switch
+        {
+            MapType.Error => ErrorMap.Equals(other.ErrorMap),
+            MapType.PotentialError => PotentialErrorMap.Equals(other.PotentialErrorMap),
+            MapType.ClassMap => ClassMap.Equals(other.ClassMap),
+            MapType.CollectionMap => CollectionMap.Equals(other.CollectionMap),
+            MapType.EnumMap => EnumMap.Equals(other.EnumMap),
+            MapType.ConfiguredMap => ConfiguredMap.Equals(other.ConfiguredMap),
+            MapType.UserMap => UserMap.Equals(other.UserMap),
+            _ => throw new NotImplementedException()
+        };
 
     private Map(
         MapType type,

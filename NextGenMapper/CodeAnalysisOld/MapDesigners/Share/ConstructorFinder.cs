@@ -20,8 +20,24 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
             _semanticModel = semanticModel;
         }
 
-        public (IMethodSymbol? constructor, List<Assigment> assigments) GetOptimalConstructor(ITypeSymbol from, ITypeSymbol to, HashSet<string> byUser)
+        public (IMethodSymbol? constructor, List<Assigment> assigments) GetOptimalConstructor(
+            ITypeSymbol from, 
+            ITypeSymbol to, 
+            SeparatedSyntaxList<ArgumentSyntax>? userArguments = null)
         {
+            var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
+            if (userArguments != null)
+            {
+                foreach (var argument in userArguments)
+                {
+                    var argumentName = argument.NameColon?.Name.Identifier.ValueText;
+                    if (argumentName is not null)
+                    {
+                        userArgumentsHashSet.Add(argumentName);
+                    }
+                }
+            }
+
             var constructors = to.GetPublicConstructors();
             BubbleSort.Sort(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
@@ -51,7 +67,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                             assigmentNotFound = false;
                         }
                     }
-                    if (assigmentNotFound && !parameter.IsOptional && !byUser.Contains(parameter.Name))
+                    if (assigmentNotFound && !parameter.IsOptional && !userArgumentsHashSet.Contains(parameter.Name))
                     {
                         return false;
                     }

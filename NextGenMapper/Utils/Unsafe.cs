@@ -10,7 +10,7 @@ internal static class Unsafe
 
     public static ImmutableArray<T> CastSpanToImmutableArray<T>(Span<T> span)
     {
-        var newArray = new T[span.Length];
+        var newArray = span.ToArray();
 
         return CastArrayToImmutableArray(ref newArray);
     }

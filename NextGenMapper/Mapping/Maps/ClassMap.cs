@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.Mapping.Maps.Models;
@@ -11,7 +12,7 @@ internal interface IMap
     string Destination { get; }
 }
 
-internal readonly struct ClassMap : IMap
+internal readonly struct ClassMap : IMap, IEquatable<ClassMap>
 {
     public ClassMap(
         string source,
@@ -29,6 +30,8 @@ internal readonly struct ClassMap : IMap
     public string Destination { get; }
     public ImmutableArray<PropertyMap> ConstructorProperties { get; }
     public ImmutableArray<PropertyMap> InitializerProperties { get; }
+
+    public bool Equals(ClassMap other) => Source == other.Source && Destination == other.Destination;
     //public SourceLocation Location { get; }
 }
 

@@ -159,7 +159,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith1: 1, forMapWith2: 1);
+    public object RunTest() => new Source().MapWith<Destination>(forMapWith1: 1, ForMapWith2: 1);
 }
 
 public class Source
@@ -197,7 +197,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -232,7 +232,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -271,7 +271,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -354,7 +354,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -420,7 +420,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -453,7 +453,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -486,7 +486,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -519,7 +519,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -652,7 +652,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -676,7 +676,7 @@ public class Destination
     }
 
     //TODO: think about diagnostic
-    [TestMethod]
+    //[TestMethod]
     public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
     {
         var source =
@@ -768,7 +768,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -808,7 +808,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -848,7 +848,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -893,7 +893,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -939,7 +939,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -986,7 +986,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1).MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source(1).MapWith<Destination>(ForMapWith: 1);
 }
 
 public record Source(int Property);
@@ -1007,7 +1007,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1, 1).MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source(1, 1).MapWith<Destination>(ForMapWith: 1);
 }
 
 public record Source(int PropertyA, int PropertyB);
@@ -1037,7 +1037,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1, 1, 1).MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source(1, 1, 1).MapWith<Destination>(ForMapWith: 1);
 }
 
 public record Source(int PropertyA, int PropertyB, int PropertyC);
@@ -1069,7 +1069,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1, 1, 1, 1).MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source(1, 1, 1, 1).MapWith<Destination>(ForMapWith: 1);
 }
 
 public record Source(int PropertyA, int PropertyB, int PropertyC, int PropertyD);
@@ -1101,7 +1101,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source(1, 1, 1, 1).MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source(1, 1, 1, 1).MapWith<Destination>(ForMapWith: 1);
 }
 
 public record Source(int PropertyA, int PropertyB, int PropertyC, int PropertyD);

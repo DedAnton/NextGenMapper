@@ -5,7 +5,7 @@
       Title: 'MapWith' method without arguments,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (6,31)-(6,64),
+      Location: : (6,31)-(6,66),
       Description: ,
       HelpLink: ,
       MessageFormat: Method 'MapWith' must be called at least with one argument. Pass arguments to 'MapWith' method or use 'Map' method.,

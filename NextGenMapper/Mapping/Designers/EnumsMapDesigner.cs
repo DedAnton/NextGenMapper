@@ -67,7 +67,7 @@ internal static partial class MapDesigner
     {
         foreach (var field in fields)
         {
-            if (field.Identifier == identifier)
+            if (StringComparer.InvariantCultureIgnoreCase.Equals(field.Identifier, identifier))
             {
                 return field.Identifier;
             }

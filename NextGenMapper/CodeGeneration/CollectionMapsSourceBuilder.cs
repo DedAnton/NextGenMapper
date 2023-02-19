@@ -101,12 +101,12 @@ namespace NextGenMapper
     {
         if (map.DestinationKind.IsArray() || map.DestinationKind.IsArrayInterface())
         {
-            _builder.Append($"            var destination = new {map.DestinationItem}[length];\r\n");
+            _builder.Append($"            var destination = new {map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}[length];\r\n");
         }
 
         if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface())
         {
-            _builder.Append($"            var destination = new System.Collections.Generic.List<{map.DestinationItem}>(length);\r\n");
+            _builder.Append($"            var destination = new System.Collections.Generic.List<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>(length);\r\n");
         }
     }
 
@@ -118,7 +118,7 @@ namespace NextGenMapper
 
             if (!map.IsItemsEquals && !map.IsItemsHasImpicitConversion)
             {
-                _builder.Append($".Map<{map.DestinationItem}>()");
+                _builder.Append($".Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
             }
         }
 
@@ -128,7 +128,7 @@ namespace NextGenMapper
 
             if (!map.IsItemsEquals && !map.IsItemsHasImpicitConversion)
             {
-                _builder.Append($".Map<{map.DestinationItem}>()");
+                _builder.Append($".Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
             }
 
             _builder.Append(')');

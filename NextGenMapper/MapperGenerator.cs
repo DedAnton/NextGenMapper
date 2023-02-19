@@ -11,6 +11,7 @@ using NextGenMapper.PostInitialization;
 using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -56,18 +57,54 @@ public class MapperGenerator : IIncrementalGenerator
         var configuredMaps = configuredMapsAndRelated
             .Where(static x => x.Type is MapType.ConfiguredMap)
             .Select(static (x, _) => x.ConfiguredMap)
-            .Collect()
-            .Distinct(new ConfiguredMapComparer());
+            .Collect();
 
-        context.RegisterSourceOutput(configuredMaps, (sourceProductionContext, maps) =>
+        var duplicateConfiguredMapDiagnostics = configuredMaps
+            .SelectMany(static (x, _) =>
+            {
+                var mapsHashSet = new HashSet<ConfiguredMap>(new ConfiguredMapComparer());
+                var diagnostics = new List<Diagnostic>();
+                foreach (var map in x.AsSpan())
+                {
+                    if (!map.IsSuccess)
+                    {
+                        continue;
+                    }
+                    if (mapsHashSet.Contains(map))
+                    {
+                        var diagnostic = Diagnostics.DuplicateMapWithFunction(Location.None, map.Source, map.Destination);
+
+                        diagnostics.Add(diagnostic);
+                    }
+                    {
+                        mapsHashSet.Add(map);
+                    }
+                }
+
+                var diagnosticsArray = diagnostics.ToArray();
+                return Unsafe.CastArrayToImmutableArray(ref diagnosticsArray);
+            });
+        context.ReportDiagnostics(duplicateConfiguredMapDiagnostics);
+
+        var uniqueConfiguredMaps = configuredMaps.Distinct(new ConfiguredMapComparer());
+
+        context.RegisterSourceOutput(uniqueConfiguredMaps, (sourceProductionContext, maps) =>
         {
+            //TODO: refactoring
+            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
+
+            if (maps.Length == 0)
+            {
+                return;
+            }
+
             var sourceBuilder = new ConfiguredMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
             sourceProductionContext.AddSource("Mapper_ConfiguredMaps.g", mapperClassSource);
         });
 
-        var configuredMapsMockMethods = configuredMaps
+        var configuredMapsMockMethods = uniqueConfiguredMaps
             .Select((x, _) =>
             {
                 var mockMethodsHashSet = new HashSet<ConfiguredMapMockMethod>(new ConfiguredMapMockMethodComparer());
@@ -93,6 +130,11 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(configuredMapsMockMethods, (sourceProductionContext, mockMethods) =>
         {
+            if (mockMethods.Length == 0)
+            {
+                return;
+            }
+
             var sourceBuilder = new ConfiguredMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(mockMethods);
 
@@ -101,7 +143,8 @@ public class MapperGenerator : IIncrementalGenerator
 
         var userMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
             static (node, _) => SourceCodeAnalyzer.IsUserMapMethodDeclarationSyntaxNode(node),
-            static (context, _) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel));
+            static (context, _) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel))
+            .SelectMany(static (x, _) => x);
 
         var userMapsTargetsDiagnostics = userMapsTargets
             .Where(static x => x.Type is TargetType.Error)
@@ -121,7 +164,7 @@ public class MapperGenerator : IIncrementalGenerator
         var mapsTargetsDiagnostics = mapsTargets
             .Where(static x => x.Type is TargetType.Error)
             .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
-        context.ReportDiagnostics(userMapsTargetsDiagnostics);
+        context.ReportDiagnostics(mapsTargetsDiagnostics);
 
         var maps = mapsTargets
             .Where(static x => x.Type is TargetType.Map)
@@ -145,6 +188,11 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(classMaps, (sourceProductionContext, maps) =>
         {
+            if (maps.Length == 0)
+            {
+                return;
+            }
+
             var sourceBuilder = new ClassMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
@@ -164,6 +212,10 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(collectionMaps, (sourceProductionContext, maps) =>
         {
+            if (maps.Length == 0)
+            {
+                return;
+            }
             var sourceBuilder = new CollectionMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
@@ -183,21 +235,34 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(enumMaps, (sourceProductionContext, maps) =>
         {
+            if (maps.Length == 0)
+            {
+                return;
+            }
             var sourceBuilder = new EnumMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
             sourceProductionContext.AddSource("Mapper_EnumMaps.g", mapperClassSource);
         });
 
+        var potentialErrorsFromRelated = configuredMapsAndRelated
+            .Where(static x => x.Type is MapType.PotentialError)
+            .Select(static (x, _) => x.PotentialErrorMap);
+        var potentialErrors = maps
+            .Where(static x => x.Type is MapType.PotentialError)
+            .Select(static (x, _) => x.PotentialErrorMap)
+            .Concat(potentialErrorsFromRelated);
+
         var mapsPostValidationDiagnostics = classMaps
             .Combine(collectionMaps)
             .Combine(enumMaps)
-            .Combine(configuredMaps)
+            .Combine(uniqueConfiguredMaps)
             .Combine(userMapsHashSet)
+            .Combine(potentialErrors)
             .SelectMany(static (x, _) =>
             {
-                var ((((classMaps, collectionMaps), enumMaps), configuredMaps), userMaps) = x;
-                var mapsHashSet = new HashSet<IMap>();
+                var (((((classMaps, collectionMaps), enumMaps), configuredMaps), userMaps), potentialErrors) = x;
+                var mapsHashSet = new HashSet<IMap>(new SimpleMapComparer());
                 var diagnostics = new List<Diagnostic>();
 
                 foreach (var map in classMaps.AsSpan())
@@ -276,7 +341,7 @@ public class MapperGenerator : IIncrementalGenerator
                     var collectionItemsMap = (IMap)new UserMap(map.SourceItem, map.DestinationItem);
                     if (!mapsHashSet.Contains(collectionItemsMap))
                     {
-                        var diagnostic = Diagnostics.MappingFunctionNotFound(Location.None, map.Source, map.Destination);
+                        var diagnostic = Diagnostics.MappingFunctionNotFound(Location.None, map.SourceItem, map.DestinationItem);
                         diagnostics.Add(diagnostic);
                     }
                 }
@@ -290,6 +355,14 @@ public class MapperGenerator : IIncrementalGenerator
                     foreach (var propertyMap in map.InitializerProperties)
                     {
                         ValidatePropertyMap(map, propertyMap);
+                    }
+                }
+
+                foreach (var potentialError in potentialErrors.AsSpan())
+                {
+                    if (!mapsHashSet.Contains(potentialError))
+                    {
+                        diagnostics.Add(potentialError.Diagnostic);
                     }
                 }
 

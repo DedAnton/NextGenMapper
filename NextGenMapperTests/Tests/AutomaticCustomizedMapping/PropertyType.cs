@@ -59,7 +59,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -125,7 +125,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -159,7 +159,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -198,7 +198,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -240,7 +240,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -268,7 +268,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -317,7 +317,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new SourceA().MapWith<DestinationA>(forMapWith: 1);
+    public object RunTest() => new SourceA().MapWith<DestinationA>(ForMapWith: 1);
 }
 
 public class SourceA
@@ -361,7 +361,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+    public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
 }
 
 public class Source
@@ -389,7 +389,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source<int>{ Property = 1 }.MapWith<Destination<int>>(forMapWith: 1);
+    public object RunTest() => new Source<int>{ Property = 1 }.MapWith<Destination<int>>(ForMapWith: 1);
 }
 
 public class Source<T>
@@ -417,7 +417,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source<ClassA>{ Property = new ClassA() }.MapWith<Destination<ClassB>>(forMapWith: 1);
+    public object RunTest() => new Source<ClassA>{ Property = new ClassA() }.MapWith<Destination<ClassB>>(ForMapWith: 1);
 }
 
 public class Source<T>
@@ -456,7 +456,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source<int>{ Property = 1 }.MapWith<Destination<string>>(forMapWith: 1);
+    public object RunTest() => new Source<int>{ Property = 1 }.MapWith<Destination<string>>(ForMapWith: 1);
 }
 
 public class Source<T>

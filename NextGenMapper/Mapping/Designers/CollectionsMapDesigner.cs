@@ -32,21 +32,32 @@ internal static partial class MapDesigner
         var destinationItemType = GetCollectionItemType(destination);
 
         var maps = new MapsList();
+        var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceItemType, destinationItemType);
+        var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceItemType, destinationItemType, semanticModel);
         var map = Map.Collection(
             source.ToNotNullableString(),
             destination.ToNotNullableString(),
             sourceKind,
             destinationKind,
-            sourceItemType.ToString(),
-            destinationItemType.ToString(),
-            SourceCodeAnalyzer.IsTypesAreEquals(sourceItemType, destinationItemType),
-            SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceItemType, destinationItemType, semanticModel));
+            sourceItemType.ToNotNullableString(),
+            destinationItemType.ToNotNullableString(),
+            sourceItemType.NullableAnnotation == NullableAnnotation.Annotated,
+            destinationItemType.NullableAnnotation == NullableAnnotation.Annotated,
+            isTypeEquals,
+            isTypesHasImplicitConversion);
         maps.AddFirst(map);
 
-        if (!map.CollectionMap.IsItemsEquals && !map.CollectionMap.IsItemsHasImpicitConversion)
+        if (IsPotentialNullReference(sourceItemType, destinationItemType, isTypeEquals, isTypesHasImplicitConversion))
+        {
+            var diagnostic = Diagnostics.PossibleNullReference(location, sourceItemType, destinationItemType);
+
+            return MapsList.Create(Map.Error(source, destination, diagnostic));
+        }
+
+        if (!isTypeEquals && !isTypesHasImplicitConversion)
         {
             //TODO: check situation when collection type contains property with same collection (potential circular reference)
-            var collectionsElementsTypesMaps = MapDesigner.DesignMaps(sourceItemType, destinationItemType, location, semanticModel, ImmutableList<ITypeSymbol>.Empty);
+            var collectionsElementsTypesMaps = DesignMaps(sourceItemType, destinationItemType, location, semanticModel, ImmutableList<ITypeSymbol>.Empty);
             maps.Append(collectionsElementsTypesMaps);
         }
 

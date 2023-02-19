@@ -53,7 +53,7 @@ namespace NextGenMapper
 
     private void ConstructorInvocation(ClassMap map)
     {
-        _builder.Append($" => new {map.Source}");
+        _builder.Append($" => new {map.Destination}");
         ConstructorArguments(map.ConstructorProperties);
         InitializerAssigments(map.InitializerProperties);
         _builder.Append(';');
@@ -78,6 +78,7 @@ namespace NextGenMapper
                 _builder.Append(",\r\n");
             }
         }
+        
         _builder.Append("\r\n        )");
     }
 

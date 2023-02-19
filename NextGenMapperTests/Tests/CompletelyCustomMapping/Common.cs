@@ -117,7 +117,7 @@ namespace NextGenMapper
 {
     internal static partial class Mapper
     {
-        internal static Destination Map<To>(this Source source) => source.MapWith<Destination>(property: source.Property * -1);
+        internal static Destination Map<To>(this Source source) => source.MapWith<Destination>(Property: source.Property * -1);
     }
 }
 ";

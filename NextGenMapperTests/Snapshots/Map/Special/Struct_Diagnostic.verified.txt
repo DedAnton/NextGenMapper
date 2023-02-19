@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM025,
+      Title: Mapping not supported,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,62),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping from {0} to {1} not supported,
+      Message: Mapping from Test.Source to Test.Destination not supported,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

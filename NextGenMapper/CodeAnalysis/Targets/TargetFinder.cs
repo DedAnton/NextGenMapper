@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Collections.Immutable;
 
 namespace NextGenMapper.CodeAnalysis.Targets;
 
@@ -175,48 +176,57 @@ internal static class TargetFinder
         return Target.ConfiguredMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
     }
 
-    public static Target GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel)
     {
         if (node is not MethodDeclarationSyntax userMapMethodDeclaration)
         {
-            return Target.Empty;
+            return ImmutableArray.Create(Target.Empty);
         }
 
         var (isUserMapMethodDeclaration, sourceType, destinationType, method)
             = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel);
         if (!isUserMapMethodDeclaration || sourceType is null || destinationType is null || method is null)
         {
-            return Target.Empty;
+            return ImmutableArray.Create(Target.Empty);
         }
 
         var location = userMapMethodDeclaration.GetLocation();
 
         if (SourceCodeAnalyzer.IsTypesHasErrors(sourceType, destinationType))
         {
-            return Target.Empty;
-        }
-
-        if (!method.IsExtensionMethod)
-        {
-            var diagnostic = Diagnostics.MapMethodMustBeExtension(location);
-
-            return Target.Error(diagnostic);
+            return ImmutableArray.Create(Target.Empty);
         }
 
         if (!method.IsGenericMethod || method.TypeParameters.Length != 1)
         {
             var diagnostic = Diagnostics.MapMethodMustBeGeneric(location);
 
-            return Target.Error(diagnostic);
+            return ImmutableArray.Create(Target.Error(diagnostic));
         }
+
+        var userMapTarget = Target.UserMap(sourceType, destinationType);
 
         if (!method.IsExtensionMethod)
         {
-            var diagnostic = Diagnostics.MapMethodMustNotReturnVoid(location);
+            var diagnostic = Diagnostics.MapMethodMustBeExtension(location);
 
-            return Target.Error(diagnostic);
+            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
         }
 
-        return Target.UserMap(sourceType, destinationType);
+        if (method.ReturnsVoid)
+        {
+            var diagnostic = Diagnostics.MapMethodMustNotReturnVoid(location);
+
+            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
+        }
+
+        if (method.DeclaredAccessibility != Accessibility.Internal)
+        {
+            var diagnostic = Diagnostics.MapMethodMustBeInternal(location);
+
+            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
+        }
+
+        return ImmutableArray.Create(userMapTarget);
     }
 }

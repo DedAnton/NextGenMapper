@@ -1,6 +1,8 @@
-﻿namespace NextGenMapper.Mapping.Maps;
+﻿using System;
 
-internal readonly struct UserMap : IMap
+namespace NextGenMapper.Mapping.Maps;
+
+internal readonly struct UserMap : IMap, IEquatable<UserMap>
 {
     public UserMap(
         string source,
@@ -12,4 +14,6 @@ internal readonly struct UserMap : IMap
 
     public string Source { get; }
     public string Destination { get; }
+
+    public bool Equals(UserMap other) => Source == other.Source && Destination == other.Destination;
 }
