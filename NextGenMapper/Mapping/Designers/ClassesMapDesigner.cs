@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.MapDesigners;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;

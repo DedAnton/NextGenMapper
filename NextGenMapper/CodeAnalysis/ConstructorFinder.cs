@@ -8,8 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NextGenMapper.CodeAnalysis.MapDesigners
+namespace NextGenMapper.CodeAnalysis
 {
+    //TODO: refactoring
     public class ConstructorFinder
     {
         private readonly SemanticModel _semanticModel;
@@ -21,8 +22,8 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         }
 
         public (IMethodSymbol? constructor, List<Assigment> assigments) GetOptimalConstructor(
-            ITypeSymbol from, 
-            ITypeSymbol to, 
+            ITypeSymbol from,
+            ITypeSymbol to,
             SeparatedSyntaxList<ArgumentSyntax>? userArguments = null)
         {
             var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
@@ -139,7 +140,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
         {
             var assigments = new List<Assigment>(constructor.Parameters.Length);
             var properties = constructor.ContainingType.GetPublicPropertiesNames();
-            foreach(var parameter in constructor.Parameters)
+            foreach (var parameter in constructor.Parameters)
             {
                 foreach (var property in properties)
                 {
@@ -173,7 +174,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                 && _semanticModel.GetOperation(constructorSyntax.Initializer) is IInvocationOperation thisInvocationOperation)
             {
                 var argumentParameterPairs = new List<(string argument, string parameter)>(thisInvocationOperation.Arguments.Length);
-                foreach(var argument in thisInvocationOperation.Arguments)
+                foreach (var argument in thisInvocationOperation.Arguments)
                 {
                     if (argument is
                         {
@@ -191,7 +192,7 @@ namespace NextGenMapper.CodeAnalysis.MapDesigners
                     }
                 }
                 var assigments = GetAssigments(thisInvocationOperation.TargetMethod);
-                foreach(var assigment in assigments)
+                foreach (var assigment in assigments)
                 {
                     var argument = argumentParameterPairs
                         .Where(x => x.parameter == assigment.Parameter)

@@ -63,7 +63,7 @@ public class MapperGenerator : IIncrementalGenerator
             .SelectMany(static (x, _) =>
             {
                 var mapsHashSet = new HashSet<ConfiguredMap>(new ConfiguredMapComparer());
-                var diagnostics = new List<Diagnostic>();
+                var diagnostics = new ValueListBuilder<Diagnostic>();
                 foreach (var map in x.AsSpan())
                 {
                     if (!map.IsSuccess)
@@ -74,15 +74,14 @@ public class MapperGenerator : IIncrementalGenerator
                     {
                         var diagnostic = Diagnostics.DuplicateMapWithFunction(Location.None, map.Source, map.Destination);
 
-                        diagnostics.Add(diagnostic);
+                        diagnostics.Append(diagnostic);
                     }
                     {
                         mapsHashSet.Add(map);
                     }
                 }
 
-                var diagnosticsArray = diagnostics.ToArray();
-                return Unsafe.CastArrayToImmutableArray(ref diagnosticsArray);
+                return Unsafe.CastSpanToImmutableArray(diagnostics.AsSpan());
             });
         context.ReportDiagnostics(duplicateConfiguredMapDiagnostics);
 
@@ -267,38 +266,23 @@ public class MapperGenerator : IIncrementalGenerator
 
                 foreach (var map in classMaps.AsSpan())
                 {
-                    if (!mapsHashSet.Contains(map))
-                    {
-                        mapsHashSet.Add(map);
-                    }
+                    mapsHashSet.Add(map);
                 }
                 foreach (var map in collectionMaps.AsSpan())
                 {
-                    if (!mapsHashSet.Contains(map))
-                    {
-                        mapsHashSet.Add(map);
-                    }
+                    mapsHashSet.Add(map);
                 }
                 foreach (var map in enumMaps.AsSpan())
                 {
-                    if (!mapsHashSet.Contains(map))
-                    {
-                        mapsHashSet.Add(map);
-                    }
+                    mapsHashSet.Add(map);
                 }
                 foreach (var map in configuredMaps.AsSpan())
                 {
-                    if (!mapsHashSet.Contains(map))
-                    {
-                        mapsHashSet.Add(map);
-                    }
+                    mapsHashSet.Add(map);
                 }
                 foreach (var map in userMaps)
                 {
-                    if (!mapsHashSet.Contains(map))
-                    {
-                        mapsHashSet.Add(map);
-                    }
+                    mapsHashSet.Add(map);
                 }
 
                 void ValidatePropertyMap(IMap map, PropertyMap propertyMap)

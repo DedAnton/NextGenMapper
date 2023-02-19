@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.FlowAnalysis;
 using Microsoft.CodeAnalysis.Operations;
-using NextGenMapper.CodeAnalysis.MapDesigners;
+using NextGenMapper.CodeAnalysis;
 using NextGenMapper.Extensions;
 
 namespace Benchmark.Benchmarks.Experiments;

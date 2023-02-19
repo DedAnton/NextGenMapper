@@ -45,7 +45,7 @@ internal static partial class MapDesigner
         else
         {
             //TODO: refactoring
-            //this is really a real case, because when we map types from dll, we don't have access to the syntax
+            //this is a case, because when we map types from dll, we don't have access to the syntax
             return enumTypeSymbol.GetMembers().OfType<IFieldSymbol>().Select(x => new EnumField(x.Name, x.ConstantValue?.UnboxToLong())).ToArray();
         }
     }

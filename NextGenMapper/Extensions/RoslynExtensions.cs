@@ -28,19 +28,6 @@ namespace NextGenMapper.Extensions
             return false;
         }
 
-        //public static EnumField[] GetFields(this EnumDeclarationSyntax enumDeclaration)
-        //{
-        //    var fields = new EnumField[enumDeclaration.Members.Count];
-        //    for (int i = 0; i < enumDeclaration.Members.Count; i++)
-        //    {
-        //        fields[i] = new EnumField(
-        //            enumDeclaration.Members[i].Identifier.ValueText,
-        //            enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value?.UnboxToLong());
-        //    }
-
-        //    return fields;
-        //}
-
         public static Span<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
         {
             if (type is not INamedTypeSymbol namedTypeSymbol)
@@ -60,17 +47,6 @@ namespace NextGenMapper.Extensions
             }
 
             return publicConstructors.Slice(0, count);
-        }
-
-        public static Span<string> GetParametersNames(this IMethodSymbol method)
-        {
-            Span<string> names = new string[method.Parameters.Length];
-            for (int i = 0; i < method.Parameters.Length; i++)
-            {
-                names[i] = method.Parameters[i].Name;
-            }
-
-            return names;
         }
 
         public static Span<IPropertySymbol> GetPublicProperties(this ITypeSymbol type)
@@ -127,24 +103,6 @@ namespace NextGenMapper.Extensions
             return names;
         }
 
-        public static IPropertySymbol? FindPublicProperty(this ITypeSymbol type, string name, StringComparison comparision = StringComparison.InvariantCulture)
-        {
-            foreach (var property in type.GetPublicProperties())
-            {
-                if (property is
-                    {
-                        IsWriteOnly: false,
-                        GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
-                    } 
-                    && property.Name.Equals(name, comparision))
-                {
-                    return property;
-                }
-            }
-
-            return null;
-        }
-
         public static SyntaxNode? GetFirstDeclaration(this ISymbol symbol)
         {
             if (symbol.DeclaringSyntaxReferences.Length > 0)
@@ -154,8 +112,6 @@ namespace NextGenMapper.Extensions
 
             return null;
         }
-
-        public static bool IsPrimitive(this ITypeSymbol type) => (sbyte)type.SpecialType >= 7 && (sbyte)type.SpecialType <= 20;
 
         public static string ToNotNullableString(this ITypeSymbol type) => type.ToDisplayString(NullableFlowState.None);
     }
