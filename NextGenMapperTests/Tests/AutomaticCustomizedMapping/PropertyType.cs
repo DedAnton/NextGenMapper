@@ -3,7 +3,7 @@
 [TestClass]
 public class PropertyType : SourceGeneratorVerifier
 {
-    public override string TestGroup => "MapWith";
+    public override string TestGroup => "ConfiguredMap";
 
     //    [TestMethod]
     //    public Task MapNullable_ShouldMap()

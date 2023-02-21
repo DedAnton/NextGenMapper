@@ -3,7 +3,7 @@
 [TestClass]
 public class Common : SourceGeneratorVerifier
 {
-    public override string TestGroup => "CustomMapping";
+    public override string TestGroup => "UserMap";
 
     [TestMethod]
     public Task TypesCanNotBeMapped_ShouldMapUsingCustomMethod()

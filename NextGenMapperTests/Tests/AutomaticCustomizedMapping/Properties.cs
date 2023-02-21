@@ -3,7 +3,7 @@
 [TestClass]
 public class Properties : SourceGeneratorVerifier
 {
-    public override string TestGroup => "MapWith";
+    public override string TestGroup => "ConfiguredMap";
 
     [TestMethod]
     public Task NamesShouldBeEqual_OtherwiseIgnored()

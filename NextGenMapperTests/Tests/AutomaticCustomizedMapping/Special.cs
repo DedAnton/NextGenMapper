@@ -3,7 +3,7 @@
 [TestClass]
 public class Special : SourceGeneratorVerifier
 {
-    public override string TestGroup => "MapWith";
+    public override string TestGroup => "ConfiguredMap";
 
     [TestMethod]
     public Task CommonGeneric_ShouldMap()
