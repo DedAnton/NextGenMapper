@@ -1,8 +1,7 @@
 ﻿using NextGenMapper.Mapping.Maps.Models;
 
-namespace NextGenMapper.Extensions;
-
-internal static class CollectionKindExtensions
+namespace NextGenMapper.CodeGeneration;
+internal static class CodeGenerationHelper
 {
     public static bool IsInterface(this CollectionKind type) => type is CollectionKind.IEnumerable or CollectionKind.ICollection
         or CollectionKind.IList or CollectionKind.IReadOnlyCollection or CollectionKind.IReadOnlyList;

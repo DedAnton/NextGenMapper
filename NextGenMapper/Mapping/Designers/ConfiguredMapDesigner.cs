@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
@@ -43,8 +42,7 @@ internal static class ConfiguredMapDesigner
     {
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var constructorFinder = new ConstructorFinder(semanticModel);
-        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments);
+        var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
@@ -59,10 +57,10 @@ internal static class ConfiguredMapDesigner
 
         var constructorProperties = new ValueListBuilder<PropertyMap>(destinationParameters.Length);
         var configuredMapArguments = new ValueListBuilder<NameTypePair>(arguments.Count);
-        var assigmentsDictionary = new Dictionary<string, Assigment>(assigments.Length, StringComparer.InvariantCulture);
-        foreach (var assigment in assigments)
+        var assignmentsDictionary = new Dictionary<string, Assignment>(assignments.Length, StringComparer.InvariantCulture);
+        foreach (var assignment in assignments)
         {
-            assigmentsDictionary.Add(assigment.Parameter, assigment);
+            assignmentsDictionary.Add(assignment.Parameter, assignment);
         }
         foreach (var destinationParameter in destinationParameters)
         {
@@ -76,14 +74,14 @@ internal static class ConfiguredMapDesigner
             }
             else
             {
-                if (assigmentsDictionary.TryGetValue(destinationParameter.Name, out var assigment)
-                && sourceProperties.TryGetValue(assigment.Property, out var sourceProperty))
+                if (assignmentsDictionary.TryGetValue(destinationParameter.Name, out var assignment)
+                && sourceProperties.TryGetValue(assignment.Property, out var sourceProperty))
                 {
                     var propertyMap = PropertiesMapDesigner.DesignPropertyMap(
                             sourceProperty.Name,
                             sourceProperty.Type,
                             sourceProperty.ContainingType,
-                            assigment.Property,
+                            assignment.Property,
                             destinationParameter.Type,
                             destinationParameter.ContainingType,
                             location,
@@ -103,9 +101,9 @@ internal static class ConfiguredMapDesigner
 
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
-        foreach (var assigment in assigments)
+        foreach (var assignment in assignments)
         {
-            destinationPropertiesInitializedByConstructor.Add(assigment.Property);
+            destinationPropertiesInitializedByConstructor.Add(assignment.Property);
         }
         foreach (var destinationProperty in destinationProperties)
         {
@@ -204,7 +202,6 @@ internal static class ConfiguredMapDesigner
         bool isCompleteMethod,
         SemanticModel semanticModel)
     {
-        var constructorFinder = new ConstructorFinder(semanticModel);
         var constructors = destination.GetConstructors();
         var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(constructors.Length);
         var isDuplicatedMockRemoved = false;
@@ -212,7 +209,7 @@ internal static class ConfiguredMapDesigner
         {
             if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
             {
-                var mockMethod = DesignMockMethod(source, destination, constructorFinder, constructor, destinationProperties);
+                var mockMethod = DesignMockMethod(source, destination, constructor, destinationProperties, semanticModel);
 
                 if (!isDuplicatedMockRemoved
                     && isCompleteMethod
@@ -232,17 +229,17 @@ internal static class ConfiguredMapDesigner
     private static ConfiguredMapMockMethod DesignMockMethod(
         ITypeSymbol source,
         ITypeSymbol destination,
-        ConstructorFinder constructorFinder, 
         IMethodSymbol constructor,
-        ReadOnlySpan<IPropertySymbol> destinationProperties)
+        ReadOnlySpan<IPropertySymbol> destinationProperties,
+        SemanticModel semanticModel)
     {
         var destinationParameters = constructor.Parameters.AsSpan();
         var mockMethodParameters = new ValueListBuilder<NameTypePair>(destinationParameters.Length + destinationProperties.Length);
-        var assigments = constructorFinder.GetAssigments(constructor);
+        var assignments = ConstructorFinder.GetAssignments(constructor, semanticModel);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
-        foreach (var assigment in assigments)
+        foreach (var assignment in assignments)
         {
-            destinationPropertiesInitializedByConstructor.Add(assigment.Property);
+            destinationPropertiesInitializedByConstructor.Add(assignment.Property);
         }
 
         foreach (var destinationParameter in destinationParameters)

@@ -55,7 +55,7 @@ namespace NextGenMapper
     {
         _builder.Append($" => new {map.Destination}");
         ConstructorArguments(map.ConstructorProperties);
-        InitializerAssigments(map.InitializerProperties);
+        InitializerAssignments(map.InitializerProperties);
         _builder.Append(';');
     }
 
@@ -82,7 +82,7 @@ namespace NextGenMapper
         _builder.Append("\r\n        )");
     }
 
-    private void InitializerAssigments(ImmutableArray<PropertyMap> initializerProperties)
+    private void InitializerAssignments(ImmutableArray<PropertyMap> initializerProperties)
     {
         if (initializerProperties.Length == 0)
         {
@@ -94,7 +94,7 @@ namespace NextGenMapper
         for (var i = 0; i < initializerProperties.Length; i++)
         {
             _builder.Append("            ");
-            InitializerAssigment(initializerProperties[i]);
+            InitializerAssignment(initializerProperties[i]);
             if (i < lastIndex)
             {
                 _builder.Append(",\r\n");
@@ -115,7 +115,7 @@ namespace NextGenMapper
         }
     }
 
-    private void InitializerAssigment(PropertyMap map)
+    private void InitializerAssignment(PropertyMap map)
     {
         if (map.IsTypesEquals || map.HasImplicitConversion)
         {

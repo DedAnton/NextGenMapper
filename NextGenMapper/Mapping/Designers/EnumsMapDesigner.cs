@@ -58,7 +58,7 @@ internal static partial class MapDesigner
         {
             var enumField = new EnumField(
                 enumDeclaration.Members[i].Identifier.ValueText,
-                UnboxToLong(enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value));
+                UnboxToLong((enumDeclaration.Members[i].EqualsValue?.Value as LiteralExpressionSyntax)?.Token.Value));
             fields.Append(enumField);
         }
 

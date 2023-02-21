@@ -58,7 +58,7 @@ namespace NextGenMapper
         SourceCollection(map);
         DestinationCollection(map);
         _builder.Append("            for (var i = 0; i < length; i++)\r\n            {\r\n");
-        DestinationCollectionAssigment(map);
+        DestinationCollectionAssignment(map);
         _builder.Append("\r\n            }\r\n\r\n");
         _builder.Append("            return destination;\r\n        }");
     }
@@ -110,7 +110,7 @@ namespace NextGenMapper
         }
     }
 
-    private void DestinationCollectionAssigment(CollectionMap map)
+    private void DestinationCollectionAssignment(CollectionMap map)
     {
         if (map.DestinationKind.IsArray() || map.DestinationKind.IsArrayInterface())
         {

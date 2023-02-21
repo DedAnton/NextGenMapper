@@ -94,7 +94,7 @@ $@"        internal static {map.Destination} MapWith<To>
     {
         _builder.Append($"\r\n        => new {map.Destination}");
         ConstructorArguments(map.ConstructorProperties);
-        InitializerAssigments(map.InitializerProperties);
+        InitializerAssignments(map.InitializerProperties);
         _builder.Append(';');
     }
 
@@ -119,7 +119,7 @@ $@"        internal static {map.Destination} MapWith<To>
         _builder.Append("\r\n        )");
     }
 
-    private void InitializerAssigments(ImmutableArray<PropertyMap> initializerProperties)
+    private void InitializerAssignments(ImmutableArray<PropertyMap> initializerProperties)
     {
         if (initializerProperties.Length == 0)
         {
@@ -131,7 +131,7 @@ $@"        internal static {map.Destination} MapWith<To>
         for (var i = 0; i < initializerProperties.Length; i++)
         {
             _builder.Append("            ");
-            InitializerAssigment(initializerProperties[i]);
+            InitializerAssignment(initializerProperties[i]);
             if (i < lastIndex)
             {
                 _builder.Append(",\r\n");
@@ -159,7 +159,7 @@ $@"        internal static {map.Destination} MapWith<To>
         }
     }
 
-    private void InitializerAssigment(PropertyMap propertyMap)
+    private void InitializerAssignment(PropertyMap propertyMap)
     {
         if (propertyMap.UserArgumentName is not null)
         {

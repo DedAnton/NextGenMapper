@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
@@ -38,8 +37,7 @@ internal static partial class MapDesigner
             return;
         }
 
-        var constructorFinder = new ConstructorFinder(semanticModel);
-        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(sourceProperties, destination);
+        var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, semanticModel);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
@@ -59,21 +57,21 @@ internal static partial class MapDesigner
         }
 
         var constructorProperties = new ValueListBuilder<PropertyMap>(destinationParameters.Length);
-        var assigmentsDictionary = new Dictionary<string, Assigment>(assigments.Length, StringComparer.InvariantCulture);
-        foreach(var assigment in assigments)
+        var assignmentsDictionary = new Dictionary<string, Assignment>(assignments.Length, StringComparer.InvariantCulture);
+        foreach(var assignment in assignments)
         {
-            assigmentsDictionary.Add(assigment.Parameter, assigment);
+            assignmentsDictionary.Add(assignment.Parameter, assignment);
         }
         foreach (var destinationParameter in destinationParameters)
         {
-            if (assigmentsDictionary.TryGetValue(destinationParameter.Name, out var assigment)
-                && sourceProperties.TryGetValue(assigment.Property, out var sourceProperty))
+            if (assignmentsDictionary.TryGetValue(destinationParameter.Name, out var assignment)
+                && sourceProperties.TryGetValue(assignment.Property, out var sourceProperty))
             {
                 var propertyMap = PropertiesMapDesigner.DesignPropertyMap(
                     sourceProperty.Name,
                     sourceProperty.Type,
                     sourceProperty.ContainingType,
-                    assigment.Property,
+                    assignment.Property,
                     destinationParameter.Type,
                     destinationParameter.ContainingType,
                     location,
@@ -92,9 +90,9 @@ internal static partial class MapDesigner
 
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
-        foreach (var assigment in assigments)
+        foreach (var assignment in assignments)
         {
-            destinationPropertiesInitializedByConstructor.Add(assigment.Property);
+            destinationPropertiesInitializedByConstructor.Add(assignment.Property);
         }
         foreach (var destinationProperty in destinationProperties)
         {

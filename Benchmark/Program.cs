@@ -10,7 +10,7 @@ internal class Program
 {
     private static void Main()
     {
-        BenchmarkRunner.Run<UnboxingAndCastToLong>();
+        BenchmarkRunner.Run<GetSymbolDeclaration>();
 
         //var a = 100;
         //var b = (object)a;
