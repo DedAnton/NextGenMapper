@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis.Targets;
+using NextGenMapper.CodeAnalysis.Targets.Models;
 using NextGenMapper.PostInitialization;
 
 namespace NextGenMapper.CodeAnalysis;
@@ -178,9 +178,6 @@ internal static class SourceCodeAnalyzer
 
     public static bool IsTypesAreClasses(ITypeSymbol sourceType, ITypeSymbol destinationType)
         => sourceType.TypeKind == TypeKind.Class && destinationType.TypeKind == TypeKind.Class;
-
-    public static bool IsOneOfTypesIsStruct(ITypeSymbol sourceType, ITypeSymbol destinationType)
-        => sourceType.TypeKind == TypeKind.Struct || destinationType.TypeKind == TypeKind.Struct;
 
     public static SyntaxNode? FindFirstLocationSyntaxNode(ISymbol symbol)
     {

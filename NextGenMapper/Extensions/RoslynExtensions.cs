@@ -1,8 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 
 namespace NextGenMapper.Extensions
 {
@@ -10,22 +7,14 @@ namespace NextGenMapper.Extensions
     {
         public static T? As<T>(this SyntaxNode node) where T : SyntaxNode => node is T tNode ? tNode : default;
 
-        public static bool IsGenericEnumerable(this ITypeSymbol type)
+        public static ReadOnlySpan<IMethodSymbol> GetConstructors(this ITypeSymbol type)
         {
-            if (type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
+            if (type is not INamedTypeSymbol namedType)
             {
-                return true;
+                return Array.Empty<IMethodSymbol>();
             }
 
-            foreach (var @interface in type.AllInterfaces)
-            {
-                if (@interface.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return namedType.Constructors.AsSpan();
         }
 
         public static Span<IMethodSymbol> GetPublicConstructors(this ITypeSymbol type)
@@ -37,7 +26,7 @@ namespace NextGenMapper.Extensions
 
             Span<IMethodSymbol> publicConstructors = new IMethodSymbol[namedTypeSymbol.Constructors.Length];
             var count = 0;
-            foreach (var constructor in namedTypeSymbol.Constructors)
+            foreach (var constructor in namedTypeSymbol.Constructors.AsSpan())
             {
                 if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
                 {
@@ -49,7 +38,7 @@ namespace NextGenMapper.Extensions
             return publicConstructors.Slice(0, count);
         }
 
-        public static Span<IPropertySymbol> GetPublicProperties(this ITypeSymbol type)
+        public static ReadOnlySpan<IPropertySymbol> GetPublicProperties(this ITypeSymbol type)
         {
             var members = type.GetMembers().AsSpan();
             Span<IPropertySymbol> properties = new IPropertySymbol[members.Length];
@@ -68,27 +57,6 @@ namespace NextGenMapper.Extensions
             }
 
             return properties.Slice(0, count);
-        }
-
-        public static Dictionary<string, IPropertySymbol> GetPublicReadablePropertiesDictionary(this ITypeSymbol type)
-        {
-            var members = type.GetMembers().AsSpan();
-            var properties = new Dictionary<string, IPropertySymbol>(members.Length, StringComparer.InvariantCulture);
-            foreach (var member in members)
-            {
-                if (member is IPropertySymbol
-                    {
-                        CanBeReferencedByName: true,
-                        IsWriteOnly: false,
-                        DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal,
-                        GetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
-                    } property)
-                {
-                    properties.Add(property.Name, property);
-                }
-            }
-
-            return properties;
         }
 
         public static Span<string> GetPublicPropertiesNames(this ITypeSymbol type)

@@ -52,36 +52,19 @@ namespace NextGenMapper.CodeAnalysis
         }
 
         public ConstructorForMapping GetOptimalConstructor(
-            ITypeSymbol from,
-            ITypeSymbol to,
-            SeparatedSyntaxList<ArgumentSyntax>? userArguments = null)
+            Dictionary<string, IPropertySymbol> sourcePropertiesDictionary,
+            ITypeSymbol destination,
+            HashSet<string>? userArguments = null)
         {
-            var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCultureIgnoreCase);
-            if (userArguments != null)
-            {
-                foreach (var argument in userArguments)
-                {
-                    var argumentName = argument.NameColon?.Name.Identifier.ValueText;
-                    if (argumentName is not null)
-                    {
-                        userArgumentsHashSet.Add(argumentName);
-                    }
-                }
-            }
+            userArguments ??= new HashSet<string>();
 
-            var constructors = to.GetPublicConstructors();
+            var constructors = destination.GetPublicConstructors();
             BubbleSort.Sort(ref constructors, _constructorComparer);
             if (constructors.Length == 0)
             {
                 return new ConstructorForMapping();
             }
 
-            var publicPropertiesNames = from.GetPublicPropertiesNames();
-            var fromPropertiesNames = new HashSet<string>(StringComparer.InvariantCulture);
-            foreach (var publicProperty in publicPropertiesNames)
-            {
-                fromPropertiesNames.Add(publicProperty);
-            }
             bool ValidateCommonCostructor(IMethodSymbol constructor, ReadOnlySpan<Assigment> constructorAssigments)
             {
                 foreach (var parameter in constructor.Parameters)
@@ -93,12 +76,16 @@ namespace NextGenMapper.CodeAnalysis
                         {
                             continue;
                         }
-                        else if (fromPropertiesNames.Contains(assigment.Property))
+                        else if (sourcePropertiesDictionary.ContainsKey(assigment.Property))
+                        {
+                            assigmentNotFound = false;
+                        }
+                        else if (userArguments.Contains(assigment.Parameter))
                         {
                             assigmentNotFound = false;
                         }
                     }
-                    if (assigmentNotFound && !parameter.IsOptional && !userArgumentsHashSet.Contains(parameter.Name))
+                    if (assigmentNotFound && !parameter.IsOptional)
                     {
                         return false;
                     }

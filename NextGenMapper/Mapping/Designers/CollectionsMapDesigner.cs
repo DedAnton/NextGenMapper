@@ -8,6 +8,7 @@ using System;
 using System.Collections.Immutable;
 
 namespace NextGenMapper.Mapping.Designers;
+
 internal static partial class MapDesigner
 {
     private const string LIST_NAME = "List";
@@ -48,7 +49,7 @@ internal static partial class MapDesigner
             isTypesHasImplicitConversion);
         maps.Append(map);
 
-        if (IsPotentialNullReference(sourceItemType, destinationItemType, isTypeEquals, isTypesHasImplicitConversion))
+        if (DesignersHelper.IsPotentialNullReference(sourceItemType, destinationItemType, isTypeEquals, isTypesHasImplicitConversion))
         {
             var diagnostic = Diagnostics.PossibleNullReference(location, sourceItemType, destinationItemType);
             maps.Append(Map.Error(source, destination, diagnostic));

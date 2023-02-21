@@ -14,7 +14,7 @@ internal static partial class MapDesigner
         var maps = new ValueListBuilder<Map>(8);
         DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps);
 
-        return Unsafe.SpanToImmutableArray(maps.AsSpan());
+        return maps.ToImmutableArray();
     }
 
     internal static void DesignMaps(

@@ -16,8 +16,18 @@ internal static class ConfiguredMapDesigner
 {
     public static ImmutableArray<Map> DesignConfiguredMaps(ConfiguredMapTarget target)
     {
+        var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);
+        foreach (var argument in target.Arguments)
+        {
+            var argumentName = argument.NameColon?.Name.Identifier.ValueText;
+            if (argumentName is not null)
+            {
+                userArgumentsHashSet.Add(argumentName);
+            }
+        }
+
         var maps = new ValueListBuilder<Map>(8);
-        DesignConfiguredMaps(target.Source, target.Destination, target.Arguments, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps);
+        DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps);
 
         return Unsafe.SpanToImmutableArray(maps.AsSpan());
     }
@@ -25,14 +35,16 @@ internal static class ConfiguredMapDesigner
     private static void DesignConfiguredMaps(
         ITypeSymbol source,
         ITypeSymbol destination,
-        SeparatedSyntaxList<ArgumentSyntax> arguments,
+        HashSet<string> arguments,
         bool isCompleteMethod,
         Location location,
         SemanticModel semanticModel,
         ref ValueListBuilder<Map> maps)
     {
+        var sourceProperties = source.GetPublicReadablePropertiesDictionary();
+
         var constructorFinder = new ConstructorFinder(semanticModel);
-        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(source, destination, arguments);
+        var (constructor, assigments) = constructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
@@ -43,138 +55,100 @@ internal static class ConfiguredMapDesigner
         var referencesHistory = ImmutableList.Create(source);
 
         var destinationParameters = constructor.Parameters.AsSpan();
-        var destinationProperties = GetMappableProperties(constructor, assigments);
+        var destinationProperties = destination.GetPublicWritableProperties();
 
-        var sourcePublicProperties = source.GetPublicReadablePropertiesDictionary();
-
-        var constructorProperties = new PropertyMap[destinationParameters.Length];
-        var constructorPropertiesCount = 0;
-        var configuredMapArguments = new NameTypePair[arguments.Count];
-        var configuredMapArgumentsCount = 0;
+        var constructorProperties = new ValueListBuilder<PropertyMap>(destinationParameters.Length);
+        var configuredMapArguments = new ValueListBuilder<NameTypePair>(arguments.Count);
+        var assigmentsDictionary = new Dictionary<string, Assigment>(assigments.Length, StringComparer.InvariantCulture);
+        foreach (var assigment in assigments)
+        {
+            assigmentsDictionary.Add(assigment.Parameter, assigment);
+        }
         foreach (var destinationParameter in destinationParameters)
         {
             var destinationParameterType = destinationParameter.Type.ToNotNullableString();
-            var isProvidedByUser = arguments.ContainsArgument(destinationParameter.Name);
-            if (isProvidedByUser)
+            if (arguments.Contains(destinationParameter.Name))
             {
-                var propertyMap = new PropertyMap(
-                    destinationParameter.Name,
-                    destinationParameter.Name,
-                    destinationParameterType,
-                    destinationParameterType,
-                    destinationParameter.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                    destinationParameter.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                    true,
-                    true,
-                    destinationParameter.Name);
+                var propertyMap = CreateUserProvidedProeprtyMap(destinationParameter.Name, destinationParameterType);
+                constructorProperties.Append(propertyMap);
 
-                constructorProperties[constructorPropertiesCount] = propertyMap;
-                constructorPropertiesCount++;
-
-                configuredMapArguments[configuredMapArgumentsCount] = new NameTypePair(destinationParameter.Name, destinationParameterType);
-                configuredMapArgumentsCount++;
+                configuredMapArguments.Append(new NameTypePair(destinationParameter.Name, destinationParameterType));
             }
             else
             {
-                //TODO: use dictionary for assigments
-                foreach (var assigment in assigments)
+                if (assigmentsDictionary.TryGetValue(destinationParameter.Name, out var assigment)
+                && sourceProperties.TryGetValue(assigment.Property, out var sourceProperty))
                 {
-                    if (assigment.Parameter == destinationParameter.Name
-                        && sourcePublicProperties.TryGetValue(assigment.Property, out var sourceProperty))
-                    {
-                        var isTypesEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationParameter.Type);
-                        var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationParameter.Type, semanticModel);
-                        var propertyMap = new PropertyMap(
+                    var propertyMap = PropertiesMapDesigner.DesignPropertyMap(
+                            sourceProperty.Name,
+                            sourceProperty.Type,
+                            sourceProperty.ContainingType,
                             assigment.Property,
-                            assigment.Property,
-                            sourceProperty.Type.ToNotNullableString(),
-                            destinationParameter.Type.ToNotNullableString(),
-                            sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                            destinationParameter.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                            isTypesEquals,
-                            isTypesHasImplicitConversion);
+                            destinationParameter.Type,
+                            destinationParameter.ContainingType,
+                            location,
+                            semanticModel,
+                            referencesHistory,
+                            ref maps);
 
-                        if (IsPotentialNullReference(sourceProperty.Type, destinationParameter.Type, isTypesEquals, isTypesHasImplicitConversion))
-                        {
-                            var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationParameter.Name, destinationParameter.Type);
-                            maps.Append(Map.Error(source, destination, diagnostic));
-
-                            return;
-                        }
-
-                        constructorProperties[constructorPropertiesCount] = propertyMap;
-                        constructorPropertiesCount++;
-
-                        if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
-                        {
-                            MapDesigner.DesignMaps(sourceProperty.Type, destinationParameter.Type, location, semanticModel, referencesHistory, ref maps);
-                        }
-                    }
-                }
-            }
-        }
-
-        var initializerProperties = new PropertyMap[destinationProperties.Length];
-        var initializerPropertiesCount = 0;
-        foreach (var destinationProperty in destinationProperties)
-        {
-            var destinationPropertyType = destinationProperty.Type.ToNotNullableString();
-            var isProvidedByUser = arguments.ContainsArgument(destinationProperty.Name);
-            if (isProvidedByUser)
-            {
-                var propertyMap = new PropertyMap(
-                    destinationProperty.Name,
-                    destinationProperty.Name,
-                    destinationPropertyType,
-                    destinationPropertyType,
-                    destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                    destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                    true,
-                    true,
-                    destinationProperty.Name);
-
-                initializerProperties[initializerPropertiesCount] = propertyMap;
-                initializerPropertiesCount++;
-
-                configuredMapArguments[configuredMapArgumentsCount] = new NameTypePair(destinationProperty.Name, destinationPropertyType);
-                configuredMapArgumentsCount++;
-            }
-            else
-            {
-                if (sourcePublicProperties.TryGetValue(destinationProperty.Name, out var sourceProperty))
-                {
-                    var isTypesEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type);
-                    var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceProperty.Type, destinationProperty.Type, semanticModel);
-                    var propertyMap = new PropertyMap(
-                        sourceProperty.Name,
-                        destinationProperty.Name,
-                        sourceProperty.Type.ToNotNullableString(),
-                        destinationProperty.Type.ToNotNullableString(),
-                        sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                        destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                        isTypesEquals,
-                        isTypesHasImplicitConversion);
-
-                    if (IsPotentialNullReference(sourceProperty.Type, destinationProperty.Type, isTypesEquals, isTypesHasImplicitConversion))
+                    if (propertyMap is null)
                     {
-                        var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
-                        maps.Append(Map.Error(source, destination, diagnostic));
-
                         return;
                     }
 
-                    initializerProperties[initializerPropertiesCount] = propertyMap;
-                    initializerPropertiesCount++;
-
-                    if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
-                    {
-                        MapDesigner.DesignMaps(sourceProperty.Type, destinationProperty.Type, location, semanticModel, referencesHistory, ref maps);
-                    }
+                    constructorProperties.Append(propertyMap.Value);
                 }
             }
         }
 
-        if (constructorPropertiesCount + initializerPropertiesCount == 0)
+        var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
+        var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
+        foreach (var assigment in assigments)
+        {
+            destinationPropertiesInitializedByConstructor.Add(assigment.Property);
+        }
+        foreach (var destinationProperty in destinationProperties)
+        {
+            if (destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
+            {
+                continue;
+            }
+
+            var destinationPropertyType = destinationProperty.Type.ToNotNullableString();
+            if (arguments.Contains(destinationProperty.Name))
+            {
+                var propertyMap = CreateUserProvidedProeprtyMap(destinationProperty.Name, destinationPropertyType);
+                initializerProperties.Append(propertyMap);
+
+                configuredMapArguments.Append(new NameTypePair(destinationProperty.Name, destinationPropertyType));
+            }
+            else
+            {
+                if (sourceProperties.TryGetValue(destinationProperty.Name, out var sourceProperty))
+                {
+                    var propertyMap = PropertiesMapDesigner.DesignPropertyMap(
+                        sourceProperty.Name,
+                        sourceProperty.Type,
+                        sourceProperty.ContainingType,
+                        destinationProperty.Name,
+                        destinationProperty.Type,
+                        destinationProperty.ContainingType,
+                        location,
+                        semanticModel,
+                        referencesHistory,
+                        ref maps);
+
+                    if (propertyMap is null)
+                    {
+                        return;
+                    }
+
+                    initializerProperties.Append(propertyMap.Value);
+                }
+            }
+        }
+
+        if (constructorProperties.Length + initializerProperties.Length == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
             maps.Append(Map.Error(source, destination, diagnostic));
@@ -182,151 +156,132 @@ internal static class ConfiguredMapDesigner
             return;
         }
 
-        var constructorPropertiesImmutable = constructorProperties.Length == constructorPropertiesCount
-            ? Unsafe.CastArrayToImmutableArray(ref constructorProperties)
-            : Unsafe.SpanToImmutableArray(constructorProperties.AsSpan().Slice(0, constructorPropertiesCount));
-        var initializerPropertiesImmutable = initializerProperties.Length == initializerPropertiesCount
-            ? Unsafe.CastArrayToImmutableArray(ref initializerProperties)
-            : Unsafe.SpanToImmutableArray(initializerProperties.AsSpan().Slice(0, initializerPropertiesCount));
-
-        if (configuredMapArgumentsCount != arguments.Count)
+        if (configuredMapArguments.Length != arguments.Count)
         {
             //TODO: research how to handle
             //throw new Exception($"Property or parameter not found for argument");
             isCompleteMethod = false;
-            configuredMapArguments = Array.Empty<NameTypePair>();
+            configuredMapArguments = ValueListBuilder<NameTypePair>.Empty;
         }
 
-        var mockMethods = DesignClassMapMockMethods(source, destination, configuredMapArguments, isCompleteMethod, semanticModel);
+        var mockMethods = DesignClassMapMockMethods(
+            source, 
+            destination, 
+            destinationProperties,
+            configuredMapArguments.AsSpan(), 
+            isCompleteMethod, 
+            semanticModel);
 
         var map = Map.Configured(
             source.ToNotNullableString(),
             destination.ToNotNullableString(),
-            constructorPropertiesImmutable,
-            initializerPropertiesImmutable,
-            Unsafe.CastArrayToImmutableArray(ref configuredMapArguments),
+            constructorProperties.ToImmutableArray(),
+            initializerProperties.ToImmutableArray(),
+            configuredMapArguments.ToImmutableArray(),
             mockMethods,
             isCompleteMethod);
 
         maps.Append(map);
     }
 
-    private static bool ContainsArgument(this SeparatedSyntaxList<ArgumentSyntax> arguments, string argumentName)
-    {
-        foreach (var argument in arguments)
-        {
-            if (StringComparer.InvariantCulture.Equals(argument.NameColon?.Name.Identifier.ValueText, argumentName))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    private static PropertyMap CreateUserProvidedProeprtyMap(string userArgumentName, string userArgumentType)
+        => new(
+            userArgumentName,
+            userArgumentName,
+            userArgumentType,
+            userArgumentType,
+            false,
+            false,
+            true,
+            true,
+            userArgumentName);
 
     private static ImmutableArray<ConfiguredMapMockMethod> DesignClassMapMockMethods(
         ITypeSymbol source,
         ITypeSymbol destination,
-        NameTypePair[] arguments,
+        ReadOnlySpan<IPropertySymbol> destinationProperties,
+        ReadOnlySpan<NameTypePair> arguments,
         bool isCompleteMethod,
         SemanticModel semanticModel)
     {
         var constructorFinder = new ConstructorFinder(semanticModel);
-        var constructors = destination.GetPublicConstructors();
-        var mockMethods = new ConfiguredMapMockMethod[constructors.Length];
-        var mockMethodsCount = 0;
+        var constructors = destination.GetConstructors();
+        var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(constructors.Length);
         var isDuplicatedMockRemoved = false;
-        for (int i = 0; i < constructors.Length; i++)
+        foreach(var constructor in destination.GetConstructors())
         {
-            var assigments = constructorFinder.GetAssigments(constructors[i]);
-            var destinationParameters = constructors[i].Parameters.AsSpan();
-            var destinationProperties = GetMappableProperties(constructors[i], assigments);
-            var mockMethodParameters = new NameTypePair[destinationParameters.Length + destinationProperties.Length];
-            var mockMethodParametersCount = 0;
-            foreach(var destinationParameter in destinationParameters)
+            if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
             {
-                var parameter = new NameTypePair(destinationParameter.Name, destinationParameter.Type.ToString());
-                mockMethodParameters[mockMethodParametersCount] = parameter;
-                mockMethodParametersCount++;
-            }
-            foreach (var destinationProperty in destinationProperties)
-            {
-                var parameter = new NameTypePair(destinationProperty.Name, destinationProperty.Type.ToString());
-                mockMethodParameters[mockMethodParametersCount] = parameter;
-                mockMethodParametersCount++;
-            }
+                var mockMethod = DesignMockMethod(source, destination, constructorFinder, constructor, destinationProperties);
 
-            if (!isDuplicatedMockRemoved
-                && isCompleteMethod
-                && CompareArgumentsAndParameters(mockMethodParameters, arguments))
-            {
-                isDuplicatedMockRemoved = true;
-                continue;
-            }
+                if (!isDuplicatedMockRemoved
+                    && isCompleteMethod
+                    && CompareArgumentsAndParameters(arguments, mockMethod.Parameters.AsSpan()))
+                {
+                    isDuplicatedMockRemoved = true;
+                    continue;
+                }
 
-            mockMethods[mockMethodsCount] = new ConfiguredMapMockMethod(
-                source.ToNotNullableString(),
-                destination.ToNotNullableString(),
-                Unsafe.CastArrayToImmutableArray(ref mockMethodParameters));
-            mockMethodsCount++;
+                mockMethods.Append(mockMethod);
+            }
         }
 
-        return mockMethods.Length == mockMethodsCount
-            ? Unsafe.CastArrayToImmutableArray(ref mockMethods)
-            : Unsafe.SpanToImmutableArray(mockMethods.AsSpan().Slice(0, mockMethodsCount));
+        return mockMethods.ToImmutableArray();
     }
 
-    private static bool CompareArgumentsAndParameters(NameTypePair[] parameters, ReadOnlySpan<NameTypePair> arguments)
+    private static ConfiguredMapMockMethod DesignMockMethod(
+        ITypeSymbol source,
+        ITypeSymbol destination,
+        ConstructorFinder constructorFinder, 
+        IMethodSymbol constructor,
+        ReadOnlySpan<IPropertySymbol> destinationProperties)
+    {
+        var destinationParameters = constructor.Parameters.AsSpan();
+        var mockMethodParameters = new ValueListBuilder<NameTypePair>(destinationParameters.Length + destinationProperties.Length);
+        var assigments = constructorFinder.GetAssigments(constructor);
+        var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
+        foreach (var assigment in assigments)
+        {
+            destinationPropertiesInitializedByConstructor.Add(assigment.Property);
+        }
+
+        foreach (var destinationParameter in destinationParameters)
+        {
+            var parameter = new NameTypePair(destinationParameter.Name, destinationParameter.Type.ToString());
+            mockMethodParameters.Append(parameter);
+        }
+        foreach (var destinationProperty in destinationProperties)
+        {
+            if (!destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
+            {
+                var parameter = new NameTypePair(destinationProperty.Name, destinationProperty.Type.ToString());
+                mockMethodParameters.Append(parameter);
+            }
+        }
+
+        return new ConfiguredMapMockMethod(
+            source.ToNotNullableString(),
+            destination.ToNotNullableString(),
+            mockMethodParameters.ToImmutableArray());
+    }
+
+    private static bool CompareArgumentsAndParameters(ReadOnlySpan<NameTypePair> arguments, ReadOnlySpan<NameTypePair> parameters)
     {
         if (parameters.Length != arguments.Length)
         {
             return false;
         }
 
-        for (var i = 0; i < parameters.Length; i++)
+        var typesHashSet = new HashSet<string>(StringComparer.InvariantCulture);
+        foreach (var argument in arguments)
         {
-            if (parameters[i].Type != arguments[i].Type)
-            {
-                return false;
-            }
+            typesHashSet.Add(argument.Name);
+        }
+        foreach (var parameter in parameters)
+        {
+            typesHashSet.Add(parameter.Name);
         }
 
-        return true;
-    }
-
-    private static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination, bool isTypesEquals, bool hasImplicitConvertion)
-        => (source.NullableAnnotation, destination.NullableAnnotation, isTypesEquals || hasImplicitConvertion) switch
-        {
-            (NullableAnnotation.NotAnnotated or NullableAnnotation.None, _, _) => false,
-            (NullableAnnotation.Annotated, NullableAnnotation.Annotated, true) => false,
-            _ => true
-        };
-
-    private static Span<IPropertySymbol> GetMappableProperties(IMethodSymbol constructor, ReadOnlySpan<Assigment> assigments)
-    {
-        var propertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
-        foreach (var assigment in assigments)
-        {
-            propertiesInitializedByConstructor.Add(assigment.Property);
-        }
-
-        var publicProperties = constructor.ContainingType.GetPublicProperties();
-        var mappableProperties = new IPropertySymbol[publicProperties.Length];
-        var mappablePropertiesCount = 0;
-        for (int i = 0; i < publicProperties.Length; i++)
-        {
-            if (publicProperties[i] is
-                {
-                    IsReadOnly: false,
-                    SetMethod.DeclaredAccessibility: Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal
-                }
-                && !propertiesInitializedByConstructor.Contains(publicProperties[i].Name))
-            {
-                mappableProperties[mappablePropertiesCount] = publicProperties[i];
-                mappablePropertiesCount++;
-            }
-        }
-
-        return mappableProperties.AsSpan(0, mappablePropertiesCount);
+        return parameters.Length == typesHashSet.Count;
     }
 }

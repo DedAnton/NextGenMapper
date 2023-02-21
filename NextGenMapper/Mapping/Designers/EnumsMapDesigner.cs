@@ -38,34 +38,50 @@ internal static partial class MapDesigner
         maps.Append(map);
     }
 
-    private static Span<EnumField> GetFields(ITypeSymbol enumTypeSymbol)
+    private static ReadOnlySpan<EnumField> GetFields(ITypeSymbol enumTypeSymbol)
     {
         if (SourceCodeAnalyzer.FindFirstLocationSyntaxNode(enumTypeSymbol) is EnumDeclarationSyntax sourceDeclaration)
         {
-            return GetFields(sourceDeclaration);
+            return GetFieldsFromSyntax(sourceDeclaration);
         }
         else
         {
-            //TODO: refactoring
             //this is a case, because when we map types from dll, we don't have access to the syntax
-            return enumTypeSymbol.GetMembers().OfType<IFieldSymbol>().Select(x => new EnumField(x.Name, x.ConstantValue?.UnboxToLong())).ToArray();
+            return GetFieldsFromSymbol(enumTypeSymbol);
         }
     }
 
-    private static Span<EnumField> GetFields(EnumDeclarationSyntax enumDeclaration)
+    private static ReadOnlySpan<EnumField> GetFieldsFromSyntax(EnumDeclarationSyntax enumDeclaration)
     {
-        var fields = new EnumField[enumDeclaration.Members.Count];
+        var fields = new ValueListBuilder<EnumField>(enumDeclaration.Members.Count);
         for (int i = 0; i < enumDeclaration.Members.Count; i++)
         {
-            fields[i] = new EnumField(
+            var enumField = new EnumField(
                 enumDeclaration.Members[i].Identifier.ValueText,
-                enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value?.UnboxToLong());
+                UnboxToLong(enumDeclaration.Members[i].EqualsValue?.Value?.As<LiteralExpressionSyntax>()?.Token.Value));
+            fields.Append(enumField);
         }
 
-        return fields;
+        return fields.AsSpan();
     }
 
-    private static string? FindField(Span<EnumField> fields, string identifier, long? value)
+    private static ReadOnlySpan<EnumField> GetFieldsFromSymbol(ITypeSymbol enumType)
+    {
+        var members = enumType.GetMembers().AsSpan();
+        var fields = new ValueListBuilder<EnumField>(members.Length);
+        foreach(var member in members)
+        {
+            if (member is IFieldSymbol fieldSymbol)
+            {
+                var enumField = new EnumField(fieldSymbol.Name, UnboxToLong(fieldSymbol.ConstantValue));
+                fields.Append(enumField);
+            }
+        }
+
+        return fields.AsSpan();
+    }
+
+    private static string? FindField(ReadOnlySpan<EnumField> fields, string identifier, long? value)
     {
         foreach (var field in fields)
         {
@@ -83,4 +99,19 @@ internal static partial class MapDesigner
 
         return null;
     }
+
+    public static long? UnboxToLong(object? number)
+        => number switch
+        {
+            null => null,
+            sbyte => (sbyte)number,
+            byte => (byte)number,
+            short => (short)number,
+            ushort => (ushort)number,
+            int => (int)number,
+            uint => (uint)number,
+            long => (long)number,
+            //TODO: maybe need handle this exception and add diagnostic
+            _ => throw new ArgumentOutOfRangeException(nameof(number), $"{nameof(number)} must be sbyte, byte, short, ushort, int, uint or long.")
+        };
 }
