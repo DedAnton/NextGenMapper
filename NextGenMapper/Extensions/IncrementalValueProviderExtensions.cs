@@ -1,16 +1,17 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.Mapping.Maps;
+using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace NextGenMapper.Utils;
+namespace NextGenMapper.Extensions;
 
 internal static class IncrementalValueProviderExtensions
 {
     public static IncrementalValueProvider<ImmutableArray<TSource>> Distinct<TSource>(
-        this IncrementalValueProvider<ImmutableArray<TSource>> source, 
+        this IncrementalValueProvider<ImmutableArray<TSource>> source,
         IEqualityComparer<TSource> equalityComparer)
         => source.Select((x, _) =>
         {
@@ -25,7 +26,8 @@ internal static class IncrementalValueProviderExtensions
 
             return Unsafe.CastArrayToImmutableArray(ref newArray);
         });
-    public static void ReportDiagnostics(this IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<Diagnostic> diagnostics) 
+
+    public static void ReportDiagnostics(this IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<Diagnostic> diagnostics)
         => context.RegisterSourceOutput(diagnostics, (sourceProductionContext, diagnostic) => sourceProductionContext.ReportDiagnostic(diagnostic));
 
     public static IncrementalValueProvider<ImmutableArray<TSource>> Concat<TSource>(this IncrementalValuesProvider<TSource> left, IncrementalValuesProvider<TSource> right)
@@ -51,7 +53,7 @@ internal static class IncrementalValueProviderExtensions
         });
 
     public static IncrementalValueProvider<ImmutableArray<TSource>> RemoveUserMaps<TSource>(
-        this IncrementalValueProvider<ImmutableArray<TSource>> source, 
+        this IncrementalValueProvider<ImmutableArray<TSource>> source,
         IncrementalValueProvider<HashSet<UserMap>> userMaps) where TSource : IMap
         => source
         .Combine(userMaps)
@@ -64,19 +66,17 @@ internal static class IncrementalValueProviderExtensions
                 return maps;
             }
 
-            Span<TSource> filteredMaps = new TSource[maps.Length];
-            var filteredMapsCount = 0;
+            var filteredMaps = new ValueListBuilder<TSource>(maps.Length);
             for (var i = 0; i < maps.Length; i++)
             {
                 var userMapFromMap = new UserMap(maps[i].Source, maps[i].Destination);
                 if (!userMaps.Contains(userMapFromMap))
                 {
-                    filteredMaps[filteredMapsCount] = maps[i];
-                    filteredMapsCount++;
+                    filteredMaps.Append(maps[i]);
                 }
             }
 
-            return Unsafe.SpanToImmutableArray(filteredMaps.Slice(0, filteredMapsCount));
+            return filteredMaps.ToImmutableArray();
         });
 }
 

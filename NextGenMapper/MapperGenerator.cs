@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.CodeGeneration;
+using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
 using NextGenMapper.Mapping.Designers;
 using NextGenMapper.Mapping.Maps;
@@ -81,7 +82,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                return Unsafe.SpanToImmutableArray(diagnostics.AsSpan());
+                return diagnostics.ToImmutableArray();
             });
         context.ReportDiagnostics(duplicateConfiguredMapDiagnostics);
 
@@ -350,7 +351,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                return Unsafe.SpanToImmutableArray(diagnostics.AsSpan());
+                return diagnostics.ToImmutableArray();
             });
         context.ReportDiagnostics(mapsPostValidationDiagnostics);
     }

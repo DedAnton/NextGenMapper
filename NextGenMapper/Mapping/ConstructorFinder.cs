@@ -47,13 +47,12 @@ namespace NextGenMapper.Mapping
                 return new();
             }
 
-            if (constructor.Locations.FirstOrDefault() is not Location { SourceTree: not null } location)
+            if (constructor.Locations.FirstOrDefault() is not Location { SourceTree: not null })
             {
                 return GetAssignmentsBySemantic(constructor);
             }
 
-            var syntax = location.SourceTree.GetCompilationUnitRoot().FindNode(location.SourceSpan);
-            return syntax switch
+            return constructor.GetFirstDeclarationSyntax() switch
             {
                 ConstructorDeclarationSyntax constructorSyntax => GetConstructorAssignments(constructorSyntax, semanticModel),
                 RecordDeclarationSyntax => GetRecordAssignments(constructor),

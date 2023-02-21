@@ -573,7 +573,6 @@ public class Destination
         return VerifyAndRun(source);
     }
 
-    //TODO: tests for properties and parameters names
     [TestMethod]
     public Task PropertiesAndParameterNamesNotEqual_ShouldMap()
     {

@@ -89,6 +89,8 @@ internal ref struct ValueListBuilder<T>
     {
         var newArray = _span.Slice(0, _pos).ToArray();
 
+        Dispose();
+
         return System.Runtime.CompilerServices.Unsafe.As<T[], ImmutableArray<T>>(ref newArray);
     }
 

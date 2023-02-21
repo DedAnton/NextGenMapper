@@ -1,12 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
 using System;
-using System.Linq;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -40,7 +38,7 @@ internal static partial class MapDesigner
 
     private static ReadOnlySpan<EnumField> GetFields(ITypeSymbol enumTypeSymbol)
     {
-        if (SourceCodeAnalyzer.FindFirstLocationSyntaxNode(enumTypeSymbol) is EnumDeclarationSyntax sourceDeclaration)
+        if (enumTypeSymbol.GetFirstDeclarationSyntax() is EnumDeclarationSyntax sourceDeclaration)
         {
             return GetFieldsFromSyntax(sourceDeclaration);
         }

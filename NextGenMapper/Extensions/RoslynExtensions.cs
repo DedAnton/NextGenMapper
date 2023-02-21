@@ -1,5 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System;
+using System.Linq;
 
 namespace NextGenMapper.Extensions
 {
@@ -15,11 +17,12 @@ namespace NextGenMapper.Extensions
             return namedType.Constructors.AsSpan();
         }
 
-        public static SyntaxNode? GetFirstDeclaration(this ISymbol symbol)
+        public static SyntaxNode? GetFirstDeclarationSyntax(this ISymbol symbol)
         {
-            if (symbol.DeclaringSyntaxReferences.Length > 0)
+            if (symbol.Locations.FirstOrDefault() is Location location 
+                && location.SourceTree is not null)
             {
-                return symbol.DeclaringSyntaxReferences[0].GetSyntax();
+                return location.SourceTree.GetCompilationUnitRoot().FindNode(location.SourceSpan);
             }
 
             return null;

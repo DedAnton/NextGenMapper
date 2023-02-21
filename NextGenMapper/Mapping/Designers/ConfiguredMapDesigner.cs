@@ -28,7 +28,7 @@ internal static class ConfiguredMapDesigner
         var maps = new ValueListBuilder<Map>(8);
         DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps);
 
-        return Unsafe.SpanToImmutableArray(maps.AsSpan());
+        return maps.ToImmutableArray();
     }
 
     private static void DesignConfiguredMaps(

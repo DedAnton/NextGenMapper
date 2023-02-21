@@ -157,6 +157,7 @@ internal static class SourceCodeAnalyzer
 
     public static bool IsTypesAreCollections(ITypeSymbol sourceType, ITypeSymbol destinationType)
         => sourceType.IsCollection() && destinationType.IsCollection();
+
     private static bool IsCollection(this ITypeSymbol type)
     {
         //TODO: check all other collections special types 
@@ -178,22 +179,6 @@ internal static class SourceCodeAnalyzer
 
     public static bool IsTypesAreClasses(ITypeSymbol sourceType, ITypeSymbol destinationType)
         => sourceType.TypeKind == TypeKind.Class && destinationType.TypeKind == TypeKind.Class;
-
-    public static SyntaxNode? FindFirstLocationSyntaxNode(ISymbol symbol)
-    {
-        if (symbol.Locations.Length == 0)
-        {
-            return null;
-        }
-
-        var location = symbol.Locations[0];
-        if (location.SourceTree is null)
-        {
-            return null;
-        }
-
-        return location.SourceTree.GetCompilationUnitRoot().FindNode(location.SourceSpan);
-    }
 
     public static bool IsNamedArgument(this ArgumentSyntax argument) => argument.NameColon?.Name.Identifier.ValueText is not null;
 }

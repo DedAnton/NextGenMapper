@@ -14,11 +14,4 @@ internal static class Unsafe
 
         return CastArrayToImmutableArray(ref newArray);
     }
-
-    public static ImmutableArray<T> SpanToImmutableArray<T>(ReadOnlySpan<T> span)
-    {
-        var newArray = span.ToArray();
-
-        return CastArrayToImmutableArray(ref newArray);
-    }
 }
