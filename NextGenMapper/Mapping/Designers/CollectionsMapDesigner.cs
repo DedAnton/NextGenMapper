@@ -6,6 +6,7 @@ using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
 using System;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -20,7 +21,8 @@ internal static partial class MapDesigner
         Location location,
         SemanticModel semanticModel,
         ImmutableList<ITypeSymbol> referencesHistory,
-        ref ValueListBuilder<Map> maps)
+        ref ValueListBuilder<Map> maps,
+        CancellationToken cancellationToken)
     {
         referencesHistory = referencesHistory.Add(source);
 
@@ -34,6 +36,7 @@ internal static partial class MapDesigner
             return;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceItemType = GetCollectionItemType(source);
         var destinationItemType = GetCollectionItemType(destination);
 
@@ -62,7 +65,8 @@ internal static partial class MapDesigner
 
         if (!isTypeEquals && !isTypesHasImplicitConversion)
         {
-            DesignMaps(sourceItemType, destinationItemType, location, semanticModel, referencesHistory, ref maps);
+            cancellationToken.ThrowIfCancellationRequested();
+            DesignMaps(sourceItemType, destinationItemType, location, semanticModel, referencesHistory, ref maps, cancellationToken);
         }
     }
 

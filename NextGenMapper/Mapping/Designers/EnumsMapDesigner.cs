@@ -5,12 +5,18 @@ using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
 using System;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
 {
-    private static void DesignEnumsMap(ITypeSymbol source, ITypeSymbol destination, Location location, ref ValueListBuilder<Map> maps)
+    private static void DesignEnumsMap(
+        ITypeSymbol source, 
+        ITypeSymbol destination, 
+        Location location, 
+        ref ValueListBuilder<Map> maps, 
+        CancellationToken cancellationToken)
     {
         var sourceFields = GetFields(source);
         var destinationFields = GetFields(destination);
@@ -18,6 +24,7 @@ internal static partial class MapDesigner
         var fieldsMaps = new EnumFieldMap[sourceFields.Length];
         for (int i = 0; i < sourceFields.Length; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var destinationFieldIdentifier = FindField(destinationFields, sourceFields[i].Identifier, sourceFields[i].Value);
             if (destinationFieldIdentifier is null)
             {

@@ -1,18 +1,20 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.CodeAnalysis.Targets;
 
 internal static class TargetFinder
 {
-    public static Target GetMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static Target GetMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not InvocationExpressionSyntax mapMethodInvocation)
         {
             return Target.Empty;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var (isMapMethodInvocation, sourceType, destinationType) = SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel);
         if (!isMapMethodInvocation || sourceType is null || destinationType is null)
         {
@@ -51,13 +53,14 @@ internal static class TargetFinder
         return Target.Error(notSupportedDiagnostic);
     }
 
-    public static Target GetConfiguredMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static Target GetConfiguredMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not InvocationExpressionSyntax configuredMapMethodInvocation)
         {
             return Target.Empty;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
             = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel);
         if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
@@ -97,13 +100,14 @@ internal static class TargetFinder
         return Target.ConfiguredMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
     }
 
-    public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not MethodDeclarationSyntax userMapMethodDeclaration)
         {
             return ImmutableArray.Create(Target.Empty);
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var (isUserMapMethodDeclaration, sourceType, destinationType, method)
             = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel);
         if (!isUserMapMethodDeclaration || sourceType is null || destinationType is null || method is null)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Utils;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -57,7 +56,7 @@ internal static class IncrementalValueProviderExtensions
         IncrementalValueProvider<HashSet<UserMap>> userMaps) where TSource : IMap
         => source
         .Combine(userMaps)
-        .Select(static (x, _) =>
+        .Select(static (x, ct) =>
         {
             var (maps, userMaps) = x;
 
@@ -66,6 +65,7 @@ internal static class IncrementalValueProviderExtensions
                 return maps;
             }
 
+            ct.ThrowIfCancellationRequested();
             var filteredMaps = new ValueListBuilder<TSource>(maps.Length);
             for (var i = 0; i < maps.Length; i++)
             {

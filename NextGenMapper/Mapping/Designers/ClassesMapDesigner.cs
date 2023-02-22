@@ -6,6 +6,7 @@ using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -17,10 +18,12 @@ internal static partial class MapDesigner
         Location location,
         SemanticModel semanticModel,
         ImmutableList<ITypeSymbol> referencesHistory,
-        ref ValueListBuilder<Map> maps)
+        ref ValueListBuilder<Map> maps, 
+        CancellationToken cancellationToken)
     {
         referencesHistory = referencesHistory.Add(source);
 
+        cancellationToken.ThrowIfCancellationRequested();
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
         if (sourceProperties.Count == 0)
         {
@@ -30,6 +33,7 @@ internal static partial class MapDesigner
             return;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, semanticModel);
         if (constructor == null)
         {
@@ -39,6 +43,7 @@ internal static partial class MapDesigner
             return;
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var destinationParameters = constructor.Parameters.AsSpan();
         var destinationProperties = destination.GetPublicWritableProperties();
         if (destinationProperties.Length == 0 && destinationParameters.Length == 0)
@@ -51,12 +56,13 @@ internal static partial class MapDesigner
 
         var constructorProperties = new ValueListBuilder<PropertyMap>(destinationParameters.Length);
         var assignmentsDictionary = new Dictionary<string, Assignment>(assignments.Length, StringComparer.InvariantCulture);
-        foreach(var assignment in assignments)
+        foreach (var assignment in assignments)
         {
             assignmentsDictionary.Add(assignment.Parameter, assignment);
         }
         foreach (var destinationParameter in destinationParameters)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (assignmentsDictionary.TryGetValue(destinationParameter.Name, out var assignment)
                 && sourceProperties.TryGetValue(assignment.Property, out var sourceProperty))
             {
@@ -70,7 +76,8 @@ internal static partial class MapDesigner
                     location,
                     semanticModel,
                     referencesHistory,
-                    ref maps);
+                    ref maps,
+                    cancellationToken);
 
                 if (propertyMap is null)
                 {
@@ -81,6 +88,7 @@ internal static partial class MapDesigner
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assignment in assignments)
@@ -89,6 +97,7 @@ internal static partial class MapDesigner
         }
         foreach (var destinationProperty in destinationProperties)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sourceProperties.TryGetValue(destinationProperty.Name, out var sourceProperty)
                 && !destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
             {
@@ -102,7 +111,8 @@ internal static partial class MapDesigner
                     location,
                     semanticModel,
                     referencesHistory,
-                    ref maps);
+                    ref maps,
+                    cancellationToken);
 
                 if (propertyMap is null)
                 {

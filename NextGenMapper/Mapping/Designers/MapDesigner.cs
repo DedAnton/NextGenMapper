@@ -4,15 +4,16 @@ using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Utils;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
 {
-    public static ImmutableArray<Map> DesignMaps(MapTarget target)
+    public static ImmutableArray<Map> DesignMaps(MapTarget target, CancellationToken cancellationToken)
     {
         var maps = new ValueListBuilder<Map>(8);
-        DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps);
+        DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps, cancellationToken);
 
         return maps.ToImmutableArray();
     }
@@ -23,7 +24,8 @@ internal static partial class MapDesigner
         Location location, 
         SemanticModel semanticModel, 
         ImmutableList<ITypeSymbol> referencesHistory,
-        ref ValueListBuilder<Map> maps)
+        ref ValueListBuilder<Map> maps,
+        CancellationToken cancellationToken)
     {
         if (referencesHistory.FindIndex(x => SymbolEqualityComparer.Default.Equals(x, source)) != -1)
         {
@@ -35,15 +37,15 @@ internal static partial class MapDesigner
 
         if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
         {
-            DesignCollectionsMap(source, destination, location, semanticModel, referencesHistory, ref maps);
+            DesignCollectionsMap(source, destination, location, semanticModel, referencesHistory, ref maps, cancellationToken);
         } 
         else if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            DesignClassesMaps(source, destination, location, semanticModel, referencesHistory, ref maps);
+            DesignClassesMaps(source, destination, location, semanticModel, referencesHistory, ref maps, cancellationToken);
         }
         else if (SourceCodeAnalyzer.IsTypesAreEnums(source, destination))
         {
-            DesignEnumsMap(source, destination, location, ref maps);
+            DesignEnumsMap(source, destination, location, ref maps, cancellationToken);
         }
     }
 }

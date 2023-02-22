@@ -5,6 +5,7 @@ using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -20,7 +21,8 @@ internal static class PropertiesMapDesigner
         Location location,
         SemanticModel semanticModel,
         ImmutableList<ITypeSymbol> referencesHistory,
-        ref ValueListBuilder<Map> maps)
+        ref ValueListBuilder<Map> maps,
+        CancellationToken cancellationToken)
     {
         var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType);
         var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel);
@@ -44,7 +46,7 @@ internal static class PropertiesMapDesigner
 
         if (!propertyMap.IsTypesEquals && !propertyMap.HasImplicitConversion)
         {
-            MapDesigner.DesignMaps(sourceType, destinationType, location, semanticModel, referencesHistory, ref maps);
+            MapDesigner.DesignMaps(sourceType, destinationType, location, semanticModel, referencesHistory, ref maps, cancellationToken);
         }
 
         return propertyMap;
