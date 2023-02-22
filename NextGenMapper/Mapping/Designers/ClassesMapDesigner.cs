@@ -61,6 +61,7 @@ internal static partial class MapDesigner
         }
         foreach (var destinationParameter in destinationParameters)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (assignmentsDictionary.TryGetValue(destinationParameter.Name, out var assignment)
                 && sourceProperties.TryGetValue(assignment.Property, out var sourceProperty))
             {
@@ -95,6 +96,7 @@ internal static partial class MapDesigner
         }
         foreach (var destinationProperty in destinationProperties)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sourceProperties.TryGetValue(destinationProperty.Name, out var sourceProperty)
                 && !destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
             {

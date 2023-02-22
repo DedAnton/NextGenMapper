@@ -68,6 +68,7 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationParameter in destinationParameters)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var destinationParameterType = destinationParameter.Type.ToNotNullableString();
             if (arguments.Contains(destinationParameter.Name))
             {
@@ -113,6 +114,7 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationProperty in destinationProperties)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
             {
                 continue;
