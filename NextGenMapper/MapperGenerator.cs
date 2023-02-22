@@ -26,7 +26,7 @@ public class MapperGenerator : IIncrementalGenerator
 
         var configuredMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
             static (node, _) => SourceCodeAnalyzer.IsConfiguredMapMethodInvocationSynaxNode(node),
-            static (context, _) => TargetFinder.GetConfiguredMapTarget(context.Node, context.SemanticModel));
+            static (context, ct) => TargetFinder.GetConfiguredMapTarget(context.Node, context.SemanticModel, ct));
 
         var configuredMapsTargetsDiagnostics = configuredMapsTargets
             .Where(static x => x.Type is TargetType.Error)
@@ -43,12 +43,13 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
         var NotNamedArgumentsDiagnostics = filteredConfiguredMapsTargets
+            //TODO: do not use linq Any()
             .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
             .Select(static (x, _) => Diagnostics.MapWithArgumentMustBeNamed(x.Location));
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
         var configuredMapsAndRelated = filteredConfiguredMapsTargets
-            .SelectMany(static (x, _) => ConfiguredMapDesigner.DesignConfiguredMaps(x));
+            .SelectMany(static (x, ct) => ConfiguredMapDesigner.DesignConfiguredMaps(x, ct));
 
         var configuredMapsDiagnostics = configuredMapsAndRelated
             .Where(static x => x.Type is MapType.Error)
@@ -109,8 +110,7 @@ public class MapperGenerator : IIncrementalGenerator
             {
                 var mockMethodsHashSet = new HashSet<ConfiguredMapMockMethod>(new ConfiguredMapMockMethodComparer());
                 var mockMethodsMaxCount = x.Sum(y => y.MockMethods.Length);
-                var mockMethodsCount = 0;
-                Span<ConfiguredMapMockMethod> mockMethods = new ConfiguredMapMockMethod[mockMethodsMaxCount];
+                var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(mockMethodsMaxCount);
                 foreach (var map in x.AsSpan())
                 {
                     mockMethodsHashSet.Add(new ConfiguredMapMockMethod(map.Source, map.Destination, map.UserArguments));
@@ -119,13 +119,12 @@ public class MapperGenerator : IIncrementalGenerator
                         if (!mockMethodsHashSet.Contains(mockMethod))
                         {
                             mockMethodsHashSet.Add(mockMethod);
-                            mockMethods[mockMethodsCount] = mockMethod;
-                            mockMethodsCount++;
+                            mockMethods.Append(mockMethod);
                         }
                     }
                 }
 
-                return Unsafe.SpanToImmutableArray(mockMethods.Slice(0, mockMethodsCount));
+                return mockMethods.ToImmutableArray();
             });
 
         context.RegisterSourceOutput(configuredMapsMockMethods, (sourceProductionContext, mockMethods) =>
@@ -143,7 +142,7 @@ public class MapperGenerator : IIncrementalGenerator
 
         var userMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
             static (node, _) => SourceCodeAnalyzer.IsUserMapMethodDeclarationSyntaxNode(node),
-            static (context, _) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel))
+            static (context, ct) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel, ct))
             .SelectMany(static (x, _) => x);
 
         var userMapsTargetsDiagnostics = userMapsTargets
@@ -159,7 +158,7 @@ public class MapperGenerator : IIncrementalGenerator
 
         var mapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
             static (node, _) => SourceCodeAnalyzer.IsMapMethodInvocationSyntaxNode(node),
-            static (context, _) => TargetFinder.GetMapTarget(context.Node, context.SemanticModel));
+            static (context, ct) => TargetFinder.GetMapTarget(context.Node, context.SemanticModel, ct));
 
         var mapsTargetsDiagnostics = mapsTargets
             .Where(static x => x.Type is TargetType.Error)
@@ -168,7 +167,7 @@ public class MapperGenerator : IIncrementalGenerator
 
         var maps = mapsTargets
             .Where(static x => x.Type is TargetType.Map)
-            .SelectMany(static (x, _) => MapDesigner.DesignMaps(x.MapTarget));
+            .SelectMany(static (x, ct) => MapDesigner.DesignMaps(x.MapTarget, ct));
 
         var mapsDiagnostics = maps
             .Where(static x => x.Type is MapType.Error)
@@ -259,7 +258,7 @@ public class MapperGenerator : IIncrementalGenerator
             .Combine(uniqueConfiguredMaps)
             .Combine(userMapsHashSet)
             .Combine(potentialErrors)
-            .SelectMany(static (x, _) =>
+            .SelectMany(static (x, ct) =>
             {
                 var (((((classMaps, collectionMaps), enumMaps), configuredMaps), userMaps), potentialErrors) = x;
                 var mapsHashSet = new HashSet<IMap>(new SimpleMapComparer());
@@ -304,9 +303,10 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
+                ct.ThrowIfCancellationRequested();
                 foreach (var map in classMaps.AsSpan())
                 {
-                    foreach(var propertyMap in map.ConstructorProperties)
+                    foreach (var propertyMap in map.ConstructorProperties)
                     {
                         ValidatePropertyMap(map, propertyMap, ref diagnostics);
                     }
@@ -316,7 +316,7 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                foreach(var map in collectionMaps)
+                foreach (var map in collectionMaps)
                 {
                     if (map.IsItemsEquals || map.IsItemsHasImpicitConversion)
                     {

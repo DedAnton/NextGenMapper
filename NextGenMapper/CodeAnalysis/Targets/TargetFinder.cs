@@ -1,19 +1,21 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.CodeAnalysis.Targets;
 
 internal static class TargetFinder
 {
-    public static Target GetMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static Target GetMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not InvocationExpressionSyntax mapMethodInvocation)
         {
             return Target.Empty;
         }
 
-        var (isMapMethodInvocation, sourceType, destinationType) = SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel);
+        var (isMapMethodInvocation, sourceType, destinationType) = 
+            SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel, cancellationToken);
         if (!isMapMethodInvocation || sourceType is null || destinationType is null)
         {
             return Target.Empty;
@@ -51,7 +53,7 @@ internal static class TargetFinder
         return Target.Error(notSupportedDiagnostic);
     }
 
-    public static Target GetConfiguredMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static Target GetConfiguredMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not InvocationExpressionSyntax configuredMapMethodInvocation)
         {
@@ -59,7 +61,7 @@ internal static class TargetFinder
         }
 
         var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
-            = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel);
+            = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
         if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
         {
             return Target.Empty;
@@ -97,7 +99,7 @@ internal static class TargetFinder
         return Target.ConfiguredMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
     }
 
-    public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel)
+    public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not MethodDeclarationSyntax userMapMethodDeclaration)
         {
@@ -105,7 +107,7 @@ internal static class TargetFinder
         }
 
         var (isUserMapMethodDeclaration, sourceType, destinationType, method)
-            = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel);
+            = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel, cancellationToken);
         if (!isUserMapMethodDeclaration || sourceType is null || destinationType is null || method is null)
         {
             return ImmutableArray.Create(Target.Empty);

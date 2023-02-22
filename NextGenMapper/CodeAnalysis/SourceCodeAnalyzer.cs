@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Targets.Models;
 using NextGenMapper.PostInitialization;
+using System.Threading;
 
 namespace NextGenMapper.CodeAnalysis;
 
@@ -58,16 +59,19 @@ internal static class SourceCodeAnalyzer
         }
     };
 
-    public static MapMethodAnalysisResult AnalyzeMapMethod(InvocationExpressionSyntax mapMethodInvocation, SemanticModel semanticModel)
+    public static MapMethodAnalysisResult AnalyzeMapMethod(
+        InvocationExpressionSyntax mapMethodInvocation, 
+        SemanticModel semanticModel, 
+        CancellationToken cancellationToken)
     {
         if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && semanticModel.GetSymbolInfo(memberAccessExpression).Symbol is IMethodSymbol
+            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
             {
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapMethodFullName
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression).Type is ITypeSymbol
+            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol
             {
                 TypeKind: not TypeKind.Error
             } source
@@ -84,14 +88,15 @@ internal static class SourceCodeAnalyzer
 
     public static ConfiguredMapMethodAnalysisResult AnalyzeConfiguredMapMethod(
         InvocationExpressionSyntax configuredMapMethodInvocation, 
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
         if (configuredMapMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
             return ConfiguredMapMethodAnalysisResult.Fail();
         }
 
-        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression);
+        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken);
         var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
 
         var isCompleteMethod = false;
@@ -113,7 +118,7 @@ internal static class SourceCodeAnalyzer
             && method.IsExtensionMethod
             && method.MethodKind == MethodKind.ReducedExtension
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithMethodFullName
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
+            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
             return ConfiguredMapMethodAnalysisResult.Success(source, destination, isCompleteMethod);
@@ -122,9 +127,12 @@ internal static class SourceCodeAnalyzer
         return ConfiguredMapMethodAnalysisResult.Fail();
     }
 
-    public static UserMapMethodAnalysisResult AnalyzeUserMapMethod(MethodDeclarationSyntax userMapMethodDeclaration, SemanticModel semanticModel)
+    public static UserMapMethodAnalysisResult AnalyzeUserMapMethod(
+        MethodDeclarationSyntax userMapMethodDeclaration, 
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
-        if (semanticModel.GetDeclaredSymbol(userMapMethodDeclaration) is IMethodSymbol
+        if (semanticModel.GetDeclaredSymbol(userMapMethodDeclaration, cancellationToken) is IMethodSymbol
             {
                 IsAsync: false,
                 MethodKind: MethodKind.Ordinary,

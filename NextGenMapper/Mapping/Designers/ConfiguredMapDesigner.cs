@@ -8,12 +8,13 @@ using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
 internal static class ConfiguredMapDesigner
 {
-    public static ImmutableArray<Map> DesignConfiguredMaps(ConfiguredMapTarget target)
+    public static ImmutableArray<Map> DesignConfiguredMaps(ConfiguredMapTarget target, CancellationToken cancellationToken)
     {
         var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var argument in target.Arguments)
@@ -26,7 +27,7 @@ internal static class ConfiguredMapDesigner
         }
 
         var maps = new ValueListBuilder<Map>(8);
-        DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps);
+        DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps, cancellationToken);
 
         return maps.ToImmutableArray();
     }
@@ -38,11 +39,13 @@ internal static class ConfiguredMapDesigner
         bool isCompleteMethod,
         Location location,
         SemanticModel semanticModel,
-        ref ValueListBuilder<Map> maps)
+        ref ValueListBuilder<Map> maps,
+        CancellationToken cancellationToken)
     {
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel);
+        var (constructor, assignments) = 
+            ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel, cancellationToken);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
@@ -52,6 +55,7 @@ internal static class ConfiguredMapDesigner
         }
         var referencesHistory = ImmutableList.Create(source);
 
+        cancellationToken.ThrowIfCancellationRequested();
         var destinationParameters = constructor.Parameters.AsSpan();
         var destinationProperties = destination.GetPublicWritableProperties();
 
@@ -64,6 +68,7 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationParameter in destinationParameters)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var destinationParameterType = destinationParameter.Type.ToNotNullableString();
             if (arguments.Contains(destinationParameter.Name))
             {
@@ -87,7 +92,8 @@ internal static class ConfiguredMapDesigner
                             location,
                             semanticModel,
                             referencesHistory,
-                            ref maps);
+                            ref maps,
+                            cancellationToken);
 
                     if (propertyMap is null)
                     {
@@ -99,6 +105,7 @@ internal static class ConfiguredMapDesigner
             }
         }
 
+        cancellationToken.ThrowIfCancellationRequested();
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assignment in assignments)
@@ -107,6 +114,7 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationProperty in destinationProperties)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
             {
                 continue;
@@ -134,7 +142,8 @@ internal static class ConfiguredMapDesigner
                         location,
                         semanticModel,
                         referencesHistory,
-                        ref maps);
+                        ref maps,
+                        cancellationToken);
 
                     if (propertyMap is null)
                     {
@@ -168,7 +177,8 @@ internal static class ConfiguredMapDesigner
             destinationProperties,
             configuredMapArguments.AsSpan(), 
             isCompleteMethod, 
-            semanticModel);
+            semanticModel,
+            cancellationToken);
 
         var map = Map.Configured(
             source.ToNotNullableString(),
@@ -200,16 +210,18 @@ internal static class ConfiguredMapDesigner
         ReadOnlySpan<IPropertySymbol> destinationProperties,
         ReadOnlySpan<NameTypePair> arguments,
         bool isCompleteMethod,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
         var constructors = destination.GetConstructors();
         var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(constructors.Length);
         var isDuplicatedMockRemoved = false;
-        foreach(var constructor in destination.GetConstructors())
+        foreach(var constructor in constructors)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
             {
-                var mockMethod = DesignMockMethod(source, destination, constructor, destinationProperties, semanticModel);
+                var mockMethod = DesignMockMethod(source, destination, constructor, destinationProperties, semanticModel, cancellationToken);
 
                 if (!isDuplicatedMockRemoved
                     && isCompleteMethod
@@ -231,11 +243,12 @@ internal static class ConfiguredMapDesigner
         ITypeSymbol destination,
         IMethodSymbol constructor,
         ReadOnlySpan<IPropertySymbol> destinationProperties,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
         var destinationParameters = constructor.Parameters.AsSpan();
         var mockMethodParameters = new ValueListBuilder<NameTypePair>(destinationParameters.Length + destinationProperties.Length);
-        var assignments = ConstructorFinder.GetAssignments(constructor, semanticModel);
+        var assignments = ConstructorFinder.GetAssignments(constructor, semanticModel, cancellationToken);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assignment in assignments)
         {
