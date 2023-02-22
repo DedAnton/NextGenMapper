@@ -10,7 +10,6 @@ using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.PostInitialization;
 using NextGenMapper.Utils;
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,6 +17,7 @@ using System.Text;
 
 namespace NextGenMapper;
 
+[Generator(LanguageNames.CSharp)]
 public class MapperGenerator : IIncrementalGenerator
 {
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -102,7 +102,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sourceBuilder = new ConfiguredMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
-            sourceProductionContext.AddSource("Mapper_ConfiguredMaps.g", mapperClassSource);
+            sourceProductionContext.AddSource("Mapper_ConfiguredMaps.g.cs", mapperClassSource);
         });
 
         var configuredMapsMockMethods = uniqueConfiguredMaps
@@ -137,7 +137,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sourceBuilder = new ConfiguredMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(mockMethods);
 
-            sourceProductionContext.AddSource("Mapper_ConfiguredMaps_MockMethods.g", mapperClassSource);
+            sourceProductionContext.AddSource("Mapper_ConfiguredMaps_MockMethods.g.cs", mapperClassSource);
         });
 
         var userMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
@@ -195,7 +195,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sourceBuilder = new ClassMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
-            sourceProductionContext.AddSource("Mapper_ClassMaps.g", mapperClassSource);
+            sourceProductionContext.AddSource("Mapper_ClassMaps.g.cs", mapperClassSource);
         });
 
         var relatedCollectionMaps = configuredMapsAndRelated
@@ -218,7 +218,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sourceBuilder = new CollectionMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
-            sourceProductionContext.AddSource("Mapper_CollectionMaps.g", mapperClassSource);
+            sourceProductionContext.AddSource("Mapper_CollectionMaps.g.cs", mapperClassSource);
         });
 
         var relatedEnumMaps = configuredMapsAndRelated
@@ -241,7 +241,7 @@ public class MapperGenerator : IIncrementalGenerator
             var sourceBuilder = new EnumMapsSourceBuilder();
             var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
 
-            sourceProductionContext.AddSource("Mapper_EnumMaps.g", mapperClassSource);
+            sourceProductionContext.AddSource("Mapper_EnumMaps.g.cs", mapperClassSource);
         });
 
         var potentialErrorsFromRelated = configuredMapsAndRelated
@@ -359,11 +359,11 @@ public class MapperGenerator : IIncrementalGenerator
     private void PostInitialization(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            "MapperExtensions.g",
+            "MapperExtensions.g.cs",
             SourceText.From(ExtensionsSource.Source, Encoding.UTF8)));
 
         context.RegisterPostInitializationOutput(ctx => ctx.AddSource(
-            "StartMapper.g",
+            "StartMapper.g.cs",
             SourceText.From(StartMapperSource.StartMapper, Encoding.UTF8)));
     }
 }
