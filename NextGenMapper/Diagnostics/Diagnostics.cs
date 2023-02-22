@@ -8,7 +8,7 @@ namespace NextGenMapper
     {
         public static Diagnostic CircularReferenceError(Location location, IEnumerable<ITypeSymbol> circularReferencedTypes)
         {
-            var circularReferencePath = string.Join(" => ", circularReferencedTypes.Select(x => x.Name));
+            var circularReferencePath = string.Join(" => ", circularReferencedTypes.Select(x => x.ToDisplayString()));
 
             return Diagnostic.Create(CircularReferenceErrorDiscriptor, location, circularReferencePath);
         }

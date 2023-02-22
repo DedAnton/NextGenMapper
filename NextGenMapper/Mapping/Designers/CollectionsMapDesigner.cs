@@ -19,8 +19,11 @@ internal static partial class MapDesigner
         ITypeSymbol destination,
         Location location,
         SemanticModel semanticModel,
+        ImmutableList<ITypeSymbol> referencesHistory,
         ref ValueListBuilder<Map> maps)
     {
+        referencesHistory = referencesHistory.Add(source);
+
         var sourceKind = GetCollectionKind(source);
         var destinationKind = GetCollectionKind(destination);
         if (sourceKind == CollectionKind.Undefined || destinationKind == CollectionKind.Undefined)
@@ -59,8 +62,7 @@ internal static partial class MapDesigner
 
         if (!isTypeEquals && !isTypesHasImplicitConversion)
         {
-            //TODO: check situation when collection type contains property with same collection (potential circular reference)
-            DesignMaps(sourceItemType, destinationItemType, location, semanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps);
+            DesignMaps(sourceItemType, destinationItemType, location, semanticModel, referencesHistory, ref maps);
         }
     }
 

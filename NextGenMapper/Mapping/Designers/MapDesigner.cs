@@ -35,7 +35,7 @@ internal static partial class MapDesigner
 
         if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
         {
-            DesignCollectionsMap(source, destination, location, semanticModel, ref maps);
+            DesignCollectionsMap(source, destination, location, semanticModel, referencesHistory, ref maps);
         } 
         else if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {

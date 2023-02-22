@@ -19,13 +19,6 @@ internal static partial class MapDesigner
         ImmutableList<ITypeSymbol> referencesHistory,
         ref ValueListBuilder<Map> maps)
     {
-        if (referencesHistory.FindIndex(x => SymbolEqualityComparer.Default.Equals(x, source)) != -1)
-        {
-            var diagnostic = Diagnostics.CircularReferenceError(location, referencesHistory.Add(source));
-            maps.Append(Map.Error(source, destination, diagnostic));
-
-            return;
-        }
         referencesHistory = referencesHistory.Add(source);
 
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
