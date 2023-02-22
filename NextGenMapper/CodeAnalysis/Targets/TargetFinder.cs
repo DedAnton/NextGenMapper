@@ -14,8 +14,8 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
-        var (isMapMethodInvocation, sourceType, destinationType) = SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel);
+        var (isMapMethodInvocation, sourceType, destinationType) = 
+            SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel, cancellationToken);
         if (!isMapMethodInvocation || sourceType is null || destinationType is null)
         {
             return Target.Empty;
@@ -60,9 +60,8 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
         var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
-            = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel);
+            = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
         if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
         {
             return Target.Empty;
@@ -107,9 +106,8 @@ internal static class TargetFinder
             return ImmutableArray.Create(Target.Empty);
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
         var (isUserMapMethodDeclaration, sourceType, destinationType, method)
-            = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel);
+            = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel, cancellationToken);
         if (!isUserMapMethodDeclaration || sourceType is null || destinationType is null || method is null)
         {
             return ImmutableArray.Create(Target.Empty);

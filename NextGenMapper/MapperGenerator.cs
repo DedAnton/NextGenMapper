@@ -106,28 +106,25 @@ public class MapperGenerator : IIncrementalGenerator
         });
 
         var configuredMapsMockMethods = uniqueConfiguredMaps
-            .Select((x, ct) =>
+            .Select((x, _) =>
             {
                 var mockMethodsHashSet = new HashSet<ConfiguredMapMockMethod>(new ConfiguredMapMockMethodComparer());
                 var mockMethodsMaxCount = x.Sum(y => y.MockMethods.Length);
-                var mockMethodsCount = 0;
-                Span<ConfiguredMapMockMethod> mockMethods = new ConfiguredMapMockMethod[mockMethodsMaxCount];
+                var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(mockMethodsMaxCount);
                 foreach (var map in x.AsSpan())
                 {
-                    ct.ThrowIfCancellationRequested();
                     mockMethodsHashSet.Add(new ConfiguredMapMockMethod(map.Source, map.Destination, map.UserArguments));
                     foreach (var mockMethod in map.MockMethods.AsSpan())
                     {
                         if (!mockMethodsHashSet.Contains(mockMethod))
                         {
                             mockMethodsHashSet.Add(mockMethod);
-                            mockMethods[mockMethodsCount] = mockMethod;
-                            mockMethodsCount++;
+                            mockMethods.Append(mockMethod);
                         }
                     }
                 }
 
-                return Unsafe.SpanToImmutableArray(mockMethods.Slice(0, mockMethodsCount));
+                return mockMethods.ToImmutableArray();
             });
 
         context.RegisterSourceOutput(configuredMapsMockMethods, (sourceProductionContext, mockMethods) =>
@@ -267,7 +264,6 @@ public class MapperGenerator : IIncrementalGenerator
                 var mapsHashSet = new HashSet<IMap>(new SimpleMapComparer());
                 var diagnostics = new ValueListBuilder<Diagnostic>();
 
-                ct.ThrowIfCancellationRequested();
                 foreach (var map in classMaps.AsSpan())
                 {
                     mapsHashSet.Add(map);
@@ -307,9 +303,9 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
+                ct.ThrowIfCancellationRequested();
                 foreach (var map in classMaps.AsSpan())
                 {
-                    ct.ThrowIfCancellationRequested();
                     foreach (var propertyMap in map.ConstructorProperties)
                     {
                         ValidatePropertyMap(map, propertyMap, ref diagnostics);
@@ -320,9 +316,8 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                foreach(var map in collectionMaps)
+                foreach (var map in collectionMaps)
                 {
-                    ct.ThrowIfCancellationRequested();
                     if (map.IsItemsEquals || map.IsItemsHasImpicitConversion)
                     {
                         continue;
@@ -338,7 +333,6 @@ public class MapperGenerator : IIncrementalGenerator
 
                 foreach (var map in configuredMaps.AsSpan())
                 {
-                    ct.ThrowIfCancellationRequested();
                     foreach (var propertyMap in map.ConstructorProperties)
                     {
                         ValidatePropertyMap(map, propertyMap, ref diagnostics);
@@ -349,7 +343,6 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                 }
 
-                ct.ThrowIfCancellationRequested();
                 foreach (var potentialError in potentialErrors.AsSpan())
                 {
                     if (!mapsHashSet.Contains(potentialError))

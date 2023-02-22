@@ -44,8 +44,8 @@ internal static class ConfiguredMapDesigner
     {
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
-        cancellationToken.ThrowIfCancellationRequested();
-        var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel);
+        var (constructor, assignments) = 
+            ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel, cancellationToken);
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
@@ -68,7 +68,6 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationParameter in destinationParameters)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             var destinationParameterType = destinationParameter.Type.ToNotNullableString();
             if (arguments.Contains(destinationParameter.Name))
             {
@@ -114,7 +113,6 @@ internal static class ConfiguredMapDesigner
         }
         foreach (var destinationProperty in destinationProperties)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             if (destinationPropertiesInitializedByConstructor.Contains(destinationProperty.Name))
             {
                 continue;
@@ -171,7 +169,6 @@ internal static class ConfiguredMapDesigner
             configuredMapArguments = ValueListBuilder<NameTypePair>.Empty;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
         var mockMethods = DesignClassMapMockMethods(
             source, 
             destination, 
@@ -222,7 +219,7 @@ internal static class ConfiguredMapDesigner
             cancellationToken.ThrowIfCancellationRequested();
             if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
             {
-                var mockMethod = DesignMockMethod(source, destination, constructor, destinationProperties, semanticModel);
+                var mockMethod = DesignMockMethod(source, destination, constructor, destinationProperties, semanticModel, cancellationToken);
 
                 if (!isDuplicatedMockRemoved
                     && isCompleteMethod
@@ -244,11 +241,12 @@ internal static class ConfiguredMapDesigner
         ITypeSymbol destination,
         IMethodSymbol constructor,
         ReadOnlySpan<IPropertySymbol> destinationProperties,
-        SemanticModel semanticModel)
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
     {
         var destinationParameters = constructor.Parameters.AsSpan();
         var mockMethodParameters = new ValueListBuilder<NameTypePair>(destinationParameters.Length + destinationProperties.Length);
-        var assignments = ConstructorFinder.GetAssignments(constructor, semanticModel);
+        var assignments = ConstructorFinder.GetAssignments(constructor, semanticModel, cancellationToken);
         var destinationPropertiesInitializedByConstructor = new HashSet<string>(StringComparer.InvariantCulture);
         foreach (var assignment in assignments)
         {

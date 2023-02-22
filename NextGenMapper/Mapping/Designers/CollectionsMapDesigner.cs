@@ -36,7 +36,6 @@ internal static partial class MapDesigner
             return;
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
         var sourceItemType = GetCollectionItemType(source);
         var destinationItemType = GetCollectionItemType(destination);
 
@@ -65,7 +64,6 @@ internal static partial class MapDesigner
 
         if (!isTypeEquals && !isTypesHasImplicitConversion)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             DesignMaps(sourceItemType, destinationItemType, location, semanticModel, referencesHistory, ref maps, cancellationToken);
         }
     }

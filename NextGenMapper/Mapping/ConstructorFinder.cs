@@ -8,6 +8,7 @@ using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace NextGenMapper.Mapping
 {
@@ -18,19 +19,23 @@ namespace NextGenMapper.Mapping
         public static ConstructorForMapping GetOptimalConstructor(
             Dictionary<string, IPropertySymbol> sourceProperties,
             ITypeSymbol destination,
-            SemanticModel semanticModel) => GetOptimalConstructor(sourceProperties, destination, new HashSet<string>(), semanticModel);
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken) 
+            => GetOptimalConstructor(sourceProperties, destination, new HashSet<string>(), semanticModel, cancellationToken);
 
         public static ConstructorForMapping GetOptimalConstructor(
             Dictionary<string, IPropertySymbol> sourceProperties,
             ITypeSymbol destination,
             HashSet<string> userArguments,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel, 
+            CancellationToken cancellationToken)
         {
             var constructors = GetSortedPublicConstructors(destination);
 
             foreach (var constructor in constructors)
             {
-                var constructorAssignments = GetAssignments(constructor, semanticModel);
+                cancellationToken.ThrowIfCancellationRequested();
+                var constructorAssignments = GetAssignments(constructor, semanticModel, cancellationToken);
                 if (IsConstructorValid(constructor, constructorAssignments, sourceProperties, userArguments))
                 {
                     return new ConstructorForMapping(constructor, constructorAssignments);
@@ -40,7 +45,10 @@ namespace NextGenMapper.Mapping
             return new ConstructorForMapping();
         }
 
-        public static ReadOnlySpan<Assignment> GetAssignments(IMethodSymbol constructor, SemanticModel semanticModel)
+        public static ReadOnlySpan<Assignment> GetAssignments(
+            IMethodSymbol constructor, 
+            SemanticModel semanticModel, 
+            CancellationToken cancellationToken)
         {
             if (constructor.IsImplicitlyDeclared)
             {
@@ -54,7 +62,7 @@ namespace NextGenMapper.Mapping
 
             return constructor.GetFirstDeclarationSyntax() switch
             {
-                ConstructorDeclarationSyntax constructorSyntax => GetConstructorAssignments(constructorSyntax, semanticModel),
+                ConstructorDeclarationSyntax constructorSyntax => GetConstructorAssignments(constructorSyntax, semanticModel, cancellationToken),
                 RecordDeclarationSyntax => GetRecordAssignments(constructor),
                 _ => new()
             };
@@ -153,9 +161,10 @@ namespace NextGenMapper.Mapping
 
         private static ReadOnlySpan<Assignment> GetConstructorAssignments(
             ConstructorDeclarationSyntax constructorSyntax,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
-            var chainedConstructorsAssignments = GetChainedConstructorsAssignments(constructorSyntax, semanticModel);
+            var chainedConstructorsAssignments = GetChainedConstructorsAssignments(constructorSyntax, semanticModel, cancellationToken);
 
             var assignments = new ValueListBuilder<Assignment>(
                 constructorSyntax.Body?.Statements.Count ?? 1 + chainedConstructorsAssignments.Length);
@@ -197,10 +206,11 @@ namespace NextGenMapper.Mapping
 
         private static ReadOnlySpan<Assignment> GetChainedConstructorsAssignments(
             ConstructorDeclarationSyntax constructorSyntax,
-            SemanticModel semanticModel)
+            SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             if (constructorSyntax.Initializer?.Kind() is SyntaxKind.ThisConstructorInitializer
-                && semanticModel.GetOperation(constructorSyntax.Initializer) is IInvocationOperation thisInvocationOperation)
+                && semanticModel.GetOperation(constructorSyntax.Initializer, cancellationToken) is IInvocationOperation thisInvocationOperation)
             {
                 var argumentsByParameters = new Dictionary<string, string>(StringComparer.InvariantCulture);
                 foreach (var argument in thisInvocationOperation.Arguments)
@@ -221,7 +231,7 @@ namespace NextGenMapper.Mapping
                     }
                 }
 
-                var assignments = GetAssignments(thisInvocationOperation.TargetMethod, semanticModel);
+                var assignments = GetAssignments(thisInvocationOperation.TargetMethod, semanticModel, cancellationToken);
                 var chainedConstructorsAssignments = new ValueListBuilder<Assignment>(assignments.Length);
                 foreach (var assignment in assignments)
                 {
