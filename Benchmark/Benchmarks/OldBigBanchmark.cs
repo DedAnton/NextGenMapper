@@ -15,7 +15,7 @@ namespace Benchmark.Benchmarks
             for (var i = 1; i <= n; i++)
             {
                 var source = Source.GetSourceCode(i);
-                var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions(LanguageVersion.CSharp9));
+                var syntaxTree = CSharpSyntaxTree.ParseText(source, new CSharpParseOptions());
                 syntaxTrees.Add(syntaxTree);
             }
             var compilation = CSharpCompilation.Create(
@@ -23,11 +23,7 @@ namespace Benchmark.Benchmarks
                 syntaxTrees: syntaxTrees,
                 references: new[] { MetadataReference.CreateFromFile(typeof(Binder).GetTypeInfo().Assembly.Location) },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            var driver = CSharpGeneratorDriver.Create(
-                generators: ImmutableArray.Create(new MapperGenerator()),
-                additionalTexts: ImmutableArray<AdditionalText>.Empty,
-                parseOptions: (CSharpParseOptions)compilation.SyntaxTrees.First().Options,
-                optionsProvider: null);
+            var driver = CSharpGeneratorDriver.Create(new MapperGenerator());
 
             var sw = new Stopwatch();
             sw.Start();

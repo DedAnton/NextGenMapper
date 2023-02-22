@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM023,
+      Title: Possible null reference,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (12,15)-(12,46),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Possible null reference exception when mapping '{0}' to {1},
+      Message: Possible null reference exception when mapping 'Test.Source?' to Test.Destination,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM008,
+      Title: Mapping function was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (0,0)-(0,0),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}' to '{1}' was not found,
+      Message: Mapping function for mapping 'Test.Source' to 'Test.Destination' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

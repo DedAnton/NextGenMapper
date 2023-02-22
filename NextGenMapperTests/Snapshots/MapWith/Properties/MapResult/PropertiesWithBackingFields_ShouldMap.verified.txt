@@ -1,5 +1,0 @@
-﻿{
-  PropertyA: 1,
-  PropertyB: 1,
-  ForMapWith: 1
-}

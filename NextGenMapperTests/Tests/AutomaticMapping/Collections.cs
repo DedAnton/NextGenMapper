@@ -261,4 +261,30 @@ namespace NextGenMapper
 
         return VerifyAndRun(source);
     }
+
+    [TestMethod]
+    public Task CirularReferences_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source[] { new Source() }.Map<Destination[]>();
+}
+
+public class Source
+{
+    public Source[] Property { get; set; } = new Source[0];
+}
+
+public class Destination
+{
+    public Destination[] Property { get; set; }
+}
+";
+        return VerifyOnly(source);
+    }
 }

@@ -286,7 +286,6 @@ public class Program
     [DataRow("List<Source>?", "List<Destination>", "FromNullableCollectionList")]
     [DataRow("Source[]?", "List<Destination>", "FromNullableCollectionArray")]
     [DataRow("IEnumerable<Source>?", "List<Destination>", "FromNullableCollectionIEnumerable")]
-    [DataRow("List<Source?>?", "List<Destination>", "FromNullableCollectionItem")]
     [DataTestMethod]
     [ExpectedException(typeof(NullableException))]
     public async Task FromNullableReferenceType_ShouldRemoveNullableAnnotation(string from, string to, string variant)
@@ -317,6 +316,36 @@ public class Destination
 
         await VerifyOnly(source, ignoreSourceErrors: true, variant: variant);
         await VerifyOnly(source, variant: variant);
+    }
+
+    [TestMethod]
+    public Task FromCollectionWithNullableReferenceTypeItem_Diagnostic()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest()
+    {
+        var source = new List<Source?> { new Source(1), null, new Source(3) };       
+
+        return source.Map<List<Destination>>();
+    }
+}
+
+public record Source(int Property);
+
+public class Destination
+{
+    public int Property { get; set; }
+}";
+
+        return VerifyOnly(source);
     }
 
     [DataRow("Source", "Destination?", "ToNullableClass")]

@@ -1,0 +1,43 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM025,
+      Title: Mapping not supported,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (10,8)-(10,39),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping from {0} to {1} not supported,
+      Message: Mapping from Test.Source to Test.DestinationStruct not supported,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM025,
+      Title: Mapping not supported,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (11,8)-(11,37),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping from {0} to {1} not supported,
+      Message: Mapping from Test.Source to Test.DestinationEnum not supported,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM025,
+      Title: Mapping not supported,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (12,8)-(12,27),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping from {0} to {1} not supported,
+      Message: Mapping from Test.Source to int[] not supported,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

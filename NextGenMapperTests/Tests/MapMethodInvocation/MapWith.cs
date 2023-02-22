@@ -18,7 +18,7 @@ public class Program
     public object RunTest()
     {
         var source = new Source();
-        return source.MapWith<Destination>(propertyB: source.PropertyA);
+        return source.MapWith<Destination>(PropertyB: source.PropertyA);
     }
 }
 
@@ -52,7 +52,7 @@ public class Program
         var source = new Source();
         var sourceArray = new Source[] { source };
 
-        var destinationCollection = sourceArray.Select(x => x.MapWith<Destination>(propertyB: source.PropertyA));
+        var destinationCollection = sourceArray.Select(x => x.MapWith<Destination>(PropertyB: source.PropertyA));
 
         return destinationCollection.First();
     }
@@ -82,7 +82,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => GetSource().MapWith<Destination>(propertyB: GetSource().PropertyA);
+    public object RunTest() => GetSource().MapWith<Destination>(PropertyB: GetSource().PropertyA);
 
     private Source GetSource() => new Source();
 }
@@ -111,7 +111,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source().MapWith<Destination>(propertyB: new Source().PropertyA);
+    public object RunTest() => new Source().MapWith<Destination>(PropertyB: new Source().PropertyA);
 }
 
 public class Source
@@ -138,7 +138,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source { PropertyA = 1 }.MapWith<Destination>(propertyB: new Source { PropertyA = 1 }.PropertyA);
+    public object RunTest() => new Source { PropertyA = 1 }.MapWith<Destination>(PropertyB: new Source { PropertyA = 1 }.PropertyA);
 }
 
 public class Source
@@ -166,7 +166,7 @@ namespace Test;
 public class Program
 {
     private Source Source => new Source();
-    public object RunTest() => Source.MapWith<Destination>(propertyB: Source.PropertyA);
+    public object RunTest() => Source.MapWith<Destination>(PropertyB: Source.PropertyA);
 }
 
 public class Source
@@ -194,7 +194,7 @@ namespace Test;
 public class Program
 {
     private Source source = new Source();
-    public object RunTest() => source.MapWith<Destination>(propertyB: source.PropertyA);
+    public object RunTest() => source.MapWith<Destination>(PropertyB: source.PropertyA);
 }
 
 public class Source

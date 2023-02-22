@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM021,
+      Title: Mapped types has implicit conversion,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,75),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapped types has implicit conversion from {0} to {1},
+      Message: Mapped types has implicit conversion from int[] to System.Collections.Generic.IEnumerable<int>,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

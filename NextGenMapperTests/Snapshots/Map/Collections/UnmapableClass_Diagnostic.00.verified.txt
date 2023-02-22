@@ -1,11 +1,24 @@
 ﻿{
   Diagnostics: [
     {
+      Id: NGM008,
+      Title: Mapping function was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (0,0)-(0,0),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapping function for mapping '{0}' to '{1}' was not found,
+      Message: Mapping function for mapping 'Test.Source' to 'Test.Destination' was not found,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
       Id: NGM013,
       Title: No property matches,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (11,15)-(11,44),
+      Location: : (11,15)-(11,46),
       Description: ,
       HelpLink: ,
       MessageFormat: None of the properties of class {0} match the properties of class {1},

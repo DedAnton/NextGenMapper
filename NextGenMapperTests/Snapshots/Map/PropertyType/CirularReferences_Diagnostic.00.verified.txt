@@ -5,11 +5,11 @@
       Title: Circular reference was found,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (22,13)-(22,25),
+      Location: : (6,31)-(6,64),
       Description: ,
       HelpLink: ,
       MessageFormat: Circular reference {0},
-      Message: Circular reference SourceA => SourceB => SourceC => SourceA,
+      Message: Circular reference Test.SourceA => Test.SourceB => Test.SourceC => Test.SourceA,
       Category: NextGenMapper,
       CustomTags: []
     }

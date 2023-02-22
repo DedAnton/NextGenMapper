@@ -3,7 +3,7 @@
 [TestClass]
 public class Special : SourceGeneratorVerifier
 {
-    public override string TestGroup => "MapWith";
+    public override string TestGroup => "ConfiguredMap";
 
     [TestMethod]
     public Task CommonGeneric_ShouldMap()
@@ -15,7 +15,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source<int> { Property = 1 }.MapWith<Destination<int>>(forMapWith: 1);
+    public object RunTest() => new Source<int> { Property = 1 }.MapWith<Destination<int>>(ForMapWith: 1);
 }
 
 public class Source<T>
@@ -43,7 +43,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source<A> { Property = new A(1) }.MapWith<Destination<B>>(forMapWith: 1);
+    public object RunTest() => new Source<A> { Property = new A(1) }.MapWith<Destination<B>>(ForMapWith: 1);
 }
 
 public class Source<T>
@@ -166,7 +166,7 @@ namespace Test
 {
     public class Program
     {
-        public object RunTest() => new Source().MapWith<Destination>(property: 1);
+        public object RunTest() => new Source().MapWith<Destination>(Property: 1);
     }
 
     public class Source
@@ -189,7 +189,7 @@ namespace Test
         var source =
 @"using NextGenMapper;
 
-new Source().MapWith<Destination>(property: 1);
+new Source().MapWith<Destination>(Property: 1);
 
 public class Source
 {
@@ -224,7 +224,7 @@ public class Program
     {
         var source = new Source();
         var mapResult = source.Map<Destination>();
-        var mapWithResult = source.MapWith<Destination>(forMapWith: 1);
+        var mapWithResult = source.MapWith<Destination>(ForMapWith: 1);
 
         return new[] { mapResult, mapWithResult };
     }
@@ -257,8 +257,8 @@ public class Program
     public object RunTest()
     {
         var source = new Source();
-        var mapWithResult1 = source.MapWith<Destination>(forMapWith1: 1);
-        var mapWithResult2 = source.MapWith<Destination>(forMapWith2: 1);
+        var mapWithResult1 = source.MapWith<Destination>(ForMapWith1: 1);
+        var mapWithResult2 = source.MapWith<Destination>(ForMapWith2: 1);
 
         return new[] { mapWithResult1, mapWithResult2 };
     }
@@ -290,8 +290,8 @@ public class Program
     public object RunTest()
     {
         var source = new Source();
-        var mapWithResult1 = source.MapWith<Destination>(forMapWith1: 1);
-        var mapWithResult2 = source.MapWith<Destination>(forMapWith2: 1);
+        var mapWithResult1 = source.MapWith<Destination>(ForMapWith1: 1);
+        var mapWithResult2 = source.MapWith<Destination>(ForMapWith2: 1);
 
         return new[] { mapWithResult1, mapWithResult2 };
     }
@@ -320,7 +320,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new NestedClass { Property = -1 }.MapWith<BaseClass>(property: 1);
+    public object RunTest() => new NestedClass { Property = -1 }.MapWith<BaseClass>(Property: 1);
 }
 
 public class BaseClass
@@ -347,7 +347,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new Source { Property = 1 }.MapWith<Destination>(property: 1);
+    public object RunTest() => new Source { Property = 1 }.MapWith<Destination>(Property: 1);
 }
 
 public class Source
@@ -385,7 +385,7 @@ public class Program
 {
     public object RunTest() => MapWrap(new());
 
-    private " + to + @" MapWrap(" + from + @" source) => source.MapWith<" + to + @">(forMapWith: 1);
+    private " + to + @" MapWrap(" + from + @" source) => source.MapWith<" + to + @">(ForMapWith: 1);
 }
 
 public class Source
@@ -418,10 +418,10 @@ public class Program
 {
     public object RunTest() => 1;
 
-    private " + to + @" FromNullable(" + from + @"? source) => source.MapWith<" + to + @">(forMapWith1: 1);
-    private " + to + @"? ToNullable(" + from + @" source) => source.MapWith<" + to + @"?>(forMapWith2: 1);
-    private " + to + @"? FromNullableToNullable(" + from + @"? source) => source.MapWith<" + to + @"?>(forMapWith3: 1);
-    private " + to + @" NotNullable(" + from + @" source) => source.MapWith<" + to + @">(forMapWith4: 1);
+    private " + to + @" FromNullable(" + from + @"? source) => source.MapWith<" + to + @">(ForMapWith1: 1);
+    private " + to + @"? ToNullable(" + from + @" source) => source.MapWith<" + to + @"?>(ForMapWith2: 1);
+    private " + to + @"? FromNullableToNullable(" + from + @"? source) => source.MapWith<" + to + @"?>(ForMapWith3: 1);
+    private " + to + @" NotNullable(" + from + @" source) => source.MapWith<" + to + @">(ForMapWith4: 1);
 }
 
 public class Source

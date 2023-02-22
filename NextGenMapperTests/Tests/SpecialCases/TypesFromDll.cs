@@ -184,4 +184,99 @@ public record Source(int Property);";
 
         return VerifyAndRun(source);
     }
+
+    [TestMethod]
+    public Task ConfiguredMapFromClassFromDll_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using TypesFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new ClassFromDll { PropertyA = 1, PropertyB = -1 }.MapWith<Destination>(ForMapWith: 1);
+}
+
+public class Destination
+{
+    public int PropertyA { get; set; }
+    public int propertyB { get; set; }
+    public int ForMapWith { get; set; }
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ConfiguredMapToClassFromDll_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using TypesFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source { PropertyA = 1, propertyB = -1 }.MapWith<ClassFromDll>(PropertyB: 1);
+}
+
+public class Source
+{
+    public int PropertyA { get; set; }
+    public int propertyB { get; set; }
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ConfiguredMapFromClassWithConstructorFromDll_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using TypesFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new ClassWithConstructorFromDll(1, 1, 1).MapWith<Destination>(ForMapWith: 1);
+}
+
+public class Destination
+{
+    public int PropertyA { get; set; }
+    public int PropertyB { get; set; }
+    public int PropertyC { get; set; }
+    public int ForMapWith { get; set; }
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task ConfiguredMapToClassWithConstructorFromDll_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using TypesFromDllTest;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new Source().MapWith<ClassWithConstructorFromDll>(pROpeRTyc: 1);
+}
+
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = 1;
+}";
+
+        return VerifyAndRun(source);
+    }
 }

@@ -1,4 +1,4 @@
-﻿//HintName: Mapper.g.cs
+﻿//HintName: Mapper_CollectionMaps.g.cs
 #nullable enable
 using NextGenMapper.Extensions;
 
