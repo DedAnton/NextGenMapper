@@ -31,7 +31,7 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
         public static Diagnostic UndefinedCollectionTypeError(Location location)
-            => Diagnostic.Create(ConstructorNotFoundErrorDiscriptor, location);
+            => Diagnostic.Create(UndefinedCollectionTypeErrorDescriptor, location);
         public static readonly DiagnosticDescriptor UndefinedCollectionTypeErrorDescriptor = new(
             id: "NGM003",
             title: "Mapped collection type was undefined",
