@@ -287,4 +287,51 @@ public class Destination
 ";
         return VerifyOnly(source);
     }
+
+    [TestMethod]
+    public Task NotSupportedCollectionType_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Collections.Generic;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new int[] { 1, 2, 3 }.Map<Dictionary<int, int>>();
+}
+";
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task NotSupportedCollectionTypeWithCustomMapping_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Test
+{
+    public class Program
+    {
+        public object RunTest() => new int[] { 1, 2, 3 }.Map<Dictionary<int, int>>();
+    }
+}
+
+namespace NextGenMapper
+{
+    internal static partial class Mapper
+    {
+        internal static Dictionary<int, int> Map<To>(this int[] source) => source.ToDictionary(x => x, x => x);
+    }
+}
+
+
+";
+
+        return VerifyAndRun(source);
+    }
 }

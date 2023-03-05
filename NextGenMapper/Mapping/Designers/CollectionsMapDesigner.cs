@@ -31,7 +31,7 @@ internal static partial class MapDesigner
         if (sourceKind == CollectionKind.Undefined || destinationKind == CollectionKind.Undefined)
         {
             var diagnostic = Diagnostics.UndefinedCollectionTypeError(location);
-            maps.Append(Map.Error(source, destination, diagnostic));
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
             return;
         }

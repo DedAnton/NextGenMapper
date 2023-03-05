@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM003,
+      Title: Mapped collection type was undefined,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,80),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>,
+      Message: Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}
