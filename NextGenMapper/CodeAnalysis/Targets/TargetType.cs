@@ -6,5 +6,6 @@ internal enum TargetType
     Error,
     Map,
     ConfiguredMap,
-    UserMap
+    UserMap,
+    Projection
 }

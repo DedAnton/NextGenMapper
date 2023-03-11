@@ -13,6 +13,7 @@ internal readonly struct Map : IEquatable<Map>
     public EnumMap EnumMap { get; }
     public ConfiguredMap ConfiguredMap { get; }
     public UserMap UserMap { get; }
+    public ProjectionMap ProjectionMap { get; }
     public ErrorMap ErrorMap { get; }
     public PotentialErrorMap PotentialErrorMap { get; }
     public MapType Type { get; }
@@ -70,6 +71,12 @@ internal readonly struct Map : IEquatable<Map>
     public static Map User(string source, string destination)
         => new(MapType.UserMap, userMap: new UserMap(source, destination));
 
+    public static Map Projection(
+        string source,
+        string destination,
+        ImmutableArray<PropertyMap> properties)
+        => new(MapType.ProjectionMap, projectionMap: new ProjectionMap(source, destination, properties));
+
     public static Map Error(ITypeSymbol source, ITypeSymbol destination, Diagnostic diagnostic)
         => new(MapType.Error, errorMap: new ErrorMap(source.ToNotNullableString(), destination.ToNotNullableString(), diagnostic));
 
@@ -99,6 +106,7 @@ internal readonly struct Map : IEquatable<Map>
         EnumMap enumMap = default,
         ConfiguredMap configuredMap = default,
         UserMap userMap = default,
+        ProjectionMap projectionMap = default,
         ErrorMap errorMap = default,
         PotentialErrorMap potentialErrorMap = default)
     {
@@ -107,6 +115,7 @@ internal readonly struct Map : IEquatable<Map>
         EnumMap = enumMap;
         ConfiguredMap = configuredMap;
         UserMap = userMap;
+        ProjectionMap = projectionMap;
         ErrorMap = errorMap;
         PotentialErrorMap = potentialErrorMap;
         Type = type;

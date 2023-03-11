@@ -11,7 +11,13 @@ internal readonly ref struct ConstructorForMapping
     public ConstructorForMapping()
     {
         ConstructorSymbol = null;
-        Assignments = Array.Empty<Assignment>();
+        Assignments = ReadOnlySpan<Assignment>.Empty;
+    }
+
+    public ConstructorForMapping(IMethodSymbol constructorMethodSymbol)
+    {
+        ConstructorSymbol = constructorMethodSymbol;
+        Assignments = ReadOnlySpan<Assignment>.Empty;
     }
 
     public ConstructorForMapping(IMethodSymbol constructorMethodSymbol, ReadOnlySpan<Assignment> assignments)

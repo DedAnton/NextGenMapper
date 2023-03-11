@@ -8,5 +8,6 @@ internal enum MapType
     CollectionMap,
     EnumMap,
     ConfiguredMap,
-    UserMap
+    UserMap,
+    ProjectionMap
 }

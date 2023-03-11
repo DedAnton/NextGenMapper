@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
+using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
@@ -354,6 +355,48 @@ public class MapperGenerator : IIncrementalGenerator
                 return diagnostics.ToImmutableArray();
             });
         context.ReportDiagnostics(mapsPostValidationDiagnostics);
+
+        BuildProjectionPipeline(context);
+    }
+
+    private void BuildProjectionPipeline(IncrementalGeneratorInitializationContext context)
+    {
+        var targets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsProjectionMethodInvocationSyntaxNode(node),
+            static (context, ct) => TargetFinder.GetProjectionTarget(context.Node, context.SemanticModel, ct));
+
+        var targetsDiagnostics = targets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+
+        context.ReportDiagnostics(targetsDiagnostics);
+
+        var maps = targets
+            .Where(static x => x.Type is TargetType.Projection)
+            .Select(static (x, ct) => ProjectionMapDesigner.DesingProjectionMap(x.ProjectionTarget, ct));
+
+        var mapsDiagnostics = maps
+            .Where(static x => x.Type is MapType.Error)
+            .Select(static (x, _) => x.ErrorMap.Diagnostic);
+        context.ReportDiagnostics(mapsDiagnostics);
+
+        var projectionMaps = maps
+            .Where(static x => x.Type is MapType.ProjectionMap)
+            .Select(static (x, _) => x.ProjectionMap)
+            .Collect()
+            .Distinct(EqualityComparer<ProjectionMap>.Default);
+
+        context.RegisterSourceOutput(projectionMaps, (sourceProductionContext, maps) =>
+        {
+            if (maps.Length == 0)
+            {
+                return;
+            }
+            var sourceBuilder = new ProjectionMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_ProjectionMaps.g.cs", mapperClassSource);
+        });
     }
 
     private void PostInitialization(IncrementalGeneratorInitializationContext context)
