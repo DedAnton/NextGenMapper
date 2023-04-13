@@ -1,13 +1,11 @@
-﻿using NextGenMapper.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
-using System.Collections.Generic;
 using System.Threading;
-using System;
-using Microsoft.CodeAnalysis;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -15,7 +13,7 @@ internal static class ProjectionMapDesigner
 {
     public static Map DesingProjectionMap(ProjectionTarget target, CancellationToken cancellationToken)
     {
-        var (source, destination, location, semanticModel) = target;
+        var (source, destination, location) = target;
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -62,6 +60,13 @@ internal static class ProjectionMapDesigner
                     isTypesEquals: true,
                     hasImplicitConversion: true);
 
+                if (propertyMap.IsSourceNullable && !propertyMap.IsDestinationNullable)
+                {
+                    var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+             
+                    return Map.Error(source, destination, diagnostic);
+                }
+
                 initializerProperties.Append(propertyMap);
             }
         }
@@ -70,7 +75,7 @@ internal static class ProjectionMapDesigner
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
    
-            return Map.PotentialError(source, destination, diagnostic);
+            return Map.Error(source, destination, diagnostic);
         }
 
         var projectionMap = Map.Projection(

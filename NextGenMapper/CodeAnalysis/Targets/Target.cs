@@ -47,8 +47,8 @@ internal readonly struct Target
     public static Target UserMap(ITypeSymbol source, ITypeSymbol destination) 
         => new(TargetType.UserMap, userMapTarget: new UserMapTarget(source, destination));
 
-    public static Target Projection(ITypeSymbol source, ITypeSymbol destination, Location location, SemanticModel semanticModel)
-        => new(TargetType.Projection, projectionTarget: new ProjectionTarget(source, destination, location, semanticModel));
+    public static Target Projection(ITypeSymbol source, ITypeSymbol destination, Location location)
+        => new(TargetType.Projection, projectionTarget: new ProjectionTarget(source, destination, location));
 
     public static Target Error(Diagnostic diagnostic) => new(TargetType.Error, errorMapTarget: new ErrorMapTarget(diagnostic));
 

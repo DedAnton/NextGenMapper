@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;

@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM013,
+      Title: No property matches,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,96),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: None of the properties of class {0} match the properties of class {1},
+      Message: None of the properties of class Test.Source<Test.A> match the properties of class Test.Destination<Test.B>,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

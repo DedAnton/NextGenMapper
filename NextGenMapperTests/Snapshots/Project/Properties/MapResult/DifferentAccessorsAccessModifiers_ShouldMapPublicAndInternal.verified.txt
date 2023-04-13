@@ -1,0 +1,14 @@
+﻿{
+  Property1: 1,
+  Property2: 0,
+  Property3: 0,
+  Property4: 1,
+  Property5: 1,
+  Property6: 0,
+  Property7: 1,
+  Property8: 0,
+  Property9: 0,
+  Property10: 1,
+  Property11: 1,
+  Property12: 0
+}

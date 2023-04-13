@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Targets.Models;
 using NextGenMapper.Extensions;
 using NextGenMapper.PostInitialization;
+using System.Linq;
 using System.Threading;
 
 namespace NextGenMapper.CodeAnalysis;
@@ -199,8 +200,11 @@ internal static class SourceCodeAnalyzer
             && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error} source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
+            var adf = semanticModel.GetDiagnostics();
+
             return MapMethodAnalysisResult.Success(source, destination);
         }
+        var asd = semanticModel.GetDiagnostics();
 
         return MapMethodAnalysisResult.Fail();
     }

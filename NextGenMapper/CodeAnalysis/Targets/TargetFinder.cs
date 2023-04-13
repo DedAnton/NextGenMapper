@@ -162,9 +162,17 @@ internal static class TargetFinder
             return Target.Error(diagnostic);
         }
 
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        {
+            //TODO: Add separate diagnostics for projection
+            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+
+            return Target.Error(diagnostic);
+        }
+
         if (SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
         {
-            return Target.Projection(sourceType, destinationType, location, semanticModel);
+            return Target.Projection(sourceType, destinationType, location);
         }
 
         //TODO: Add separate diagnostics for projection

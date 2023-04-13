@@ -1,0 +1,7 @@
+﻿{
+  Property1: 1,
+  Property2: 0,
+  Property3: 0,
+  Property4: 1,
+  Property5: 1
+}
