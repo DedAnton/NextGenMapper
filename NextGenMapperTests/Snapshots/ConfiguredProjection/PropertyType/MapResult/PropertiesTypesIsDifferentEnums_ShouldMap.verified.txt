@@ -1,0 +1,4 @@
+﻿{
+  SameProperty: Bad,
+  ForMapWith: 1
+}

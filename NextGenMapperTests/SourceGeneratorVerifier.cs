@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using NextGenMapper;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -135,6 +136,8 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             .Append(MetadataReference.CreateFromFile(typeof(Unsafe).Assembly.Location))
             .Append(MetadataReference.CreateFromFile(typeof(ImmutableList).Assembly.Location))
             .Append(MetadataReference.CreateFromFile(Assembly.Load("System.Collections, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location))
+            .Append(MetadataReference.CreateFromFile(Assembly.Load("System.Linq.Expressions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location))
+            .Append(MetadataReference.CreateFromFile(Assembly.Load("System.Linq.Queryable, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").Location))
             .Append(MetadataReference.CreateFromFile(typeof(TypesFromDllTest.EnumFromDll).Assembly.Location));
 
         if (references is null)

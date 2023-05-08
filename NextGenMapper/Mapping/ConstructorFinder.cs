@@ -45,6 +45,20 @@ namespace NextGenMapper.Mapping
             return new ConstructorForMapping();
         }
 
+        public static ConstructorForMapping GetPublicDefaultConstructor(ITypeSymbol type)
+        {
+            foreach (var constructor in type.GetConstructors())
+            {
+                if (constructor.Parameters.Length == 0 && constructor.DeclaredAccessibility
+                    is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)
+                {
+                    return new ConstructorForMapping(constructor);
+                }
+            }
+
+            return new ConstructorForMapping();
+        }
+
         public static ReadOnlySpan<Assignment> GetAssignments(
             IMethodSymbol constructor, 
             SemanticModel semanticModel, 

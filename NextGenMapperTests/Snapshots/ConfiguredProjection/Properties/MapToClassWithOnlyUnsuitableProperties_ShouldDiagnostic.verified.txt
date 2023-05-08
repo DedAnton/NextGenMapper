@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM027,
+      Title: 'ProjectWith' method without arguments,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,94),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Method 'ProjectWith' must be called at least with one argument. Pass arguments to 'ProjectWith' method or use 'Project' method.,
+      Message: Method 'ProjectWith' must be called at least with one argument. Pass arguments to 'ProjectWith' method or use 'Project' method.,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM012,
+      Title: Suitable property for mapping was not found,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,94),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Destination class {1} has no properties suitable for mapping from {0},
+      Message: Destination class Test.Destination has no properties suitable for mapping from Test.Source,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

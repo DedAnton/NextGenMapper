@@ -1,0 +1,5 @@
+﻿{
+  PropertyC: 0,
+  PropertyD: 0,
+  ForMapWith: 1
+}

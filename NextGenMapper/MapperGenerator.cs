@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
+using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
@@ -354,6 +355,163 @@ public class MapperGenerator : IIncrementalGenerator
                 return diagnostics.ToImmutableArray();
             });
         context.ReportDiagnostics(mapsPostValidationDiagnostics);
+
+        BuildProjectionPipeline(context);
+        BuildConfiguredProjectionPipeline(context);
+    }
+
+    private void BuildProjectionPipeline(IncrementalGeneratorInitializationContext context)
+    {
+        var targets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsProjectionMethodInvocationSyntaxNode(node),
+            static (context, ct) => TargetFinder.GetProjectionTarget(context.Node, context.SemanticModel, ct));
+
+        var targetsDiagnostics = targets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+
+        context.ReportDiagnostics(targetsDiagnostics);
+
+        var maps = targets
+            .Where(static x => x.Type is TargetType.Projection)
+            .Select(static (x, ct) => ProjectionMapDesigner.DesingProjectionMap(x.ProjectionTarget, ct));
+
+        var mapsDiagnostics = maps
+            .Where(static x => x.Type is MapType.Error)
+            .Select(static (x, _) => x.ErrorMap.Diagnostic);
+        context.ReportDiagnostics(mapsDiagnostics);
+
+        var projectionMaps = maps
+            .Where(static x => x.Type is MapType.ProjectionMap)
+            .Select(static (x, _) => x.ProjectionMap)
+            .Collect()
+            .Distinct(EqualityComparer<ProjectionMap>.Default);
+
+        context.RegisterSourceOutput(projectionMaps, (sourceProductionContext, maps) =>
+        {
+            if (maps.Length == 0)
+            {
+                return;
+            }
+            var sourceBuilder = new ProjectionMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_ProjectionMaps.g.cs", mapperClassSource);
+        });
+    }
+
+    private void BuildConfiguredProjectionPipeline(IncrementalGeneratorInitializationContext context)
+    {
+        var targets = context.SyntaxProvider.CreateSyntaxProvider(
+            static (node, _) => SourceCodeAnalyzer.IsConfiguredProjectionMethodInvocationSyntaxNode(node),
+            static (context, ct) => TargetFinder.GetConfiguredProjectionTarget(context.Node, context.SemanticModel, ct));
+
+        var targetsDiagnostics = targets
+            .Where(static x => x.Type is TargetType.Error)
+            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+        context.ReportDiagnostics(targetsDiagnostics);
+
+        var filteredTargets = targets
+            .Where(static x => x.Type is TargetType.ConfiguredProjection)
+            .Select(static (x, _) => x.ConfiguredProjectionTarget);
+
+        var configuredMapWithoutArgumentsDiagnostics = filteredTargets
+            .Where(static x => !x.IsCompleteMethod)
+            .Select(static (x, _) => Diagnostics.ProjectWithMethodWithoutArgumentsError(x.Location));
+        context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
+
+        var NotNamedArgumentsDiagnostics = filteredTargets
+            //TODO: do not use linq Any()
+            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Select(static (x, _) => Diagnostics.ProjectWithArgumentMustBeNamed(x.Location));
+        context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
+
+        var maps = filteredTargets
+            .Select(static (x, ct) =>ConfiguredProjectionMapDesigner.DesingConfiguredProjectionMap(x, ct));
+
+        var mapsDiagnostics = maps
+            .Where(static x => x.Type is MapType.Error)
+            .Select(static (x, _) => x.ErrorMap.Diagnostic);
+        context.ReportDiagnostics(mapsDiagnostics);
+
+        var projectionMaps = maps
+            .Where(static x => x.Type is MapType.ConfiguredProjection)
+            .Select(static (x, _) => x.ConfiguredProjectionMap)
+            .Collect();
+
+        var duplicateConfiguredProjectionMapDiagnostics = projectionMaps
+            .SelectMany(static (x, _) =>
+            {
+                var mapsHashSet = new HashSet<ConfiguredProjectionMap>(new ConfiguredProjectionMapComparer());
+                var diagnostics = new ValueListBuilder<Diagnostic>();
+                foreach (var map in x.AsSpan())
+                {
+                    if (!map.IsSuccess)
+                    {
+                        continue;
+                    }
+                    if (mapsHashSet.Contains(map))
+                    {
+                        var diagnostic = Diagnostics.DuplicateProjectWithFunction(Location.None, map.Source, map.Destination);
+
+                        diagnostics.Append(diagnostic);
+                    }
+                    {
+                        mapsHashSet.Add(map);
+                    }
+                }
+
+                return diagnostics.ToImmutableArray();
+            });
+        context.ReportDiagnostics(duplicateConfiguredProjectionMapDiagnostics);
+
+        var uniqueConfiguredProjectionMaps = projectionMaps.Distinct(new ConfiguredProjectionMapComparer());
+
+        context.RegisterSourceOutput(uniqueConfiguredProjectionMaps, (sourceProductionContext, maps) =>
+        {
+            //TODO: refactoring
+            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
+
+            if (maps.Length == 0)
+            {
+                return;
+            }
+            var sourceBuilder = new ConfiguredProjectionMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(maps);
+
+            sourceProductionContext.AddSource("Mapper_ConfiguredProjectionMaps.g.cs", mapperClassSource);
+        });
+
+        var mockMethods = projectionMaps
+            .Select((x, _) =>
+            {
+                var mockMethodsHashSet = new HashSet<ConfiguredMapMockMethod>(new ConfiguredMapMockMethodComparer());
+                var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(x.Length);
+                foreach (var map in x.AsSpan())
+                {
+                    mockMethodsHashSet.Add(new ConfiguredMapMockMethod(map.Source, map.Destination, map.UserArguments));
+                    if (map.MockMethod is { } mockMethod && !mockMethodsHashSet.Contains(mockMethod))
+                    {
+                        mockMethodsHashSet.Add(mockMethod);
+                        mockMethods.Append(mockMethod);
+                    }
+                }
+
+                return mockMethods.ToImmutableArray();
+            });
+
+        context.RegisterSourceOutput(mockMethods, (sourceProductionContext, mockMethods) =>
+        {
+            if (mockMethods.Length == 0)
+            {
+                return;
+            }
+
+            var sourceBuilder = new ConfiguredProjectionMapsSourceBuilder();
+            var mapperClassSource = sourceBuilder.BuildMapperClass(mockMethods);
+
+            sourceProductionContext.AddSource("Mapper_ConfiguredProjectionMaps_MockMethods.g.cs", mapperClassSource);
+        });
     }
 
     private void PostInitialization(IncrementalGeneratorInitializationContext context)

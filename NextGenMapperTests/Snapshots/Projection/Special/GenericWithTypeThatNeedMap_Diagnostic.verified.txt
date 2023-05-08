@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM026,
+      Title: Properties types must be equal for projection,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,96),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Projection from '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' is not possible. Types must be equal,
+      Message: Projection from 'Test.Source<Test.A>.Property' of type 'Test.A' to 'Test.Destination<Test.B>.Property' of type 'Test.B' is not possible. Types must be equal,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

@@ -290,5 +290,45 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic PropertiesTypesMustBeEquals(Location location, IPropertySymbol fromProperty, IPropertySymbol toProperty)
+            => Diagnostic.Create(PropertiesTypesMustBeEqualsDescriptor, location, fromProperty.ContainingType, fromProperty.Name, fromProperty.Type, toProperty.ContainingType, toProperty.Name, toProperty.Type);
+        public static readonly DiagnosticDescriptor PropertiesTypesMustBeEqualsDescriptor = new(
+            id: "NGM026",
+            title: "Properties types must be equal for projection",
+            messageFormat: "Projection from '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' is not possible. Types must be equal",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectWithMethodWithoutArgumentsError(Location location)
+            => Diagnostic.Create(ProjectWithMethodWithoutArgumentsErrorDescriptor, location);
+        public static readonly DiagnosticDescriptor ProjectWithMethodWithoutArgumentsErrorDescriptor = new(
+            id: "NGM027",
+            title: "'ProjectWith' method without arguments",
+            messageFormat: "Method 'ProjectWith' must be called at least with one argument. Pass arguments to 'ProjectWith' method or use 'Project' method.",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectWithArgumentMustBeNamed(Location location)
+            => Diagnostic.Create(ProjectWithArgumentMustBeNamedDescriptor, location);
+        public static readonly DiagnosticDescriptor ProjectWithArgumentMustBeNamedDescriptor = new(
+            id: "NGM028",
+            title: "All arguments for method 'ProjectWith' must be named",
+            messageFormat: "All arguments for method 'ProjectWith' must be named",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic DuplicateProjectWithFunction(Location location, string from, string to)
+            => Diagnostic.Create(DuplicateProjectWithFunctionDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor DuplicateProjectWithFunctionDescriptor = new(
+            id: "NGM029",
+            title: "Duplicate 'ProjectWith' function",
+            messageFormat: "Can`t use two different custom mapping functions 'ProjectWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

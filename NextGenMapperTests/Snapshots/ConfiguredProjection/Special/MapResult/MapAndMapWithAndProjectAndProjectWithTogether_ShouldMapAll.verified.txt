@@ -1,0 +1,18 @@
+﻿[
+  {
+    Property: 1,
+    ForMapWith: 0
+  },
+  {
+    Property: 1,
+    ForMapWith: 1
+  },
+  {
+    Property: 1,
+    ForMapWith: 0
+  },
+  {
+    Property: 1,
+    ForMapWith: 1
+  }
+]

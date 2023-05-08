@@ -1,0 +1,6 @@
+﻿{
+  SamePropertyName: 1,
+  DifferentPropertyNameB: 0,
+  DifferentPropertyNameC: 0,
+  DifferentPropertyNameD: 0
+}
