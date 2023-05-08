@@ -1,0 +1,23 @@
+﻿{
+  Property1: 1,
+  Property2: 1,
+  Property3: 1,
+  Property4: 1,
+  Property5: 1,
+  Property6: 1,
+  Property7: 1,
+  Property8: 1,
+  Property9: 1.0,
+  Property10: 1.0,
+  Property11: 1.0,
+  Property12: true,
+  Property13: "A",
+  Property14: good,
+  Property15: good,
+  Property16: 2022-10-12T07:53:13,
+  Property17: 2022-10-12T07:53:13+03:00,
+  Property18: 2022-10-12,
+  Property19: 7:57 AM,
+  Property20: 738439.07:53:13,
+  ForMapWith: 1
+}

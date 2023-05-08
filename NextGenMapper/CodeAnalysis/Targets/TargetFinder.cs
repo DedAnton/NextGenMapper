@@ -172,7 +172,7 @@ internal static class TargetFinder
 
         if (SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
         {
-            return Target.Projection(sourceType, destinationType, location);
+            return Target.ProjectionMap(sourceType, destinationType, location);
         }
 
         //TODO: Add separate diagnostics for projection
@@ -211,14 +211,14 @@ internal static class TargetFinder
             return Target.Error(diagnostic);
         }
 
-        //if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
-        //{
-        //    var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        {
+            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
 
-        //    return Target.Error(diagnostic);
-        //}
+            return Target.Error(diagnostic);
+        }
 
         var arguments = configuredMapMethodInvocation.ArgumentList.Arguments;
-        return Target.ConfiguredMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
+        return Target.ConfiguredProjectionMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
     }
 }

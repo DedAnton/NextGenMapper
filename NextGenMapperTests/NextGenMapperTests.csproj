@@ -36,4 +36,8 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Snapshots\ConfiguredProjection\Arguments\" />
+  </ItemGroup>
+
 </Project>

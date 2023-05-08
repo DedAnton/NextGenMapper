@@ -1,4 +1,3 @@
 ﻿{
-  PropertyA: 1,
   PropertyB: 1
 }

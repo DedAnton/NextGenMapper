@@ -465,13 +465,11 @@ public class Program
 
 public class Source
 {
-    public int PropertyA { get; set; } = -1;
     public int? PropertyB { get; set; } = 1;
 }
 
 public class Destination
 {
-    public int? PropertyA { get; set; } = 1;
     public int? PropertyB { get; set; } = -1;
 }";
 

@@ -7,5 +7,6 @@ internal enum TargetType
     Map,
     ConfiguredMap,
     UserMap,
-    Projection
+    Projection,
+    ConfiguredProjection
 }

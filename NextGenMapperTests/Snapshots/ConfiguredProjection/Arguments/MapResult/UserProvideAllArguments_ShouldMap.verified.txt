@@ -1,0 +1,8 @@
+﻿[
+  {
+    Property1: 1,
+    Property2: 1,
+    Property3: 1,
+    Property4: 1
+  }
+]

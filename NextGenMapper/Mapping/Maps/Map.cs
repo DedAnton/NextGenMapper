@@ -14,6 +14,7 @@ internal readonly struct Map : IEquatable<Map>
     public ConfiguredMap ConfiguredMap { get; }
     public UserMap UserMap { get; }
     public ProjectionMap ProjectionMap { get; }
+    public ConfiguredProjectionMap ConfiguredProjectionMap { get; }
     public ErrorMap ErrorMap { get; }
     public PotentialErrorMap PotentialErrorMap { get; }
     public MapType Type { get; }
@@ -77,6 +78,21 @@ internal readonly struct Map : IEquatable<Map>
         ImmutableArray<PropertyMap> properties)
         => new(MapType.ProjectionMap, projectionMap: new ProjectionMap(source, destination, properties));
 
+    public static Map ConfiguredProjection(
+        string source,
+        string destination,
+        ImmutableArray<PropertyMap> initializerProperties,
+        ImmutableArray<NameTypePair> arguments,
+        ConfiguredMapMockMethod? mockMethod,
+        bool isSuccess)
+        => new(MapType.ConfiguredProjection, configuredProjectionMap: new ConfiguredProjectionMap(
+            source,
+            destination,
+            initializerProperties,
+            arguments,
+            mockMethod,
+            isSuccess));
+
     public static Map Error(ITypeSymbol source, ITypeSymbol destination, Diagnostic diagnostic)
         => new(MapType.Error, errorMap: new ErrorMap(source.ToNotNullableString(), destination.ToNotNullableString(), diagnostic));
 
@@ -96,8 +112,12 @@ internal readonly struct Map : IEquatable<Map>
             MapType.EnumMap => EnumMap.Equals(other.EnumMap),
             MapType.ConfiguredMap => ConfiguredMap.Equals(other.ConfiguredMap),
             MapType.UserMap => UserMap.Equals(other.UserMap),
+            MapType.ProjectionMap => ProjectionMap.Equals(other.ProjectionMap),
+            MapType.ConfiguredProjection => ConfiguredProjectionMap.Equals(other.ConfiguredProjectionMap),
             _ => throw new NotImplementedException()
         };
+
+    public override bool Equals(object obj) => obj is Map map && Equals(map);
 
     private Map(
         MapType type,
@@ -107,6 +127,7 @@ internal readonly struct Map : IEquatable<Map>
         ConfiguredMap configuredMap = default,
         UserMap userMap = default,
         ProjectionMap projectionMap = default,
+        ConfiguredProjectionMap configuredProjectionMap = default,
         ErrorMap errorMap = default,
         PotentialErrorMap potentialErrorMap = default)
     {
@@ -116,6 +137,7 @@ internal readonly struct Map : IEquatable<Map>
         ConfiguredMap = configuredMap;
         UserMap = userMap;
         ProjectionMap = projectionMap;
+        ConfiguredProjectionMap = configuredProjectionMap;
         ErrorMap = errorMap;
         PotentialErrorMap = potentialErrorMap;
         Type = type;

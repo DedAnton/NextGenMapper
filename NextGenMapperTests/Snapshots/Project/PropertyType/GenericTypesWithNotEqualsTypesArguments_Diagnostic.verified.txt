@@ -1,15 +1,15 @@
 ﻿{
   Diagnostics: [
     {
-      Id: NGM013,
-      Title: No property matches,
+      Id: NGM026,
+      Title: Properties types must be equal for projection,
       Severity: Error,
       WarningLevel: 0,
       Location: : (7,31)-(7,106),
       Description: ,
       HelpLink: ,
-      MessageFormat: None of the properties of class {0} match the properties of class {1},
-      Message: None of the properties of class Test.Source<Test.ClassA> match the properties of class Test.Destination<Test.ClassB>,
+      MessageFormat: Projection from '{0}.{1}' of type '{2}' to '{3}.{4}' of type '{5}' is not possible. Types must be equal,
+      Message: Projection from 'Test.Source<Test.ClassA>.Property' of type 'Test.ClassA' to 'Test.Destination<Test.ClassB>.Property' of type 'Test.ClassB' is not possible. Types must be equal,
       Category: NextGenMapper,
       CustomTags: []
     }

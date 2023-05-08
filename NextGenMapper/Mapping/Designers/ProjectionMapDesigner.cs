@@ -47,10 +47,11 @@ internal static class ProjectionMapDesigner
         foreach (var destinationProperty in destinationProperties)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            if (sourceProperties.TryGetValue(destinationProperty.Name, out var sourceProperty)
-                && SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type))
+            if (sourceProperties.TryGetValue(destinationProperty.Name, out var sourceProperty))
             {
-                var propertyMap = new PropertyMap(
+                if (SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type))
+                {
+                    var propertyMap = new PropertyMap(
                     sourceProperty.Name,
                     destinationProperty.Name,
                     sourceProperty.Type.ToNotNullableString(),
@@ -60,14 +61,21 @@ internal static class ProjectionMapDesigner
                     isTypesEquals: true,
                     hasImplicitConversion: true);
 
-                if (propertyMap.IsSourceNullable && !propertyMap.IsDestinationNullable)
+                    if (propertyMap.IsSourceNullable && !propertyMap.IsDestinationNullable)
+                    {
+                        var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+
+                        return Map.Error(source, destination, diagnostic);
+                    }
+
+                    initializerProperties.Append(propertyMap);
+                }
+                else
                 {
-                    var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
-             
+                    var diagnostic = Diagnostics.PropertiesTypesMustBeEquals(location, sourceProperty, destinationProperty);
+
                     return Map.Error(source, destination, diagnostic);
                 }
-
-                initializerProperties.Append(propertyMap);
             }
         }
 

@@ -200,11 +200,8 @@ internal static class SourceCodeAnalyzer
             && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error} source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
-            var adf = semanticModel.GetDiagnostics();
-
             return MapMethodAnalysisResult.Success(source, destination);
         }
-        var asd = semanticModel.GetDiagnostics();
 
         return MapMethodAnalysisResult.Fail();
     }
@@ -241,7 +238,15 @@ internal static class SourceCodeAnalyzer
             && method.IsExtensionMethod
             && method.MethodKind == MethodKind.ReducedExtension
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.ConfiguredProjectionMethodFullName
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
+            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            {
+                TypeKind: not TypeKind.Error,
+                IsGenericType: true,
+                Arity: 1,
+                MetadataName: "IQueryable`1"
+            } sourceQueryable
+            && sourceQueryable.IsQueryable()
+            && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
             return ConfiguredMapMethodAnalysisResult.Success(source, destination, isCompleteMethod);

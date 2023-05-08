@@ -1,0 +1,30 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM028,
+      Title: All arguments for method 'ProjectWith' must be named,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,95),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: All arguments for method 'ProjectWith' must be named,
+      Message: All arguments for method 'ProjectWith' must be named,
+      Category: NextGenMapper,
+      CustomTags: []
+    },
+    {
+      Id: NGM013,
+      Title: No property matches,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,95),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: None of the properties of class {0} match the properties of class {1},
+      Message: None of the properties of class Test.Source match the properties of class Test.Destination,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}
