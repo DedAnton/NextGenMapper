@@ -9,7 +9,7 @@
       Description: ,
       HelpLink: ,
       MessageFormat: Possible null reference exception when mapping '{0}' to {1},
-      Message: Possible null reference exception when mapping 'Test.Source?' to Test.Destination,
+      Message: Possible null reference exception when mapping 'System.Collections.Generic.List<Test.Source?>' to System.Collections.Generic.List<Test.Destination>,
       Category: NextGenMapper,
       CustomTags: []
     },

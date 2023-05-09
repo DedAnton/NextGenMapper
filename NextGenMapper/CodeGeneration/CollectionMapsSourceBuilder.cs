@@ -91,8 +91,9 @@ namespace NextGenMapper
 
         if (map.SourceKind.IsArray())
         {
+            var nullCheck = map.IsSourceItemNullable ? "?" : "";
             _builder.Append(
-                $"            var sourceCollection = new System.Span<{map.SourceItem}>(source);\r\n" +
+                $"            var sourceCollection = new System.Span<{map.SourceItem}{nullCheck}>(source);\r\n" +
                 $"            var length = sourceCollection.Length;\r\n");
         }
     }
@@ -112,13 +113,15 @@ namespace NextGenMapper
 
     private void DestinationCollectionAssignment(CollectionMap map)
     {
+        var nullCheck = map.IsSourceItemNullable ? "?" : "";
+
         if (map.DestinationKind.IsArray() || map.DestinationKind.IsArrayInterface())
         {
             _builder.Append("                destination[i] = sourceCollection[i]");
 
             if (!map.IsItemsEquals && !map.IsItemsHasImpicitConversion)
             {
-                _builder.Append($".Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
+                _builder.Append($"{nullCheck}.Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
             }
         }
 
@@ -128,7 +131,7 @@ namespace NextGenMapper
 
             if (!map.IsItemsEquals && !map.IsItemsHasImpicitConversion)
             {
-                _builder.Append($".Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
+                _builder.Append($"{nullCheck}.Map<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>()");
             }
 
             _builder.Append(')');

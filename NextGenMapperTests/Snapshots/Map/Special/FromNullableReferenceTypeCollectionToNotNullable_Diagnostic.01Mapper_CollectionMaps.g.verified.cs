@@ -18,7 +18,7 @@ namespace NextGenMapper
             var destination = new System.Collections.Generic.List<Test.Destination>(length);
             for (var i = 0; i < length; i++)
             {
-                destination.Add(sourceCollection[i].Map<Test.Destination>());
+                destination.Add(sourceCollection[i]?.Map<Test.Destination>());
             }
 
             return destination;

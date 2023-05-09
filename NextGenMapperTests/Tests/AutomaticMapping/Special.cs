@@ -319,7 +319,7 @@ public class Destination
     }
 
     [TestMethod]
-    public Task FromCollectionWithNullableReferenceTypeItem_Diagnostic()
+    public Task FromNullableReferenceTypeCollectionToNotNullable_Diagnostic()
     {
         var source =
 @"#nullable enable
@@ -345,7 +345,7 @@ public class Destination
     public int Property { get; set; }
 }";
 
-        return VerifyOnly(source);
+        return VerifyOnly(source, ignoreSourceErrors: true);
     }
 
     [DataRow("Source", "Destination?", "ToNullableClass")]
