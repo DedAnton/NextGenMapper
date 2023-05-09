@@ -54,7 +54,7 @@ internal static partial class MapDesigner
             isTypesHasImplicitConversion);
         maps.Append(map);
 
-        if (DesignersHelper.IsPotentialNullReference(sourceItemType, destinationItemType, isTypeEquals, isTypesHasImplicitConversion))
+        if (DesignersHelper.IsPotentialNullReference(sourceItemType, destinationItemType))
         {
             var diagnostic = Diagnostics.PossibleNullReference(location, sourceItemType, destinationItemType);
             maps.Append(Map.Error(source, destination, diagnostic));

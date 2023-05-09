@@ -50,11 +50,11 @@ internal static class DesignersHelper
         return properties.AsSpan();
     }
 
-    public static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination, bool isTypesEquals, bool hasImplicitConvertion)
-        => (source.NullableAnnotation, destination.NullableAnnotation, isTypesEquals || hasImplicitConvertion) switch
+    public static bool IsPotentialNullReference(ITypeSymbol source, ITypeSymbol destination)
+        => (source.NullableAnnotation, destination.NullableAnnotation) switch
         {
-            (NullableAnnotation.NotAnnotated or NullableAnnotation.None, _, _) => false,
-            (NullableAnnotation.Annotated, NullableAnnotation.Annotated, true) => false,
+            (NullableAnnotation.NotAnnotated or NullableAnnotation.None, _) => false,
+            (NullableAnnotation.Annotated, NullableAnnotation.Annotated) => false,
             _ => true
         };
 }

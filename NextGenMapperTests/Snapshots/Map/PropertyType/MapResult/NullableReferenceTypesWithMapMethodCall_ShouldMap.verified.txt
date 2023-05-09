@@ -1,0 +1,5 @@
+﻿{
+  PropertyThatNeedMap: {
+    Property: good
+  }
+}
