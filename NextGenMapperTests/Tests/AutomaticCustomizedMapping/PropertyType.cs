@@ -473,4 +473,80 @@ public class Destination<T>
 
         return VerifyOnly(source);
     }
+
+    [TestMethod]
+    public async Task NullableReferenceTypesWithMapMethodCall_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+    namespace Test;
+
+    public class Program
+    {
+        public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
+    }
+
+    public class Source
+    {
+        public A? PropertyThatNeedMap { get; set; } = new A();
+    }
+
+    public class Destination
+    {
+        public B? PropertyThatNeedMap { get; set; }
+        public int ForMapWith { get; set; }
+    }
+
+    public class A
+    {
+        public string Property { get; set; } = ""good"";
+    }
+
+    public class B
+    {
+        public string Property { get; set; } = ""bad"";
+    }";
+
+        await VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public async Task NullableReferenceTypesWithMapMethodCallAndNullValue_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+    namespace Test;
+
+    public class Program
+    {
+        public object RunTest() => new Source().MapWith<Destination>(ForMapWith: 1);
+    }
+
+    public class Source
+    {
+        public A? PropertyThatNeedMap { get; set; } = null;
+    }
+
+    public class Destination
+    {
+        public B? PropertyThatNeedMap { get; set; }
+        public int ForMapWith { get; set; }
+    }
+
+    public class A
+    {
+        public string Property { get; set; } = string.Empty;
+    }
+
+    public class B
+    {
+        public string Property { get; set; } = string.Empty;
+    }";
+
+        await VerifyAndRun(source);
+    }
 }

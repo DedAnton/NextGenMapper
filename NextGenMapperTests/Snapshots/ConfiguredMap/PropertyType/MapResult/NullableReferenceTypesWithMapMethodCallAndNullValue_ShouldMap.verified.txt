@@ -1,0 +1,4 @@
+﻿{
+  PropertyThatNeedMap: null,
+  ForMapWith: 1
+}

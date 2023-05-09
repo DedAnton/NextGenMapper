@@ -111,7 +111,8 @@ namespace NextGenMapper
         }
         else
         {
-            _builder.Append($"source.{map.SourceName}.Map<{map.DestinationType}>()");
+            var nullCheck = map.IsSourceNullable ? "?" : "";
+            _builder.Append($"source.{map.SourceName}{nullCheck}.Map<{map.DestinationType}>()");
         }
     }
 
@@ -123,7 +124,8 @@ namespace NextGenMapper
         }
         else
         {
-            _builder.Append($"{map.DestinationName} = source.{map.SourceName}.Map<{map.DestinationType}>()");
+            var nullCheck = map.IsSourceNullable ? "?" : "";
+            _builder.Append($"{map.DestinationName} = source.{map.SourceName}{nullCheck}.Map<{map.DestinationType}>()");
         }
     }
 }

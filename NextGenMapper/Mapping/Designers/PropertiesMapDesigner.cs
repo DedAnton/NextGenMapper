@@ -36,7 +36,7 @@ internal static class PropertiesMapDesigner
             isTypeEquals,
             isTypesHasImplicitConversion);
 
-        if (DesignersHelper.IsPotentialNullReference(sourceType, destinationType, isTypeEquals, isTypesHasImplicitConversion))
+        if (DesignersHelper.IsPotentialNullReference(sourceType, destinationType))
         {
             var diagnostic = Diagnostics.PossiblePropertyNullReference(location, sourceContainedType, sourceName, sourceType, destinationContainedType, destinationName, destinationType);
             maps.Append(Map.Error(sourceContainedType, destinationContainedType, diagnostic));

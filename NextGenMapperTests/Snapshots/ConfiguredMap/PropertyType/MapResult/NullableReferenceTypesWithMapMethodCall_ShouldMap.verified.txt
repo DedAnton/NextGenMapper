@@ -1,0 +1,6 @@
+﻿{
+  PropertyThatNeedMap: {
+    Property: good
+  },
+  ForMapWith: 1
+}

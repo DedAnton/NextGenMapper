@@ -154,7 +154,8 @@ $@"        internal static {map.Destination} MapWith<To>
             }
             else
             {
-                _builder.Append($"source.{propertyMap.SourceName}.Map<{propertyMap.DestinationType}>()");
+                var nullCheck = propertyMap.IsSourceNullable ? "?" : "";
+                _builder.Append($"source.{propertyMap.SourceName}{nullCheck}.Map<{propertyMap.DestinationType}>()");
             }
         }
     }
@@ -173,7 +174,8 @@ $@"        internal static {map.Destination} MapWith<To>
             }
             else
             {
-                _builder.Append($"{propertyMap.DestinationName} = source.{propertyMap.SourceName}.Map<{propertyMap.DestinationType}>()");
+                var nullCheck = propertyMap.IsSourceNullable ? "?" : "";
+                _builder.Append($"{propertyMap.DestinationName} = source.{propertyMap.SourceName}{nullCheck}.Map<{propertyMap.DestinationType}>()");
             }
         }
     }
