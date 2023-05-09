@@ -334,4 +334,26 @@ namespace NextGenMapper
 
         return VerifyAndRun(source);
     }
+
+    [TestMethod]
+    public Task MapNullableReferenceTypeCollectionWithNullValueAndCallMapMethod_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+namespace Test
+{
+    public class Program
+    {
+        public object RunTest() => new Source?[] { null }.Map<Destination?[]>();
+    }
+}
+
+record Source(int Property);
+record Destination(int Property);
+";
+
+        return VerifyAndRun(source);
+    }
 }

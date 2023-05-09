@@ -56,7 +56,7 @@ internal static partial class MapDesigner
 
         if (DesignersHelper.IsPotentialNullReference(sourceItemType, destinationItemType))
         {
-            var diagnostic = Diagnostics.PossibleNullReference(location, sourceItemType, destinationItemType);
+            var diagnostic = Diagnostics.PossibleNullReference(location, source, destination);
             maps.Append(Map.Error(source, destination, diagnostic));
 
             return;
