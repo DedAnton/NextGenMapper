@@ -15,6 +15,15 @@ internal static partial class MapDesigner
     private const string LIST_NAME = "List";
     private const string LIST_FULL_NAME = "System.Collections.Generic.List<T>";
 
+    private const string IMMUTABLE_ARRAY_NAME = "ImmutableArray";
+    private const string IMMUTABLE_ARRAY_FULL_NAME = "System.Collections.Immutable.ImmutableArray<T>";
+
+    private const string IMMUTABLE_LIST_NAME = "ImmutableList";
+    private const string IMMUTABLE_LIST_FULL_NAME = "System.Collections.Immutable.ImmutableList<T>";
+
+    private const string I_IMMUTABLE_LIST_NAME = "IImmutableList";
+    private const string I_IMMUTABLE_LIST_FULL_NAME = "System.Collections.Immutable.IImmutableList<T>";
+
     private static void DesignCollectionsMap(
         ITypeSymbol source,
         ITypeSymbol destination,
@@ -81,6 +90,9 @@ internal static partial class MapDesigner
     {
         { TypeKind: TypeKind.Array } => CollectionKind.Array,
         { OriginalDefinition.Name: LIST_NAME } list when list.OriginalDefinition.ToString() == LIST_FULL_NAME => CollectionKind.List,
+        { OriginalDefinition.Name: IMMUTABLE_ARRAY_NAME } immutableArray when immutableArray.OriginalDefinition.ToString() == IMMUTABLE_ARRAY_FULL_NAME => CollectionKind.ImmutableArray,
+        { OriginalDefinition.Name: IMMUTABLE_LIST_NAME } immutableList when immutableList.OriginalDefinition.ToString() == IMMUTABLE_LIST_FULL_NAME => CollectionKind.ImmutableList,
+        { OriginalDefinition.Name: I_IMMUTABLE_LIST_NAME } iImmutableList when iImmutableList.OriginalDefinition.ToString() == I_IMMUTABLE_LIST_FULL_NAME => CollectionKind.IImmutableList,
         INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T } => CollectionKind.IEnumerable,
         INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_ICollection_T } => CollectionKind.ICollection,
         INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IReadOnlyCollection_T } => CollectionKind.IReadOnlyCollection,

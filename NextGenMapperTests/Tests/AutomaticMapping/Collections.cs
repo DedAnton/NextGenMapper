@@ -16,8 +16,9 @@ public class Collections : SourceGeneratorVerifier
     [DataRow("IList<int> source = new MyCollection<int> { 1, 2, 3 };", "IList")]
     [DataRow("IReadOnlyList<int> source = new MyCollection<int> { 1, 2, 3 };", "IReadOnlyList")]
     [DataRow("IReadOnlyCollection<int> source = new MyCollection<int> { 1, 2, 3 };", "IReadOnlyCollection")]
-    //[DataRow("var source = ImmutableArray.Create(1, 2, 3);", "ImmutableArray")]
-    //[DataRow("var source = ImmutableList.Create(1, 2, 3);", "ImmutaleList")]
+    [DataRow("var source = ImmutableArray.Create(1, 2, 3);", "ImmutableArray")]
+    [DataRow("var source = ImmutableList.Create(1, 2, 3);", "ImmutaleList")]
+    [DataRow("IImmutableList<int> source = ImmutableList.Create(1, 2, 3);", "IImmutableList")]
     [DataTestMethod]
     public Task MapFromDifferentCollections_ShouldMap(string sourceCollection, string variantName)
     {
@@ -73,8 +74,9 @@ public class MyCollection<T> : IEnumerable<T>, ICollection<T>, IList<T>, IReadOn
     [DataRow("IList<int>", "IList")]
     [DataRow("IReadOnlyList<int>", "IReadOnlyList")]
     [DataRow("IReadOnlyCollection<int>", "IReadOnlyCollection")]
-    //[DataRow("ImmutableArray<int>", "ImmutableArray")]
-    //[DataRow("ImmutableList<int>", "ImmutableList")]
+    [DataRow("ImmutableArray<int>", "ImmutableArray")]
+    [DataRow("ImmutableList<int>", "ImmutableList")]
+    [DataRow("IImmutableList<int>", "IImmutableList")]
     [DataTestMethod]
     public Task MapToDifferentCollections_ShouldMap(string destinationCollectionType, string variantName)
     {
