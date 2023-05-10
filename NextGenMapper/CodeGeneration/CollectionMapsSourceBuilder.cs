@@ -60,11 +60,13 @@ namespace NextGenMapper
         _builder.Append("            for (var i = 0; i < length; i++)\r\n            {\r\n");
         DestinationCollectionAssignment(map);
         _builder.Append("\r\n            }\r\n\r\n");
-        _builder.Append("            return destination;\r\n        }");
+        Return(map);
     }
 
     private void SourceCollection(CollectionMap map)
     {
+        var nullCheck = map.IsSourceItemNullable ? "?" : "";
+
         if (map.SourceKind.IsInterface())
         {
             _builder.Append(
@@ -91,10 +93,24 @@ namespace NextGenMapper
 
         if (map.SourceKind.IsArray())
         {
-            var nullCheck = map.IsSourceItemNullable ? "?" : "";
+            
             _builder.Append(
                 $"            var sourceCollection = new System.Span<{map.SourceItem}{nullCheck}>(source);\r\n" +
                 $"            var length = sourceCollection.Length;\r\n");
+        }
+
+        if (map.SourceKind.IsImmutableArray())
+        {
+            _builder.Append(
+                $"            var sourceCollection = source.AsSpan();\r\n" +
+                $"            var length = sourceCollection.Length;\r\n");
+        }
+
+        if (map.SourceKind.IsImmutableList() || map.SourceKind.IsIImmutableList())
+        {
+            _builder.Append(
+                $"            var sourceCollection = source;\r\n" +
+                $"            var length = sourceCollection.Count;\r\n");
         }
     }
 
@@ -108,6 +124,16 @@ namespace NextGenMapper
         if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface())
         {
             _builder.Append($"            var destination = new System.Collections.Generic.List<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>(length);\r\n");
+        }
+
+        if (map.DestinationKind.IsImmutableArray() || map.DestinationKind.IsIImmutableList())
+        {
+            _builder.Append($"            var destination = System.Collections.Immutable.ImmutableArray.CreateBuilder<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>(length);\r\n");
+        }
+
+        if (map.DestinationKind.IsImmutableList())
+        {
+            _builder.Append($"            var destination = System.Collections.Immutable.ImmutableList.CreateBuilder<{map.DestinationItem}{(map.IsDestinationItemNullable ? "?" : "")}>();\r\n");
         }
     }
 
@@ -125,7 +151,8 @@ namespace NextGenMapper
             }
         }
 
-        if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface())
+        if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface() || map.DestinationKind.IsImmutableArray() 
+            || map.DestinationKind.IsImmutableList() || map.DestinationKind.IsIImmutableList())
         {
             _builder.Append("                destination.Add(sourceCollection[i]");
 
@@ -138,5 +165,21 @@ namespace NextGenMapper
         }
 
         _builder.Append(';');
+    }
+
+    private void Return(CollectionMap map)
+    {
+        _builder.Append("            return destination");
+
+        if (map.DestinationKind.IsImmutableArray() || map.DestinationKind.IsIImmutableList())
+        {
+            _builder.Append(".MoveToImmutable()");
+        }
+        else if (map.DestinationKind.IsImmutableList())
+        {
+            _builder.Append(".ToImmutable()");
+        }
+
+        _builder.Append(";\r\n        }");
     }
 }

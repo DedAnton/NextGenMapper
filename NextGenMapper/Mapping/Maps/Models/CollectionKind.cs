@@ -9,5 +9,8 @@ public enum CollectionKind
     IList,
     IEnumerable,
     IReadOnlyCollection,
-    IReadOnlyList
+    IReadOnlyList,
+    ImmutableArray,
+    ImmutableList,
+    IImmutableList
 }
