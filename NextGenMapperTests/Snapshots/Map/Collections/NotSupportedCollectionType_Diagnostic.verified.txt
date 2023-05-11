@@ -8,8 +8,8 @@
       Location: : (7,31)-(7,80),
       Description: ,
       HelpLink: ,
-      MessageFormat: Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>,
-      Message: Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>,
+      MessageFormat: Mapped collection type was undefined, supported collection types: T[], List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ImmutableList<T>, ImmutableArray<T>, IImmutableList<T>,
+      Message: Mapped collection type was undefined, supported collection types: T[], List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ImmutableList<T>, ImmutableArray<T>, IImmutableList<T>,
       Category: NextGenMapper,
       CustomTags: []
     }

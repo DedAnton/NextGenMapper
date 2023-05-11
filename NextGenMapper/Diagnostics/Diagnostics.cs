@@ -35,7 +35,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor UndefinedCollectionTypeErrorDescriptor = new(
             id: "NGM003",
             title: "Mapped collection type was undefined",
-            messageFormat: "Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>",
+            messageFormat: "Mapped collection type was undefined, supported collection types: T[], List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ImmutableList<T>, ImmutableArray<T>, IImmutableList<T>",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -327,6 +327,16 @@ namespace NextGenMapper
             id: "NGM029",
             title: "Duplicate 'ProjectWith' function",
             messageFormat: "Can`t use two different custom mapping functions 'ProjectWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic CollectionItemTypeNotFoundError(Location location, ITypeSymbol collectionType)
+            => Diagnostic.Create(CollectionItemTypeNotFoundErrorDescriptor, location, collectionType);
+        public static readonly DiagnosticDescriptor CollectionItemTypeNotFoundErrorDescriptor = new(
+            id: "NGM030",
+            title: "Collection item type was not found",
+            messageFormat: "Can not find item type for collection '{0}'",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
