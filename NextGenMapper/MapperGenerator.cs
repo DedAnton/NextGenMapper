@@ -11,7 +11,6 @@ using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.PostInitialization;
 using NextGenMapper.Utils;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -416,8 +415,7 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
         var NotNamedArgumentsDiagnostics = filteredTargets
-            //TODO: do not use linq Any()
-            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Where(static x => !x.Arguments.IsAllArgumentsNamed())
             .Select(static (x, _) => Diagnostics.ProjectWithArgumentMustBeNamed(x.Location));
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
