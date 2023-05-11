@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
@@ -44,8 +43,7 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
         var NotNamedArgumentsDiagnostics = filteredConfiguredMapsTargets
-            //TODO: do not use linq Any()
-            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Where(static x => !x.Arguments.IsAllArgumentsNamed())
             .Select(static (x, _) => Diagnostics.MapWithArgumentMustBeNamed(x.Location));
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
