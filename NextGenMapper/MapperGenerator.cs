@@ -90,9 +90,6 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(uniqueConfiguredMaps, (sourceProductionContext, maps) =>
         {
-            //TODO: refactoring
-            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
-
             if (maps.Length == 0)
             {
                 return;
@@ -467,9 +464,6 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(uniqueConfiguredProjectionMaps, (sourceProductionContext, maps) =>
         {
-            //TODO: refactoring
-            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
-
             if (maps.Length == 0)
             {
                 return;

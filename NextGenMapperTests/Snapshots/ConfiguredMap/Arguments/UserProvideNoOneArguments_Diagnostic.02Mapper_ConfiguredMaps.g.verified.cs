@@ -1,6 +1,6 @@
-﻿//HintName: Mapper_ConfiguredProjectionMaps.g.cs
+﻿//HintName: Mapper_ConfiguredMaps.g.cs
 #nullable enable
-using System.Linq;
+using NextGenMapper.Extensions;
 
 namespace NextGenMapper
 {
