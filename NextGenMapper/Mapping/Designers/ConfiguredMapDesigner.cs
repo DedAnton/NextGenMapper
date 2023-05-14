@@ -48,8 +48,8 @@ internal static class ConfiguredMapDesigner
             ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel, cancellationToken);
         if (constructor == null)
         {
-            var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
-            maps.Append(Map.PotentialError(source, destination, diagnostic));
+            var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
             return;
         }

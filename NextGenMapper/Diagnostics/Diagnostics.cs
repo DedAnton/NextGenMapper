@@ -350,5 +350,15 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic DefaultConstructorNotFoundError(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(DefaultConstructorNotFoundErrorDiscriptor, location, from, to);
+        public static readonly DiagnosticDescriptor DefaultConstructorNotFoundErrorDiscriptor = new(
+            id: "NGM032",
+            title: "Default constructor was not found for projection",
+            messageFormat: "Default constructor for projection from {0} to {1} was not found, make sure that the {1} has a public default constructor (constructor without parameters)",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }
