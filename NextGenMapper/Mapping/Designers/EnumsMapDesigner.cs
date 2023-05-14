@@ -53,33 +53,7 @@ internal static partial class MapDesigner
         maps.Append(map);
     }
 
-    private static ReadOnlySpan<EnumField> GetFields(ITypeSymbol enumTypeSymbol)
-    {
-        if (enumTypeSymbol.GetFirstDeclarationSyntax() is EnumDeclarationSyntax sourceDeclaration)
-        {
-            return GetFieldsFromSyntax(sourceDeclaration);
-        }
-        else
-        {
-            return GetFieldsFromSymbol(enumTypeSymbol);
-        }
-    }
-
-    private static ReadOnlySpan<EnumField> GetFieldsFromSyntax(EnumDeclarationSyntax enumDeclaration)
-    {
-        var fields = new ValueListBuilder<EnumField>(enumDeclaration.Members.Count);
-        for (int i = 0; i < enumDeclaration.Members.Count; i++)
-        {
-            var enumField = new EnumField(
-                enumDeclaration.Members[i].Identifier.ValueText,
-                UnboxToLong((enumDeclaration.Members[i].EqualsValue?.Value as LiteralExpressionSyntax)?.Token.Value));
-            fields.Append(enumField);
-        }
-
-        return fields.AsSpan();
-    }
-
-    private static ReadOnlySpan<EnumField> GetFieldsFromSymbol(ITypeSymbol enumType)
+    private static ReadOnlySpan<EnumField> GetFields(ITypeSymbol enumType)
     {
         var members = enumType.GetMembers().AsSpan();
         var fields = new ValueListBuilder<EnumField>(members.Length);

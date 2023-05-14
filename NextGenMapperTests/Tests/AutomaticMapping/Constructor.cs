@@ -367,7 +367,6 @@ public class Destination
         return VerifyAndRun(source);
     }
 
-    //TODO: compare constructor by mappable parameters
     //[TestMethod]
     public Task ManyOptionalButNotMappable_ShouldMapWithFirstConstructor()
     {
@@ -690,41 +689,40 @@ public class Destination
         return VerifyOnly(source);
     }
 
-    //TODO: think about diagnostic (maybe map both?)
     //[TestMethod]
-    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
-    {
-        var source =
-@"using NextGenMapper;
+//    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
+//    {
+//        var source =
+//@"using NextGenMapper;
 
-namespace Test;
+//namespace Test;
 
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
+//public class Program
+//{
+//    public object RunTest() => new Source().Map<Destination>();
+//}
 
-public class Source
-{
-    public int PropertyA { get; set; } = 1;
-    public int PropertyB { get; set; } = -1;
-}
+//public class Source
+//{
+//    public int PropertyA { get; set; } = 1;
+//    public int PropertyB { get; set; } = -1;
+//}
 
-public class Destination
-{
-    public int PropertyA { get; }
-    public int PropertyB { get; }
+//public class Destination
+//{
+//    public int PropertyA { get; }
+//    public int PropertyB { get; }
 
-    public Destination(int parameter)
-    {
-        PropertyA = parameter;
-        PropertyB = parameter;
-    }
-}
-";
+//    public Destination(int parameter)
+//    {
+//        PropertyA = parameter;
+//        PropertyB = parameter;
+//    }
+//}
+//";
 
-        return VerifyAndRun(source);
-    }
+//        return VerifyAndRun(source);
+//    }
 
     [TestMethod]
     public Task DifferentWaysInitializeProperty_ShouldMap()
