@@ -340,5 +340,15 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic UnsupportedEnumType(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(UnsupportedEnumTypeDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor UnsupportedEnumTypeDescriptor = new(
+            id: "NGM031",
+            title: "Enum has unsupported underlying type",
+            messageFormat: "Can not map from '{0}' to '{1}'. Supported underlying types for enum: sbyte, byte, short, ushort, int, uint, long",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

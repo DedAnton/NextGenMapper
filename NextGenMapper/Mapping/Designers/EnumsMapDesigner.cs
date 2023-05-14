@@ -18,8 +18,19 @@ internal static partial class MapDesigner
         ref ValueListBuilder<Map> maps, 
         CancellationToken cancellationToken)
     {
-        var sourceFields = GetFields(source);
-        var destinationFields = GetFields(destination);
+        ReadOnlySpan<EnumField> sourceFields;
+        ReadOnlySpan<EnumField> destinationFields;
+        try
+        {
+            sourceFields = GetFields(source);
+            destinationFields = GetFields(destination);
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            var diagnostic = Diagnostics.UnsupportedEnumType(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
+            return;
+        }
 
         var fieldsMaps = new EnumFieldMap[sourceFields.Length];
         for (int i = 0; i < sourceFields.Length; i++)
@@ -35,7 +46,6 @@ internal static partial class MapDesigner
             }
 
             fieldsMaps[i] = new EnumFieldMap(sourceFields[i].Identifier, destinationFieldIdentifier);
-            //TODO: add warning diagnostic if 'to' has unmapped values (is this necessary?)
         }
         var immutableFieldsMap = Unsafe.CastArrayToImmutableArray(ref fieldsMaps);
 
@@ -51,7 +61,6 @@ internal static partial class MapDesigner
         }
         else
         {
-            //this is a case, because when we map types from dll, we don't have access to the syntax
             return GetFieldsFromSymbol(enumTypeSymbol);
         }
     }
@@ -116,7 +125,6 @@ internal static partial class MapDesigner
             int => (int)number,
             uint => (uint)number,
             long => (long)number,
-            //TODO: maybe need handle this exception and add diagnostic
             _ => throw new ArgumentOutOfRangeException(nameof(number), $"{nameof(number)} must be sbyte, byte, short, ushort, int, uint or long.")
         };
 }
