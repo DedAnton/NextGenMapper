@@ -360,5 +360,45 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic ProjectedTypesEquals(Location location)
+            => Diagnostic.Create(ProjectedTypesEqualsDescriptor, location);
+        public static readonly DiagnosticDescriptor ProjectedTypesEqualsDescriptor = new(
+            id: "NGM033",
+            title: "Projected types are equals",
+            messageFormat: "Types for projection must not be equals",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectedTypesHasImplicitConversion(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ProjectedTypesHasImplicitConversionDescriptor, location, from, to);
+        private static readonly DiagnosticDescriptor ProjectedTypesHasImplicitConversionDescriptor = new(
+            id: "NGM034",
+            title: "Projected types has implicit conversion",
+            messageFormat: "Projected types has implicit conversion from {0} to {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectionNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ProjectionNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor ProjectionNotSupportedDescriptor = new(
+            id: "NGM035",
+            title: "Projection not supported",
+            messageFormat: "Projection from {0} to {1} not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ConfiguredProjectionNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ConfiguredProjectionNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor ConfiguredProjectionNotSupportedDescriptor = new(
+            id: "NGM036",
+            title: "Configured projection not supported",
+            messageFormat: "Configured projection from {0} to {1} with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

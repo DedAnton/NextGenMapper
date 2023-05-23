@@ -35,8 +35,7 @@ internal static class ConfiguredProjectionMapDesigner
         var (constructor, _) = ConstructorFinder.GetPublicDefaultConstructor(destination);
         if (constructor is null)
         {
-            //TODO: Add special diagnostic
-            var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);
+            var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);
 
             return Map.Error(source, destination, diagnostic);
         }
