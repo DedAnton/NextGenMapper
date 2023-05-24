@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
+using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
@@ -17,8 +18,24 @@ internal static class ConfiguredProjectionMapDesigner
 {
     public static ImmutableArray<Map> DesingConfiguredProjectionMap(ConfiguredProjectionTarget target, CancellationToken cancellationToken)
     {
-        var (source, destination, arguments, isCompleteMethod, location, semanticModel) = target;
+        try
+        {
+            return DesingConfiguredProjectionMapInternal(target, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var diagnostic = Diagnostics.MapperInternalError(target.Location, ex);
+            return ImmutableArray.Create(Map.Error(target.Source, target.Destination, diagnostic));
+        }
+    }
 
+    private static ImmutableArray<Map> DesingConfiguredProjectionMapInternal(ConfiguredProjectionTarget target, CancellationToken cancellationToken)
+    {
+        var (source, destination, arguments, isCompleteMethod, location, semanticModel) = target;
         cancellationToken.ThrowIfCancellationRequested();
 
         var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);

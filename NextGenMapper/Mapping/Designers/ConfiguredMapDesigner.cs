@@ -17,20 +17,32 @@ internal static class ConfiguredMapDesigner
 {
     public static ImmutableArray<Map> DesignConfiguredMaps(ConfiguredMapTarget target, CancellationToken cancellationToken)
     {
-        var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);
-        foreach (var argument in target.Arguments)
+        try
         {
-            var argumentName = argument.NameColon?.Name.Identifier.ValueText;
-            if (argumentName is not null)
+            var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);
+            foreach (var argument in target.Arguments)
             {
-                userArgumentsHashSet.Add(argumentName);
+                var argumentName = argument.NameColon?.Name.Identifier.ValueText;
+                if (argumentName is not null)
+                {
+                    userArgumentsHashSet.Add(argumentName);
+                }
             }
+
+            var maps = new ValueListBuilder<Map>(8);
+            DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps, cancellationToken);
+
+            return maps.ToImmutableArray();
         }
-
-        var maps = new ValueListBuilder<Map>(8);
-        DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps, cancellationToken);
-
-        return maps.ToImmutableArray();
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var diagnostic = Diagnostics.MapperInternalError(target.Location, ex);
+            return ImmutableArray.Create(Map.Error(target.Source, target.Destination, diagnostic));
+        }
     }
 
     private static void DesignConfiguredMaps(
