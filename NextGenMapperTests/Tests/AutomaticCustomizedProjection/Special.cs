@@ -227,6 +227,40 @@ public class Destination
     }
 
     [TestMethod]
+    public Task TwoSameProjectWithMethodsTogether_ShouldMapBoth()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest()
+    {
+        var source = new[] { new Source() }.AsQueryable();
+        var projectWithResult1 = source.ProjectWith<Destination>(ForMapWith1: 1).First();
+        var projectWithResult2 = source.ProjectWith<Destination>(ForMapWith1: 2).First();
+
+        return new[] { projectWithResult1, projectWithResult2 };
+    }
+}
+
+public class Source
+{
+}
+
+public class Destination
+{
+    public int ForMapWith1 { get; set; }
+    public long ForMapWith2 { get; set; }
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
     public Task TwoMapWithMethodsAndSameSignature_Diagnostic()
     {
         var source =
