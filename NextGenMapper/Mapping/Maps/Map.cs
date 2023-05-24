@@ -23,8 +23,9 @@ internal readonly struct Map : IEquatable<Map>
         string source,
         string destination,
         ImmutableArray<PropertyMap> constructorProperties,
-        ImmutableArray<PropertyMap> initializerProperties)
-        => new(MapType.ClassMap, classMap: new ClassMap(source, destination, constructorProperties, initializerProperties));
+        ImmutableArray<PropertyMap> initializerProperties,
+        Location location)
+        => new(MapType.ClassMap, classMap: new ClassMap(source, destination, constructorProperties, initializerProperties, location));
 
     public static Map Collection(
         string source,
@@ -36,7 +37,8 @@ internal readonly struct Map : IEquatable<Map>
         bool isSourceItemNullable,
         bool isDestinationItemNullable,
         bool isItemsEquals,
-        bool isItemsHasImpicitConversion)
+        bool isItemsHasImpicitConversion,
+        Location location)
         => new(MapType.CollectionMap, collectionMap: new CollectionMap(
             source,
             destination,
@@ -47,7 +49,8 @@ internal readonly struct Map : IEquatable<Map>
             isSourceItemNullable,
             isDestinationItemNullable,
             isItemsEquals,
-            isItemsHasImpicitConversion));
+            isItemsHasImpicitConversion,
+            location));
 
     public static Map Enum(string source, string destination, ImmutableArray<EnumFieldMap> fields)
         => new(MapType.EnumMap, enumMap: new EnumMap(source, destination, fields));
@@ -59,7 +62,8 @@ internal readonly struct Map : IEquatable<Map>
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> arguments,
         ImmutableArray<ConfiguredMapMockMethod> mockMethods,
-        bool isSuccess)
+        bool isSuccess,
+        Location location)
         => new(MapType.ConfiguredMap, configuredMap: new ConfiguredMap(
             source,
             destination,
@@ -67,7 +71,8 @@ internal readonly struct Map : IEquatable<Map>
             initializerProperties,
             arguments,
             mockMethods,
-            isSuccess));
+            isSuccess,
+            location));
 
     public static Map User(string source, string destination)
         => new(MapType.UserMap, userMap: new UserMap(source, destination));
@@ -84,14 +89,16 @@ internal readonly struct Map : IEquatable<Map>
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> arguments,
         ConfiguredMapMockMethod? mockMethod,
-        bool isSuccess)
+        bool isSuccess,
+        Location location)
         => new(MapType.ConfiguredProjection, configuredProjectionMap: new ConfiguredProjectionMap(
             source,
             destination,
             initializerProperties,
             arguments,
             mockMethod,
-            isSuccess));
+            isSuccess,
+            location));
 
     public static Map Error(ITypeSymbol source, ITypeSymbol destination, Diagnostic diagnostic)
         => new(MapType.Error, errorMap: new ErrorMap(source.ToNotNullableString(), destination.ToNotNullableString(), diagnostic));

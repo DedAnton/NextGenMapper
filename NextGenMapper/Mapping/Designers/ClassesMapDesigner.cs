@@ -134,7 +134,8 @@ internal static partial class MapDesigner
             source.ToNotNullableString(),
             destination.ToNotNullableString(),
             constructorProperties.ToImmutableArray(),
-            initializerProperties.ToImmutableArray());
+            initializerProperties.ToImmutableArray(),
+            location);
 
         maps.Append(classMap);
     }

@@ -73,7 +73,8 @@ internal static partial class MapDesigner
             sourceItemType.NullableAnnotation == NullableAnnotation.Annotated,
             destinationItemType.NullableAnnotation == NullableAnnotation.Annotated,
             isTypeEquals,
-            isTypesHasImplicitConversion);
+            isTypesHasImplicitConversion,
+            location);
         maps.Append(map);
 
         if (DesignersHelper.IsPotentialNullReference(sourceItemType, destinationItemType))

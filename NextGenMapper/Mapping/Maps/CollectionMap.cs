@@ -1,4 +1,5 @@
-﻿using NextGenMapper.Mapping.Maps.Models;
+﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.Mapping.Maps.Models;
 using System;
 
 namespace NextGenMapper.Mapping.Maps;
@@ -14,7 +15,8 @@ internal readonly struct CollectionMap : IMap, IEquatable<CollectionMap>
         bool isSourceItemNullable,
         bool isDestinationItemNullable,
         bool isItemsEquals,
-        bool isItemsHasImpicitConversion)
+        bool isItemsHasImpicitConversion,
+        Location location)
     {
         Source = source;
         Destination = destination;
@@ -26,6 +28,7 @@ internal readonly struct CollectionMap : IMap, IEquatable<CollectionMap>
         IsDestinationItemNullable = isDestinationItemNullable;
         IsItemsEquals = isItemsEquals;
         IsItemsHasImpicitConversion = isItemsHasImpicitConversion;
+        Location = location;
     }
 
     public string Source { get; }
@@ -38,6 +41,7 @@ internal readonly struct CollectionMap : IMap, IEquatable<CollectionMap>
     public bool IsDestinationItemNullable { get; }
     public bool IsItemsEquals { get; }
     public bool IsItemsHasImpicitConversion { get; }
+    public Location Location { get; }
 
     public bool Equals(CollectionMap other) => Source == other.Source && Destination == other.Destination;
 }

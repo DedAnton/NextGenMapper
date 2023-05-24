@@ -195,7 +195,8 @@ internal static class ConfiguredMapDesigner
             initializerProperties.ToImmutableArray(),
             configuredMapArgumentsArray,
             mockMethods,
-            isCompleteMethod);
+            isCompleteMethod,
+            location);
 
         maps.Append(map);
     }

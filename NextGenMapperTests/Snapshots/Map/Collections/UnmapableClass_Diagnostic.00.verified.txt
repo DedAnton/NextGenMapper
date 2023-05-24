@@ -5,7 +5,7 @@
       Title: Mapping function was not found,
       Severity: Error,
       WarningLevel: 0,
-      Location: : (0,0)-(0,0),
+      Location: : (11,15)-(11,46),
       Description: ,
       HelpLink: ,
       MessageFormat: Mapping function for mapping '{0}' to '{1}' was not found,
