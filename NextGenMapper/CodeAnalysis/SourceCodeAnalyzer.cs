@@ -289,7 +289,6 @@ internal static class SourceCodeAnalyzer
 
     private static bool IsCollection(this ITypeSymbol type)
     {
-        //TODO: check all other collections special types 
         if (type.OriginalDefinition.SpecialType == SpecialType.System_Collections_Generic_IEnumerable_T)
         {
             return true;
@@ -310,4 +309,17 @@ internal static class SourceCodeAnalyzer
         => sourceType.TypeKind == TypeKind.Class && destinationType.TypeKind == TypeKind.Class;
 
     public static bool IsNamedArgument(this ArgumentSyntax argument) => argument.NameColon?.Name.Identifier.ValueText is not null;
+
+    public static bool IsAllArgumentsNamed(this SeparatedSyntaxList<ArgumentSyntax> argumentList)
+    {
+        foreach (var argument in argumentList)
+        {
+            if (!argument.IsNamedArgument())
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

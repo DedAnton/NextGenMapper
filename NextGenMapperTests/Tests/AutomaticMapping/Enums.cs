@@ -132,8 +132,6 @@ public enum Destination
     [DataRow("int")]
     [DataRow("uint")]
     [DataRow("long")]
-    //[DataRow("ulong")]
-    //TODO: find way to map ulong
     [DataTestMethod]
     public Task DifferentUnderlyingTypes_ShouldMap(string underlyingType)
     {
@@ -144,7 +142,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => Source.Normal.Map<Destination>();
+    public object RunTest() => new Destination[] { Source.Min.Map<Destination>(), Source.Normal.Map<Destination>(), Source.Max.Map<Destination>() };
 }
 
 public enum Source : " + underlyingType + @"
@@ -159,6 +157,36 @@ public enum Destination : " + underlyingType + @"
     Min = " + underlyingType + @".MinValue,
     Normal = 1,
     Max = " + underlyingType + @".MaxValue
+}";
+
+        return VerifyAndRun(source);
+    }
+
+    [TestMethod]
+    public Task UlongUnderlyingType_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => Source.Min.Map<Destination>();
+}
+
+public enum Source : ulong
+{
+    Min = ulong.MinValue,
+    Normal = 1,
+    Max = ulong.MaxValue
+}
+
+public enum Destination : ulong
+{
+    Min = ulong.MinValue,
+    Normal = 1,
+    Max = ulong.MaxValue
 }";
 
         return VerifyOnly(source);

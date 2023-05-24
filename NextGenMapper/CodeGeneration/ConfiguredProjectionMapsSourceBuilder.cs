@@ -24,6 +24,11 @@ namespace NextGenMapper
         var counter = 1;
         foreach (var map in projectionMaps)
         {
+            if (!map.IsSuccess)
+            {
+                continue;
+            }
+
             GenerateProjectionMapMethod(map);
             if (counter < projectionMaps.Length)
             {

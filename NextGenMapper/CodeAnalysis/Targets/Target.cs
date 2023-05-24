@@ -4,8 +4,6 @@ using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 
 namespace NextGenMapper.CodeAnalysis.Targets;
 
-//TODO: refactoring, separate different targets
-//TODO: think about package all fields in one structure and convert to other stuctures using offsets for fields
 internal readonly struct Target
 {
     public MapTarget MapTarget { get; }

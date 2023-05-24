@@ -4,7 +4,6 @@ using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 
@@ -46,7 +45,21 @@ internal static partial class MapDesigner
         }
 
         var sourceItemType = GetCollectionItemType(source);
+        if (sourceItemType is null)
+        {
+            var diagnostic = Diagnostics.CollectionItemTypeNotFoundError(location, source);
+            maps.Append(Map.Error(source, destination, diagnostic));
+
+            return;
+        }
         var destinationItemType = GetCollectionItemType(destination);
+        if (destinationItemType is null)
+        {
+            var diagnostic = Diagnostics.CollectionItemTypeNotFoundError(location, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
+
+            return;
+        }
 
         var isTypeEquals = SourceCodeAnalyzer.IsTypesAreEquals(sourceItemType, destinationItemType);
         var isTypesHasImplicitConversion = SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceItemType, destinationItemType, semanticModel);
@@ -77,13 +90,12 @@ internal static partial class MapDesigner
         }
     }
 
-    private static ITypeSymbol GetCollectionItemType(ITypeSymbol collection)
+    private static ITypeSymbol? GetCollectionItemType(ITypeSymbol collection)
         => collection switch
         {
             IArrayTypeSymbol array => array.ElementType,
             INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments[0],
-            //TODO: figure out how to normally handle such a case, display diagnostics and not fall down with an exception
-            _ => throw new ArgumentOutOfRangeException($"Can`t get type of elements in collection {collection}")
+            _ => null
         };
 
     private static CollectionKind GetCollectionKind(ITypeSymbol collection) => collection switch

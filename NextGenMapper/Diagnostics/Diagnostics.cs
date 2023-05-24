@@ -35,7 +35,7 @@ namespace NextGenMapper
         public static readonly DiagnosticDescriptor UndefinedCollectionTypeErrorDescriptor = new(
             id: "NGM003",
             title: "Mapped collection type was undefined",
-            messageFormat: "Mapped collection type was undefined, supported collection types: Array, List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>",
+            messageFormat: "Mapped collection type was undefined, supported collection types: T[], List<T>, ICollection<T>, IEnumerable<T>, IList<T>, IReadOnlyCollection<T>, IReadOnlyList<T>, ImmutableList<T>, ImmutableArray<T>, IImmutableList<T>",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
@@ -327,6 +327,96 @@ namespace NextGenMapper
             id: "NGM029",
             title: "Duplicate 'ProjectWith' function",
             messageFormat: "Can`t use two different custom mapping functions 'ProjectWith' with same signatures for mapping from {0} to {1}, to use multiple custom mapping functions, they must have a different number of parameters and/or their type",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic CollectionItemTypeNotFoundError(Location location, ITypeSymbol collectionType)
+            => Diagnostic.Create(CollectionItemTypeNotFoundErrorDescriptor, location, collectionType);
+        public static readonly DiagnosticDescriptor CollectionItemTypeNotFoundErrorDescriptor = new(
+            id: "NGM030",
+            title: "Collection item type was not found",
+            messageFormat: "Can not find item type for collection '{0}'",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic UnsupportedEnumType(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(UnsupportedEnumTypeDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor UnsupportedEnumTypeDescriptor = new(
+            id: "NGM031",
+            title: "Enum has unsupported underlying type",
+            messageFormat: "Can not map from '{0}' to '{1}'. Supported underlying types for enum: sbyte, byte, short, ushort, int, uint, long",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic DefaultConstructorNotFoundError(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(DefaultConstructorNotFoundErrorDiscriptor, location, from, to);
+        public static readonly DiagnosticDescriptor DefaultConstructorNotFoundErrorDiscriptor = new(
+            id: "NGM032",
+            title: "Default constructor was not found for projection",
+            messageFormat: "Default constructor for projection from {0} to {1} was not found, make sure that the {1} has a public default constructor (constructor without parameters)",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectedTypesEquals(Location location)
+            => Diagnostic.Create(ProjectedTypesEqualsDescriptor, location);
+        public static readonly DiagnosticDescriptor ProjectedTypesEqualsDescriptor = new(
+            id: "NGM033",
+            title: "Projected types are equals",
+            messageFormat: "Types for projection must not be equals",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectedTypesHasImplicitConversion(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ProjectedTypesHasImplicitConversionDescriptor, location, from, to);
+        private static readonly DiagnosticDescriptor ProjectedTypesHasImplicitConversionDescriptor = new(
+            id: "NGM034",
+            title: "Projected types has implicit conversion",
+            messageFormat: "Projected types has implicit conversion from {0} to {1}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ProjectionNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ProjectionNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor ProjectionNotSupportedDescriptor = new(
+            id: "NGM035",
+            title: "Projection not supported",
+            messageFormat: "Projection from {0} to {1} not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic ConfiguredProjectionNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(ConfiguredProjectionNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor ConfiguredProjectionNotSupportedDescriptor = new(
+            id: "NGM036",
+            title: "Configured projection not supported",
+            messageFormat: "Configured projection from {0} to {1} with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic PropertyNotFoundForCoonfiguredMappingArgument(Location location, ITypeSymbol from, ITypeSymbol to, string name)
+            => Diagnostic.Create(PropertyNotFoundForCoonfiguredMappingArgumentDescriptor, location, from, to, name);
+        public static readonly DiagnosticDescriptor PropertyNotFoundForCoonfiguredMappingArgumentDescriptor = new(
+            id: "NGM037",
+            title: "Property was not found for configured mapping argument",
+            messageFormat: "Error when mapping '{0}' to '{1}'. Method 'MapWith' does not contains parameter '{2}'. Property named '{2}' was not found in type '{1}'",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic PropertyNotFoundForCoonfiguredProjectionArgument(Location location, ITypeSymbol from, ITypeSymbol to, string name)
+            => Diagnostic.Create(PropertyNotFoundForCoonfiguredProjectionArgumentDescriptor, location, from, to, name);
+        public static readonly DiagnosticDescriptor PropertyNotFoundForCoonfiguredProjectionArgumentDescriptor = new(
+            id: "NGM038",
+            title: "Property was not found for configured projection argument",
+            messageFormat: "Error when projecting '{0}' to '{1}'. Method 'MapWith' does not contains parameter '{2}'. Property named '{2}' was not found in type '{1}'",
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);

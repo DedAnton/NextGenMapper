@@ -1,15 +1,15 @@
 ﻿{
   Diagnostics: [
     {
-      Id: NGM015,
-      Title: Mapped types are equals,
+      Id: NGM033,
+      Title: Projected types are equals,
       Severity: Error,
       WarningLevel: 0,
       Location: : (7,31)-(7,89),
       Description: ,
       HelpLink: ,
-      MessageFormat: Types for mapping must not be equals,
-      Message: Types for mapping must not be equals,
+      MessageFormat: Types for projection must not be equals,
+      Message: Types for projection must not be equals,
       Category: NextGenMapper,
       CustomTags: []
     }
