@@ -47,9 +47,8 @@ internal static partial class MapDesigner
         var destinationProperties = destination.GetPublicWritableProperties();
         if (destinationProperties.Length == 0 && destinationParameters.Length == 0)
         {
-            //TODO: think about potential error instead of error
             var diagnostic = Diagnostics.SuitablePropertyNotFoundInDestination(location, source, destination);
-            maps.Append(Map.Error(source, destination, diagnostic));
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
 
             return;
         }
