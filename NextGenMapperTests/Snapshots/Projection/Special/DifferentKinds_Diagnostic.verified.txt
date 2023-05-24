@@ -1,41 +1,41 @@
 ﻿{
   Diagnostics: [
     {
-      Id: NGM025,
-      Title: Mapping not supported,
+      Id: NGM035,
+      Title: Projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (11,8)-(11,43),
       Description: ,
       HelpLink: ,
-      MessageFormat: Mapping from {0} to {1} not supported,
-      Message: Mapping from Test.Source to Test.DestinationStruct not supported,
+      MessageFormat: Projection from {0} to {1} not supported,
+      Message: Projection from Test.Source to Test.DestinationStruct not supported,
       Category: NextGenMapper,
       CustomTags: []
     },
     {
-      Id: NGM025,
-      Title: Mapping not supported,
+      Id: NGM035,
+      Title: Projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (12,8)-(12,41),
       Description: ,
       HelpLink: ,
-      MessageFormat: Mapping from {0} to {1} not supported,
-      Message: Mapping from Test.Source to Test.DestinationEnum not supported,
+      MessageFormat: Projection from {0} to {1} not supported,
+      Message: Projection from Test.Source to Test.DestinationEnum not supported,
       Category: NextGenMapper,
       CustomTags: []
     },
     {
-      Id: NGM025,
-      Title: Mapping not supported,
+      Id: NGM035,
+      Title: Projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (13,8)-(13,31),
       Description: ,
       HelpLink: ,
-      MessageFormat: Mapping from {0} to {1} not supported,
-      Message: Mapping from Test.Source to int[] not supported,
+      MessageFormat: Projection from {0} to {1} not supported,
+      Message: Projection from Test.Source to int[] not supported,
       Category: NextGenMapper,
       CustomTags: []
     }

@@ -1,41 +1,41 @@
 ﻿{
   Diagnostics: [
     {
-      Id: NGM007,
-      Title: Not supported for 'MapWith' method,
+      Id: NGM036,
+      Title: Configured projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (11,8)-(11,47),
       Description: ,
       HelpLink: ,
-      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
-      Message: Customized mapping from Test.Source to Test.DestinationStruct with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      MessageFormat: Configured projection from {0} to {1} with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
+      Message: Configured projection from Test.Source to Test.DestinationStruct with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
       Category: NextGenMapper,
       CustomTags: []
     },
     {
-      Id: NGM007,
-      Title: Not supported for 'MapWith' method,
+      Id: NGM036,
+      Title: Configured projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (12,8)-(12,45),
       Description: ,
       HelpLink: ,
-      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
-      Message: Customized mapping from Test.Source to Test.DestinationEnum with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      MessageFormat: Configured projection from {0} to {1} with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
+      Message: Configured projection from Test.Source to Test.DestinationEnum with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
       Category: NextGenMapper,
       CustomTags: []
     },
     {
-      Id: NGM007,
-      Title: Not supported for 'MapWith' method,
+      Id: NGM036,
+      Title: Configured projection not supported,
       Severity: Error,
       WarningLevel: 0,
       Location: : (13,8)-(13,35),
       Description: ,
       HelpLink: ,
-      MessageFormat: Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
-      Message: Customized mapping from Test.Source to int[] with 'MapWith' not supported, 'MapWith' method supports only class to class mapping,
+      MessageFormat: Configured projection from {0} to {1} with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
+      Message: Configured projection from Test.Source to int[] with 'ProjectionWith' not supported. 'ProjectionWith' method supports only class to class projection,
       Category: NextGenMapper,
       CustomTags: []
     }

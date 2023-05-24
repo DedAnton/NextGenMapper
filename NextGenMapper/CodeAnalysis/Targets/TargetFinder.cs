@@ -156,16 +156,14 @@ internal static class TargetFinder
 
         if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
         {
-            //TODO: Add separate diagnostics for projection
-            var diagnostic = Diagnostics.MappedTypesEquals(location);
+            var diagnostic = Diagnostics.ProjectedTypesEquals(location);
 
             return Target.Error(diagnostic);
         }
 
         if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
         {
-            //TODO: Add separate diagnostics for projection
-            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, sourceType, destinationType);
 
             return Target.Error(diagnostic);
         }
@@ -175,8 +173,7 @@ internal static class TargetFinder
             return Target.ProjectionMap(sourceType, destinationType, location);
         }
 
-        //TODO: Add separate diagnostics for projection
-        var notSupportedDiagnostic = Diagnostics.MappingNotSupported(location, sourceType, destinationType);
+        var notSupportedDiagnostic = Diagnostics.ProjectionNotSupported(location, sourceType, destinationType);
         return Target.Error(notSupportedDiagnostic);
     }
 
@@ -198,22 +195,21 @@ internal static class TargetFinder
 
         if (!SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
         {
-            //TODO: Add separate diagnostics for projection
-            var diagnostic = Diagnostics.MapWithNotSupportedForMapWith(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ConfiguredProjectionNotSupported(location, sourceType, destinationType);
 
             return Target.Error(diagnostic);
         }
 
         if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
         {
-            var diagnostic = Diagnostics.MappedTypesEquals(location);
+            var diagnostic = Diagnostics.ProjectedTypesEquals(location);
 
             return Target.Error(diagnostic);
         }
 
         if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
         {
-            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, sourceType, destinationType);
 
             return Target.Error(diagnostic);
         }

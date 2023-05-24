@@ -37,4 +37,36 @@ public class Destination
 
         return VerifyOnly(source);
     }
+
+    [TestMethod]
+    public Task DefinedConstructorWithNoArgumentsConstructor_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => new[] { new Source() }.AsQueryable().Project<Destination>();
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; } = -1;
+
+    public Destination()
+    {
+    }
+}
+";
+
+        return VerifyAndRun(source);
+    }
 }

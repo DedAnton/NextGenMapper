@@ -674,43 +674,42 @@ public class Destination
         return VerifyOnly(source, ignoreSourceErrors: true);
     }
 
-    //TODO: think about diagnostic
     //[TestMethod]
-    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
-    {
-        var source =
-@"using NextGenMapper;
+//    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
+//    {
+//        var source =
+//@"using NextGenMapper;
 
-namespace Test;
+//namespace Test;
 
-public class Program
-{
-    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
-}
+//public class Program
+//{
+//    public object RunTest() => new Source().MapWith<Destination>(forMapWith: 1);
+//}
 
-public class Source
-{
-    public int PropertyA { get; set; } = 1;
-    public int PropertyB { get; set; } = -1;
-}
+//public class Source
+//{
+//    public int PropertyA { get; set; } = 1;
+//    public int PropertyB { get; set; } = -1;
+//}
 
-public class Destination
-{
-    public int PropertyA { get; }
-    public int PropertyB { get; }
-    public int ForMapWith { get; }
+//public class Destination
+//{
+//    public int PropertyA { get; }
+//    public int PropertyB { get; }
+//    public int ForMapWith { get; }
 
-    public Destination(int parameter, int forMapWith)
-    {
-        PropertyA = parameter;
-        PropertyB = parameter;
-        ForMapWith = forMapWith;
-    }
-}
-";
+//    public Destination(int parameter, int forMapWith)
+//    {
+//        PropertyA = parameter;
+//        PropertyB = parameter;
+//        ForMapWith = forMapWith;
+//    }
+//}
+//";
 
-        return VerifyAndRun(source);
-    }
+//        return VerifyAndRun(source);
+//    }
 
     [TestMethod]
     public Task DifferentWaysInitializeProperty_ShouldMap()

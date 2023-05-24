@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
@@ -12,7 +11,6 @@ using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.PostInitialization;
 using NextGenMapper.Utils;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -44,8 +42,7 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
         var NotNamedArgumentsDiagnostics = filteredConfiguredMapsTargets
-            //TODO: do not use linq Any()
-            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Where(static x => !x.Arguments.IsAllArgumentsNamed())
             .Select(static (x, _) => Diagnostics.MapWithArgumentMustBeNamed(x.Location));
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
@@ -98,9 +95,6 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(uniqueConfiguredMaps, (sourceProductionContext, maps) =>
         {
-            //TODO: refactoring
-            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
-
             if (maps.Length == 0)
             {
                 return;
@@ -427,13 +421,12 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
         var NotNamedArgumentsDiagnostics = filteredTargets
-            //TODO: do not use linq Any()
-            .Where(static x => x.Arguments.Any(x => !x.IsNamedArgument()))
+            .Where(static x => !x.Arguments.IsAllArgumentsNamed())
             .Select(static (x, _) => Diagnostics.ProjectWithArgumentMustBeNamed(x.Location));
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
         var maps = filteredTargets
-            .Select(static (x, ct) =>ConfiguredProjectionMapDesigner.DesingConfiguredProjectionMap(x, ct));
+            .SelectMany(static (x, ct) =>ConfiguredProjectionMapDesigner.DesingConfiguredProjectionMap(x, ct));
 
         var mapsDiagnostics = maps
             .Where(static x => x.Type is MapType.Error)
@@ -475,9 +468,6 @@ public class MapperGenerator : IIncrementalGenerator
 
         context.RegisterSourceOutput(uniqueConfiguredProjectionMaps, (sourceProductionContext, maps) =>
         {
-            //TODO: refactoring
-            maps = maps.Where(x => x.IsSuccess).ToImmutableArray();
-
             if (maps.Length == 0)
             {
                 return;

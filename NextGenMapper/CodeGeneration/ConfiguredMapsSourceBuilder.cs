@@ -24,6 +24,11 @@ namespace NextGenMapper
         var counter = 1;
         foreach (var map in configuredMaps)
         {
+            if (!map.IsSuccess)
+            {
+                continue;
+            }
+
             GenerateClassMapWithMethod(map);
             if (counter < configuredMaps.Length)
             {

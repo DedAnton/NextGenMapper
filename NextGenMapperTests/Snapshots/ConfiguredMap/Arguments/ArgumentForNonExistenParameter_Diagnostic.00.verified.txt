@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM037,
+      Title: Property was not found for configured mapping argument,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,90),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Error when mapping '{0}' to '{1}'. Method 'MapWith' does not contains parameter '{2}'. Property named '{2}' was not found in type '{1}',
+      Message: Error when mapping 'Test.Source' to 'Test.Destination'. Method 'MapWith' does not contains parameter 'NonExistenParameter'. Property named 'NonExistenParameter' was not found in type 'Test.Destination',
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

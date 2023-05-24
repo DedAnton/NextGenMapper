@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM031,
+      Title: Enum has unsupported underlying type,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,60),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Can not map from '{0}' to '{1}'. Supported underlying types for enum: sbyte, byte, short, ushort, int, uint, long,
+      Message: Can not map from 'Test.Source' to 'Test.Destination'. Supported underlying types for enum: sbyte, byte, short, ushort, int, uint, long,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

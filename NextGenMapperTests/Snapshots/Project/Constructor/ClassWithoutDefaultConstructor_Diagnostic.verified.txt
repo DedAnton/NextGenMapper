@@ -1,15 +1,15 @@
 ﻿{
   Diagnostics: [
     {
-      Id: NGM002,
-      Title: Constructor was not found,
+      Id: NGM032,
+      Title: Default constructor was not found for projection,
       Severity: Error,
       WarningLevel: 0,
       Location: : (7,31)-(7,90),
       Description: ,
       HelpLink: ,
-      MessageFormat: Constructor for mapping from {0} to {1} was not found, make sure that the {1} has a public constructor whose parameters correspond to the properties of the {0},
-      Message: Constructor for mapping from Test.Source to Test.Destination was not found, make sure that the Test.Destination has a public constructor whose parameters correspond to the properties of the Test.Source,
+      MessageFormat: Default constructor for projection from {0} to {1} was not found, make sure that the {1} has a public default constructor (constructor without parameters),
+      Message: Default constructor for projection from Test.Source to Test.Destination was not found, make sure that the Test.Destination has a public default constructor (constructor without parameters),
       Category: NextGenMapper,
       CustomTags: []
     }
