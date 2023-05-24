@@ -3,6 +3,7 @@ using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Utils;
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 
@@ -12,10 +13,22 @@ internal static partial class MapDesigner
 {
     public static ImmutableArray<Map> DesignMaps(MapTarget target, CancellationToken cancellationToken)
     {
-        var maps = new ValueListBuilder<Map>(8);
-        DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps, cancellationToken);
+        try
+        {
+            var maps = new ValueListBuilder<Map>(8);
+            DesignMaps(target.Source, target.Destination, target.Location, target.SemanticModel, ImmutableList<ITypeSymbol>.Empty, ref maps, cancellationToken);
 
-        return maps.ToImmutableArray();
+            return maps.ToImmutableArray();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch(Exception ex)
+        {
+            var diagnostic = Diagnostics.MapperInternalError(target.Location, ex);
+            return ImmutableArray.Create(Map.Error(target.Source, target.Destination, diagnostic));
+        }
     }
 
     internal static void DesignMaps(

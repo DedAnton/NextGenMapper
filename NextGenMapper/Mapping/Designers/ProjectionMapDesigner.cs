@@ -5,6 +5,8 @@ using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
+using System.Collections.Immutable;
+using System;
 using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
@@ -12,6 +14,23 @@ namespace NextGenMapper.Mapping.Designers;
 internal static class ProjectionMapDesigner
 {
     public static Map DesingProjectionMap(ProjectionTarget target, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return DesingProjectionMapInternal(target, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            var diagnostic = Diagnostics.MapperInternalError(target.Location, ex);
+            return Map.Error(target.Source, target.Destination, diagnostic);
+        }
+    }
+
+    private static Map DesingProjectionMapInternal(ProjectionTarget target, CancellationToken cancellationToken)
     {
         var (source, destination, location) = target;
 
