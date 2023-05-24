@@ -75,6 +75,12 @@ public class MapperGenerator : IIncrementalGenerator
                     }
                     if (mapsHashSet.Contains(map))
                     {
+                        var conflictedMap = mapsHashSet.First(x => x.Equals(map));
+                        if (conflictedMap.EqualsWithArgumentsNames(map))
+                        {
+                            continue;
+                        }
+
                         var diagnostic = Diagnostics.DuplicateMapWithFunction(Location.None, map.Source, map.Destination);
 
                         diagnostics.Append(diagnostic);
