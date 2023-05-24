@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
@@ -33,7 +34,14 @@ internal static partial class MapDesigner
             return;
         }
 
-        var (constructor, assignments) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, semanticModel, cancellationToken);
+        var (constructor, assignments, error) = ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, semanticModel, cancellationToken);
+        if (error is MultipleInitializationError multipleInitializationError)
+        {
+            var diagnostic = Diagnostics.MultipleInitializationError(location, source, destination, multipleInitializationError.ParameterName, multipleInitializationError.InitializedPropertiesString);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
+
+            return;
+        }
         if (constructor == null)
         {
             var diagnostic = Diagnostics.ConstructorNotFoundError(location, source, destination);

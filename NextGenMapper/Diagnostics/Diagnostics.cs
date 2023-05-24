@@ -420,5 +420,20 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic MultipleInitializationError(
+            Location location, 
+            ITypeSymbol from, 
+            ITypeSymbol to, 
+            string parameterName, 
+            string initializedPropertiesList)
+            => Diagnostic.Create(MultipleInitializationErrorDescriptor, location, from, to, parameterName, initializedPropertiesList);
+        public static readonly DiagnosticDescriptor MultipleInitializationErrorDescriptor = new(
+            id: "NGM039",
+            title: "Constructor parameter initialize multiple properties",
+            messageFormat: "Constructor of type '{1}' has parameter '{2}' that initialize multiple properties: {3}. This is not allowed because it may lead to unexpected behavior",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

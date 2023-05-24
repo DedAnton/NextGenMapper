@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Operations;
+using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
 using NextGenMapper.Utils;
@@ -36,9 +37,13 @@ namespace NextGenMapper.Mapping
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var constructorAssignments = GetAssignments(constructor, semanticModel, cancellationToken);
-                if (IsConstructorValid(constructor, constructorAssignments, sourceProperties, userArguments))
+                if (IsConstructorValid(constructor, constructorAssignments, sourceProperties, userArguments, out var error))
                 {
                     return new ConstructorForMapping(constructor, constructorAssignments);
+                }
+                else if (error is not null)
+                {
+                    return new ConstructorForMapping(error);
                 }
             }
 
@@ -86,11 +91,19 @@ namespace NextGenMapper.Mapping
             IMethodSymbol constructor,
             ReadOnlySpan<Assignment> constructorAssignments,
             Dictionary<string, IPropertySymbol> sourceProperties,
-            HashSet<string> userArguments)
+            HashSet<string> userArguments,
+            out MappingError?  error)
         {
+            error = null;
             var assignmentsByParameter = new Dictionary<string, Assignment>(StringComparer.InvariantCulture);
             foreach (var assignment in constructorAssignments)
             {
+                if (assignmentsByParameter.TryGetValue(assignment.Parameter, out var existAssigment))
+                {
+                    error = new MultipleInitializationError(assignment.Parameter, new[] { existAssigment.Property, assignment.Property });
+                    return false;
+                }
+
                 assignmentsByParameter.Add(assignment.Parameter, assignment);
             }
 
