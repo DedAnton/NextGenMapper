@@ -8,6 +8,7 @@ using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
@@ -163,19 +164,26 @@ internal static class ConfiguredMapDesigner
             return;
         }
 
+        var configuredMapArgumentsArray = configuredMapArguments.ToImmutableArray();
         if (configuredMapArguments.Length != arguments.Count)
         {
-            //TODO: research how to handle
-            //throw new Exception($"Property or parameter not found for argument");
             isCompleteMethod = false;
             configuredMapArguments = ValueListBuilder<NameTypePair>.Empty;
+
+            var mappedArgumentsNames = configuredMapArgumentsArray.Select(x => x.Name).ToImmutableHashSet();
+            var notMappedArgumentsNames = mappedArgumentsNames.SymmetricExcept(arguments);
+            foreach (var argument in notMappedArgumentsNames)
+            {
+                var diagnostic = Diagnostics.PropertyNotFoundForCoonfiguredMappingArgument(location, source, destination, argument);
+                maps.Append(Map.Error(source, destination, diagnostic));
+            }
         }
 
         var mockMethods = DesignClassMapMockMethods(
             source, 
             destination, 
             destinationProperties,
-            configuredMapArguments.AsSpan(), 
+            configuredMapArgumentsArray.AsSpan(), 
             isCompleteMethod, 
             semanticModel,
             cancellationToken);
@@ -185,7 +193,7 @@ internal static class ConfiguredMapDesigner
             destination.ToNotNullableString(),
             constructorProperties.ToImmutableArray(),
             initializerProperties.ToImmutableArray(),
-            configuredMapArguments.ToImmutableArray(),
+            configuredMapArgumentsArray,
             mockMethods,
             isCompleteMethod);
 

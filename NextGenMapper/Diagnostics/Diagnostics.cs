@@ -400,5 +400,25 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic PropertyNotFoundForCoonfiguredMappingArgument(Location location, ITypeSymbol from, ITypeSymbol to, string name)
+            => Diagnostic.Create(PropertyNotFoundForCoonfiguredMappingArgumentDescriptor, location, from, to, name);
+        public static readonly DiagnosticDescriptor PropertyNotFoundForCoonfiguredMappingArgumentDescriptor = new(
+            id: "NGM037",
+            title: "Property was not found for configured mapping argument",
+            messageFormat: "Error when mapping '{0}' to '{1}'. Method 'MapWith' does not contains parameter '{2}'. Property named '{2}' was not found in type '{1}'",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static Diagnostic PropertyNotFoundForCoonfiguredProjectionArgument(Location location, ITypeSymbol from, ITypeSymbol to, string name)
+            => Diagnostic.Create(PropertyNotFoundForCoonfiguredProjectionArgumentDescriptor, location, from, to, name);
+        public static readonly DiagnosticDescriptor PropertyNotFoundForCoonfiguredProjectionArgumentDescriptor = new(
+            id: "NGM038",
+            title: "Property was not found for configured projection argument",
+            messageFormat: "Error when projecting '{0}' to '{1}'. Method 'MapWith' does not contains parameter '{2}'. Property named '{2}' was not found in type '{1}'",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

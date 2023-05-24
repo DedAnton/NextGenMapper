@@ -8,13 +8,14 @@ using NextGenMapper.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
 internal static class ConfiguredProjectionMapDesigner
 {
-    public static Map DesingConfiguredProjectionMap(ConfiguredProjectionTarget target, CancellationToken cancellationToken)
+    public static ImmutableArray<Map> DesingConfiguredProjectionMap(ConfiguredProjectionTarget target, CancellationToken cancellationToken)
     {
         var (source, destination, arguments, isCompleteMethod, location, semanticModel) = target;
 
@@ -32,12 +33,14 @@ internal static class ConfiguredProjectionMapDesigner
 
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
+        var maps = new ValueListBuilder<Map>();
         var (constructor, _) = ConstructorFinder.GetPublicDefaultConstructor(destination);
         if (constructor is null)
         {
             var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return Map.Error(source, destination, diagnostic);
+            return maps.ToImmutableArray();
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -45,8 +48,9 @@ internal static class ConfiguredProjectionMapDesigner
         if (destinationProperties.Length == 0)
         {
             var diagnostic = Diagnostics.SuitablePropertyNotFoundInDestination(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return Map.Error(source, destination, diagnostic);
+            return maps.ToImmutableArray();
         }
 
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
@@ -81,8 +85,9 @@ internal static class ConfiguredProjectionMapDesigner
                         if (propertyMap.IsSourceNullable && !propertyMap.IsDestinationNullable)
                         {
                             var diagnostic = Diagnostics.PossiblePropertyNullReference(location, source, sourceProperty.Name, sourceProperty.Type, destination, destinationProperty.Name, destinationProperty.Type);
+                            maps.Append(Map.Error(source, destination, diagnostic));
 
-                            return Map.Error(source, destination, diagnostic);
+                            return maps.ToImmutableArray();
                         }
 
                         initializerProperties.Append(propertyMap);
@@ -90,8 +95,9 @@ internal static class ConfiguredProjectionMapDesigner
                     else
                     {
                         var diagnostic = Diagnostics.PropertiesTypesMustBeEquals(location, sourceProperty, destinationProperty);
+                        maps.Append(Map.Error(source, destination, diagnostic));
 
-                        return Map.Error(source, destination, diagnostic);
+                        return maps.ToImmutableArray();
                     }
                 }
             }
@@ -100,16 +106,24 @@ internal static class ConfiguredProjectionMapDesigner
         if (initializerProperties.Length == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
 
-            return Map.Error(source, destination, diagnostic);
+            return maps.ToImmutableArray();
         }
 
+        var configuredMapArgumentsArray = configuredMapArguments.ToImmutableArray();
         if (configuredMapArguments.Length != arguments.Count)
         {
-            //TODO: research how to handle
-            //throw new Exception($"Property or parameter not found for argument");
             isCompleteMethod = false;
             configuredMapArguments = ValueListBuilder<NameTypePair>.Empty;
+
+            var mappedArgumentsNames = configuredMapArgumentsArray.Select(x => x.Name).ToImmutableHashSet();
+            var notMappedArgumentsNames = mappedArgumentsNames.SymmetricExcept(userArgumentsHashSet);
+            foreach (var argument in notMappedArgumentsNames)
+            {
+                var diagnostic = Diagnostics.PropertyNotFoundForCoonfiguredProjectionArgument(location, source, destination, argument);
+                maps.Append(Map.Error(source, destination, diagnostic));
+            }
         }
 
         var mockMethod = DesignClassMapMockMethod(
@@ -126,8 +140,9 @@ internal static class ConfiguredProjectionMapDesigner
             configuredMapArguments.ToImmutableArray(),
             mockMethod,
             isCompleteMethod);
+        maps.Append(map);
 
-        return map;
+        return maps.ToImmutableArray();
     }
 
     private static PropertyMap CreateUserProvidedProeprtyMap(string userArgumentName, string userArgumentType)
