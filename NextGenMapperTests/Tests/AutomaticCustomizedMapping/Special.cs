@@ -278,6 +278,40 @@ public class Destination
     }
 
     [TestMethod]
+    public Task TwoSameMapWithMethodsTogether_ShouldMapBoth()
+    {
+        var source =
+@"using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest()
+    {
+        var source = new Source();
+        var mapWithResult1 = source.MapWith<Destination>(ForMapWith1: 1);
+        var mapWithResult2 = source.MapWith<Destination>(ForMapWith1: 2);
+
+        return new[] { mapWithResult1, mapWithResult2 };
+    }
+}
+
+public class Source
+{
+}
+
+public class Destination
+{
+    public int ForMapWith1 { get; set; }
+    public long ForMapWith2 { get; set; }
+}";
+
+        return VerifyAndRun(source);
+    }
+
+
+    [TestMethod]
     public Task TwoMapWithMethodsAndSameSignature_Diagnostic()
     {
         var source =

@@ -1,0 +1,10 @@
+﻿[
+  {
+    ForMapWith1: 1,
+    ForMapWith2: 0
+  },
+  {
+    ForMapWith1: 2,
+    ForMapWith2: 0
+  }
+]

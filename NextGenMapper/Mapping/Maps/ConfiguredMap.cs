@@ -51,4 +51,25 @@ internal readonly struct ConfiguredMap : IMap, IEquatable<ConfiguredMap>
 
         return true;
     }
+
+    public bool EqualsWithArgumentsNames(ConfiguredMap other)
+    {
+        if (Source != other.Source
+        || Destination != other.Destination
+        || UserArguments.Length != other.UserArguments.Length)
+        {
+            return false;
+        }
+
+        for (var i = 0; i < UserArguments.Length; i++)
+        {
+            if (UserArguments[i].Type != other.UserArguments[i].Type
+                || UserArguments[i].Name != other.UserArguments[i].Name)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
