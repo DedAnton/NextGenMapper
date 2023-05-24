@@ -367,43 +367,6 @@ public class Destination
         return VerifyAndRun(source);
     }
 
-    //[TestMethod]
-    public Task ManyOptionalButNotMappable_ShouldMapWithFirstConstructor()
-    {
-        var source =
-@"using NextGenMapper;
-
-namespace Test;
-
-public class Program
-{
-    public object RunTest() => new Source().Map<Destination>();
-}
-
-public class Source
-{
-    public int Property { get; set; } = 1;
-}
-
-public class Destination
-{
-    public int Property { get; }
-
-    public Destination(int property)
-    {
-        Property = property;
-    }
-
-    public Destination(int notMappable1 = 0, int notMappable2 = 0, int notMappable3 = 0)
-    {
-        
-    }
-}
-";
-
-        return VerifyAndRun(source);
-    }
-
     [TestMethod]
     public Task SinglePrivateConstructor_Diagnostic()
     {
@@ -689,40 +652,40 @@ public class Destination
         return VerifyOnly(source);
     }
 
-    //[TestMethod]
-//    public Task ParameterInitializeMultipleProperty_ShouldMapFirst()
-//    {
-//        var source =
-//@"using NextGenMapper;
+    [TestMethod]
+    public Task ParameterInitializeMultipleProperty_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
 
-//namespace Test;
+namespace Test;
 
-//public class Program
-//{
-//    public object RunTest() => new Source().Map<Destination>();
-//}
+public class Program
+{
+    public object RunTest() => new Source().Map<Destination>();
+}
 
-//public class Source
-//{
-//    public int PropertyA { get; set; } = 1;
-//    public int PropertyB { get; set; } = -1;
-//}
+public class Source
+{
+    public int PropertyA { get; set; } = 1;
+    public int PropertyB { get; set; } = -1;
+}
 
-//public class Destination
-//{
-//    public int PropertyA { get; }
-//    public int PropertyB { get; }
+public class Destination
+{
+    public int PropertyA { get; }
+    public int PropertyB { get; }
 
-//    public Destination(int parameter)
-//    {
-//        PropertyA = parameter;
-//        PropertyB = parameter;
-//    }
-//}
-//";
+    public Destination(int parameter)
+    {
+        PropertyA = parameter;
+        PropertyB = parameter;
+    }
+}
+";
 
-//        return VerifyAndRun(source);
-//    }
+        return VerifyOnly(source);
+    }
 
     [TestMethod]
     public Task DifferentWaysInitializeProperty_ShouldMap()

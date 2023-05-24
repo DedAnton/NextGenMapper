@@ -2,6 +2,7 @@
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
+using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
@@ -51,7 +52,14 @@ internal static class ConfiguredProjectionMapDesigner
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
         var maps = new ValueListBuilder<Map>();
-        var (constructor, _) = ConstructorFinder.GetPublicDefaultConstructor(destination);
+        var (constructor, _, error) = ConstructorFinder.GetPublicDefaultConstructor(destination);
+        if (error is MultipleInitializationError multipleInitializationError)
+        {
+            var diagnostic = Diagnostics.MultipleInitializationError(location, source, destination, multipleInitializationError.ParameterName, multipleInitializationError.InitializedPropertiesString);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
+
+            return maps.ToImmutableArray();
+        }
         if (constructor is null)
         {
             var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);

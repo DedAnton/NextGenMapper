@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
+using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
@@ -57,8 +58,15 @@ internal static class ConfiguredMapDesigner
     {
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var (constructor, assignments) = 
+        var (constructor, assignments, error) = 
             ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel, cancellationToken);
+        if (error is MultipleInitializationError multipleInitializationError)
+        {
+            var diagnostic = Diagnostics.MultipleInitializationError(location, source, destination, multipleInitializationError.ParameterName, multipleInitializationError.InitializedPropertiesString);
+            maps.Append(Map.PotentialError(source, destination, diagnostic));
+
+            return;
+        }
         if (constructor == null)
         {
             var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);

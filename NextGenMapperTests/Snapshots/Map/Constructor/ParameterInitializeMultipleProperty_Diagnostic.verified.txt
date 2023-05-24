@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM039,
+      Title: Constructor parameter initialize multiple properties,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (6,31)-(6,62),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: Constructor of type '{1}' has parameter '{2}' that initialize multiple properties: {3}. This is not allowed because it may lead to unexpected behavior,
+      Message: Constructor of type 'Test.Destination' has parameter 'parameter' that initialize multiple properties: PropertyA, PropertyB. This is not allowed because it may lead to unexpected behavior,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

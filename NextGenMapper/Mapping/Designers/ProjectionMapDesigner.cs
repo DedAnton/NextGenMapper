@@ -8,6 +8,7 @@ using NextGenMapper.Utils;
 using System.Collections.Immutable;
 using System;
 using System.Threading;
+using NextGenMapper.Errors;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -44,7 +45,13 @@ internal static class ProjectionMapDesigner
             return Map.Error(source, destination, diagnostic);
         }
 
-        var (constructor, _) = ConstructorFinder.GetPublicDefaultConstructor(destination);
+        var (constructor, _, error) = ConstructorFinder.GetPublicDefaultConstructor(destination);
+        if (error is MultipleInitializationError multipleInitializationError)
+        {
+            var diagnostic = Diagnostics.MultipleInitializationError(location, source, destination, multipleInitializationError.ParameterName, multipleInitializationError.InitializedPropertiesString);
+
+            return Map.Error(source, destination, diagnostic);
+        }
         if (constructor is null)
         {
             var diagnostic = Diagnostics.DefaultConstructorNotFoundError(location, source, destination);
