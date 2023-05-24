@@ -78,7 +78,7 @@ public class MapperGenerator : IIncrementalGenerator
                             continue;
                         }
 
-                        var diagnostic = Diagnostics.DuplicateMapWithFunction(Location.None, map.Source, map.Destination);
+                        var diagnostic = Diagnostics.DuplicateMapWithFunction(map.Location, map.Source, map.Destination);
 
                         diagnostics.Append(diagnostic);
                     }
@@ -286,14 +286,14 @@ public class MapperGenerator : IIncrementalGenerator
                     mapsHashSet.Add(map);
                 }
 
-                void ValidatePropertyMap(IMap map, PropertyMap propertyMap, ref ValueListBuilder<Diagnostic> diagnostics)
+                void ValidatePropertyMap(IMap map, PropertyMap propertyMap, Location location, ref ValueListBuilder<Diagnostic> diagnostics)
                 {
                     if (!propertyMap.IsTypesEquals
                         && !propertyMap.HasImplicitConversion
                         && !mapsHashSet.Contains(propertyMap))
                     {
                         var diagnostic = Diagnostics.MappingFunctionForPropertiesNotFound(
-                            Location.None,
+                            location,
                             map.Source,
                             propertyMap.SourceName,
                             propertyMap.SourceType,
@@ -309,11 +309,11 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     foreach (var propertyMap in map.ConstructorProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
+                        ValidatePropertyMap(map, propertyMap, map.Location, ref diagnostics);
                     }
                     foreach (var propertyMap in map.InitializerProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
+                        ValidatePropertyMap(map, propertyMap, map.Location, ref diagnostics);
                     }
                 }
 
@@ -327,7 +327,7 @@ public class MapperGenerator : IIncrementalGenerator
                     var collectionItemsMap = (IMap)new UserMap(map.SourceItem, map.DestinationItem);
                     if (!mapsHashSet.Contains(collectionItemsMap))
                     {
-                        var diagnostic = Diagnostics.MappingFunctionNotFound(Location.None, map.SourceItem, map.DestinationItem);
+                        var diagnostic = Diagnostics.MappingFunctionNotFound(map.Location, map.SourceItem, map.DestinationItem);
                         diagnostics.Append(diagnostic);
                     }
                 }
@@ -336,11 +336,11 @@ public class MapperGenerator : IIncrementalGenerator
                 {
                     foreach (var propertyMap in map.ConstructorProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
+                        ValidatePropertyMap(map, propertyMap, map.Location, ref diagnostics);
                     }
                     foreach (var propertyMap in map.InitializerProperties)
                     {
-                        ValidatePropertyMap(map, propertyMap, ref diagnostics);
+                        ValidatePropertyMap(map, propertyMap, map.Location, ref diagnostics);
                     }
                 }
 
@@ -457,7 +457,7 @@ public class MapperGenerator : IIncrementalGenerator
                             continue;
                         }
 
-                        var diagnostic = Diagnostics.DuplicateProjectWithFunction(Location.None, map.Source, map.Destination);
+                        var diagnostic = Diagnostics.DuplicateProjectWithFunction(map.Location, map.Source, map.Destination);
 
                         diagnostics.Append(diagnostic);
                     }

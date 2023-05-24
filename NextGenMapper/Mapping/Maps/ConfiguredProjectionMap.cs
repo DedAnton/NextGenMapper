@@ -1,4 +1,5 @@
-﻿using NextGenMapper.Mapping.Maps.Models;
+﻿using Microsoft.CodeAnalysis;
+using NextGenMapper.Mapping.Maps.Models;
 using System;
 using System.Collections.Immutable;
 
@@ -12,7 +13,8 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> userArguments,
         ConfiguredMapMockMethod? mockMethod,
-        bool isSuccess)
+        bool isSuccess,
+        Location location)
     {
         Source = source;
         Destination = destination; 
@@ -20,6 +22,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
         UserArguments = userArguments;
         MockMethod = mockMethod;
         IsSuccess = isSuccess;
+        Location = location;
     }
 
     public string Source { get; }
@@ -28,6 +31,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
     public ImmutableArray<NameTypePair> UserArguments { get; }
     public ConfiguredMapMockMethod? MockMethod { get; }
     public bool IsSuccess { get; }
+    public Location Location { get; }
 
     public bool Equals(ConfiguredProjectionMap other)
     {

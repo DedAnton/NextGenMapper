@@ -139,7 +139,8 @@ internal static class ConfiguredProjectionMapDesigner
             initializerProperties.ToImmutableArray(),
             configuredMapArguments.ToImmutableArray(),
             mockMethod,
-            isCompleteMethod);
+            isCompleteMethod,
+            location);
         maps.Append(map);
 
         return maps.ToImmutableArray();
