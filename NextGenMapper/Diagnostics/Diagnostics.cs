@@ -435,5 +435,15 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic NonGenericIQueryableError(Location location)
+            => Diagnostic.Create(NonGenericIQueryableErrorDescriptor, location);
+        public static readonly DiagnosticDescriptor NonGenericIQueryableErrorDescriptor = new(
+            id: "NGM040",
+            title: "Non generic IQueryable used for projection",
+            messageFormat: "For projection you must use only generic version of IQueryable. Non generic version is not supported",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

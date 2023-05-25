@@ -1,0 +1,17 @@
+﻿{
+  Diagnostics: [
+    {
+      Id: NGM040,
+      Title: Non generic IQueryable used for projection,
+      Severity: Error,
+      WarningLevel: 0,
+      Location: : (7,31)-(7,128),
+      Description: ,
+      HelpLink: ,
+      MessageFormat: For projection you must use only generic version of IQueryable. Non generic version is not supported,
+      Message: For projection you must use only generic version of IQueryable. Non generic version is not supported,
+      Category: NextGenMapper,
+      CustomTags: []
+    }
+  ]
+}

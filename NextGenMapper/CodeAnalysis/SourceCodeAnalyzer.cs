@@ -177,6 +177,34 @@ internal static class SourceCodeAnalyzer
         return UserMapMethodAnalysisResult.Fail();
     }
 
+    public static bool IsProjectionWithNonGenericIQueryable(
+        InvocationExpressionSyntax mapMethodInvocation,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
+            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
+            {
+                IsExtensionMethod: true,
+                MethodKind: MethodKind.ReducedExtension
+            } method
+            && (method.ReducedFrom?.ToDisplayString() 
+                is StartMapperSource.NonGenericIQueryableProjectionMethodFullName
+                or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
+            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            {
+                TypeKind: not TypeKind.Error,
+                IsGenericType: false,
+                MetadataName: "IQueryable"
+            } sourceQueryable
+            && sourceQueryable.IsNonGenericQueryable())
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     public static MapMethodAnalysisResult AnalyzeProjectionMethod(
         InvocationExpressionSyntax mapMethodInvocation,
         SemanticModel semanticModel,
@@ -188,7 +216,9 @@ internal static class SourceCodeAnalyzer
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
-            && method.ReducedFrom?.ToDisplayString() == StartMapperSource.ProjectionMethodFullName
+            && (method.ReducedFrom?.ToDisplayString() 
+                is StartMapperSource.ProjectionMethodFullName 
+                or StartMapperSource.NonGenericIQueryableProjectionMethodFullName)
             && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
@@ -197,7 +227,7 @@ internal static class SourceCodeAnalyzer
                 MetadataName: "IQueryable`1"
             } sourceQueryable
             && sourceQueryable.IsQueryable()
-            && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error} source
+            && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
             return MapMethodAnalysisResult.Success(source, destination);
@@ -221,7 +251,7 @@ internal static class SourceCodeAnalyzer
 
         var isCompleteMethod = false;
         if (invocationMethodSymbol is null
-            && invocationMethodSymbolInfo.CandidateSymbols.Length == 1
+            && invocationMethodSymbolInfo.CandidateSymbols.Length > 0
             && invocationMethodSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
             && configuredMapMethodInvocation.ArgumentList.Arguments.Count > 0)
         {
@@ -237,7 +267,9 @@ internal static class SourceCodeAnalyzer
         if (invocationMethodSymbol is IMethodSymbol method
             && method.IsExtensionMethod
             && method.MethodKind == MethodKind.ReducedExtension
-            && method.ReducedFrom?.ToDisplayString() == StartMapperSource.ConfiguredProjectionMethodFullName
+            && (method.ReducedFrom?.ToDisplayString() 
+                is StartMapperSource.ConfiguredProjectionMethodFullName
+                or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
             && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
@@ -270,6 +302,26 @@ internal static class SourceCodeAnalyzer
     public static bool IsQueryable(this ITypeSymbol type)
     {
         const string IQueryableDefinition = "System.Linq.IQueryable<T>";
+
+        if (type.OriginalDefinition.ToDisplayString() == IQueryableDefinition)
+        {
+            return true;
+        }
+
+        foreach (var @interface in type.AllInterfaces)
+        {
+            if (@interface.OriginalDefinition.ToDisplayString() == IQueryableDefinition)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool IsNonGenericQueryable(this ITypeSymbol type)
+    {
+        const string IQueryableDefinition = "System.Linq.IQueryable";
 
         if (type.OriginalDefinition.ToDisplayString() == IQueryableDefinition)
         {

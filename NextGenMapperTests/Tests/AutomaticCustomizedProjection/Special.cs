@@ -6,7 +6,7 @@ public class Special : SourceGeneratorVerifier
     public override string TestGroup => "ConfiguredProjection";
 
     [TestMethod]
-    public Task Struct_Ignore()
+    public Task Struct_Diagnostic()
     {
         var source =
 @"using NextGenMapper;
@@ -16,7 +16,7 @@ namespace Test;
 
 public class Program
 {
-    public object RunTest() => new[] { new Source() }.AsQueryable().ProjectWith<Destination>(ForMapWith: 1).First();
+    public object RunTest() => new[] { new Source() }.AsQueryable().ProjectWith<Destination>();
 }
 
 public struct Source
@@ -31,7 +31,36 @@ public struct Destination
     public int ForMapWith { get; set; }
 }";
 
-        return VerifyOnly(source, ignoreSourceErrors: true);
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task NonGenericIQueryable_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => ((System.Collections.IEnumerable)new[] { new Source() }).AsQueryable().ProjectWith<Destination>();
+}
+
+public struct Source
+{
+    public int Property { get; set; }
+}
+
+public struct Destination
+{
+    public int Property { get; set; }
+
+    public int ForMapWith { get; set; }
+}";
+
+        return VerifyOnly(source);
     }
 
     [TestMethod]
