@@ -73,7 +73,7 @@ internal static partial class Mapper
 ```
 <br>
 
-The following collection types are currently supported: `List<T>`, `Array<T>`, `ICollection<T>`, `IEnumerable<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`
+The following collection types are currently supported: `List<T>`, `Array<T>`, `ICollection<T>`, `IEnumerable<T>`, `IList<T>`, `IReadOnlyCollection<T>`, `IReadOnlyList<T>`, `ImmutableArray<T>`, `ImmutableList<T>`, `IImmutableList<T>`
 ```c#
 var sourceCollection = new List<Source> { new("Anton", 25) };
 
@@ -86,6 +86,12 @@ Enums can also be mapped
 var source = Source.EnumValue;
 
 var destination = source.Map<Destination>();
+```
+<br>
+
+Projection for IQueryable supported
+```c#
+_dbContext.Users.Project<UserDestination>().ToList();
 ```
 <br>
 
@@ -122,8 +128,7 @@ internal static Destination Map<To>(this Source source)
 
 The trick is that the method signatures are identical, but the generated method has more specific parameters and fits better, so it is called ([this behavior is described in the specification](https://github.com/dotnet/csharplang/blob/a4c9db9a69ae0d1334ed5675e8faca3b7574c0a1/spec/expressions.md#better-function-member))
 
-# Soon
- - Query projection
- - Using [Incremental Generators](https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md)
+# Status
+At the moment, all the main functionality has been added. But the work isn't over yet.
 
 All tasks and their progress can be viewed on the [project board](https://github.com/users/DedAnton/projects/3)
