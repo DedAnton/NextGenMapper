@@ -145,14 +145,21 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
+        var location = mapMethodInvocation.GetLocation();
+
         var (isMapMethodInvocation, sourceType, destinationType) =
             SourceCodeAnalyzer.AnalyzeProjectionMethod(mapMethodInvocation, semanticModel, cancellationToken);
         if (!isMapMethodInvocation || sourceType is null || destinationType is null)
         {
+            if (SourceCodeAnalyzer.IsProjectionWithNonGenericIQueryable(mapMethodInvocation, semanticModel, cancellationToken))
+            {
+                var diagnostic = Diagnostics.NonGenericIQueryableError(location);
+
+                return Target.Error(diagnostic);
+            }
+
             return Target.Empty;
         }
-
-        var location = mapMethodInvocation.GetLocation();
 
         if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
         {
@@ -184,14 +191,21 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
+        var location = configuredMapMethodInvocation.GetLocation();
+
         var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
             = SourceCodeAnalyzer.AnalyzeConfiguredProjectionMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
         if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
         {
+            if (SourceCodeAnalyzer.IsProjectionWithNonGenericIQueryable(configuredMapMethodInvocation, semanticModel, cancellationToken))
+            {
+                var diagnostic = Diagnostics.NonGenericIQueryableError(location);
+
+                return Target.Error(diagnostic);
+            }
+
             return Target.Empty;
         }
-
-        var location = configuredMapMethodInvocation.GetLocation();
 
         if (!SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
         {

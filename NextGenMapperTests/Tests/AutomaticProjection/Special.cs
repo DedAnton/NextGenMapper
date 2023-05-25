@@ -63,32 +63,59 @@ public record B(int InnerProperty);
         return VerifyOnly(source);
     }
 
-    //[TestMethod]
-//    public Task Struct_Diagnostic()
-//    {
-//        var source =
-//@"using NextGenMapper;
-//using System.Linq;
+    [TestMethod]
+    public Task Struct_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
 
-//namespace Test;
+namespace Test;
 
-//public class Program
-//{
-//    public object RunTest() => new[] { new Source() }.AsQueryable().Project<Destination>().First();
-//}
+public class Program
+{
+    public object RunTest() => new[] { new Source() }.AsQueryable().Project<Destination>();
+}
 
-//public struct Source
-//{
-//    public int Property { get; set; }
-//}
+public struct Source
+{
+    public int Property { get; set; }
+}
 
-//public struct Destination
-//{
-//    public int Property { get; set; }
-//}";
+public struct Destination
+{
+    public int Property { get; set; }
+}";
 
-//        return VerifyOnly(source);
-//    }
+        return VerifyOnly(source);
+    }
+
+    [TestMethod]
+    public Task NonGenericIQueryable_Diagnostic()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
+
+namespace Test;
+
+public class Program
+{
+    public object RunTest() => ((System.Collections.IEnumerable)new[] { new Source() }).AsQueryable().Project<Destination>();
+}
+
+public struct Source
+{
+    public int Property { get; set; }
+}
+
+public struct Destination
+{
+    public int Property { get; set; }
+}";
+
+        return VerifyOnly(source);
+    }
 
     [TestMethod]
     public Task MappedTypesAreEquals_Diagnostic()
