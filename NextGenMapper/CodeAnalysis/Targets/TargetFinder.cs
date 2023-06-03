@@ -14,38 +14,41 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
-        var (isMapMethodInvocation, sourceType, destinationType) = 
-            SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel, cancellationToken);
-        if (!isMapMethodInvocation || sourceType is null || destinationType is null)
+        var analyzeResult = SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel, cancellationToken);
+        if (!analyzeResult.IsSuccess(out var successResult, out var failureResult))
         {
+            if (failureResult.Error is not null)
+            {
+                return new ErrorTarget(failureResult.Error);
+            }
+
             return Target.Empty;
         }
+        var (source, destination, _, _, location) = successResult;
 
-        var location = mapMethodInvocation.GetLocation();
-
-        if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreEquals(source, destination))
         {
             var diagnostic = Diagnostics.MappedTypesEquals(location);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(source, destination, semanticModel))
         {
-            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType)
-            || SourceCodeAnalyzer.IsTypesAreEnums(sourceType, destinationType)
-            || SourceCodeAnalyzer.IsTypesAreCollections(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination)
+            || SourceCodeAnalyzer.IsTypesAreEnums(source, destination)
+            || SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
         {
-            return Target.Map(sourceType, destinationType, location, semanticModel);
+            return new MapTarget(source, destination, location, semanticModel);
         }
 
-        var notSupportedDiagnostic = Diagnostics.MappingNotSupported(location, sourceType, destinationType);
-        return Target.Error(notSupportedDiagnostic);
+        var notSupportedDiagnostic = Diagnostics.MappingNotSupported(location, source, destination);
+        return new ErrorTarget(notSupportedDiagnostic);
     }
 
     public static Target GetConfiguredMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
@@ -55,180 +58,178 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
-        var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
-            = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
-        if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
+        var analyzeResult = SourceCodeAnalyzer.AnalyzeConfiguredMapMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
+        if (!analyzeResult.IsSuccess(out var successResult, out var failureResult))
         {
+            if (failureResult.Error is not null)
+            {
+                return new ErrorTarget(failureResult.Error);
+            }
+
             return Target.Empty;
         }
+        var (source, destination, _, isSuccessOverloadResolution, location) = successResult;
 
-        var location = configuredMapMethodInvocation.GetLocation();
-
-        if (!SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
+        if (!SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            var diagnostic = Diagnostics.MapWithNotSupportedForMapWith(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.MapWithNotSupportedForMapWith(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreEquals(source, destination))
         {
             var diagnostic = Diagnostics.MappedTypesEquals(location);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(source, destination, semanticModel))
         {
-            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.MappedTypesHasImplicitConversion(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
         var arguments = configuredMapMethodInvocation.ArgumentList.Arguments;
-        return Target.ConfiguredMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
+        return new ConfiguredMapTarget(source, destination, location, semanticModel, arguments, isSuccessOverloadResolution);
     }
 
     public static ImmutableArray<Target> GetUserMapTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
         if (node is not MethodDeclarationSyntax userMapMethodDeclaration)
         {
-            return ImmutableArray.Create(Target.Empty);
+            return ImmutableArray<Target>.Empty;
         }
 
-        var (isUserMapMethodDeclaration, sourceType, destinationType, method)
-            = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel, cancellationToken);
-        if (!isUserMapMethodDeclaration || sourceType is null || destinationType is null || method is null)
+        var analyzeResult = SourceCodeAnalyzer.AnalyzeUserMapMethod(userMapMethodDeclaration, semanticModel, cancellationToken);
+        if (!analyzeResult.IsSuccess(out var successResult, out var failureResult))
         {
-            return ImmutableArray.Create(Target.Empty);
+            if (failureResult.Error is not null)
+            {
+                return ImmutableArray.Create<Target>(new ErrorTarget(failureResult.Error));
+            }
+
+            return ImmutableArray<Target>.Empty;
         }
+        var (source, destination, mapMethod, _, location) = successResult;
 
-        var location = userMapMethodDeclaration.GetLocation();
-
-        if (!method.IsGenericMethod || method.TypeParameters.Length != 1)
+        if (!mapMethod.IsGenericMethod || mapMethod.TypeParameters.Length != 1)
         {
             var diagnostic = Diagnostics.MapMethodMustBeGeneric(location);
 
-            return ImmutableArray.Create(Target.Error(diagnostic));
+            return ImmutableArray.Create<Target>(new ErrorTarget(diagnostic));
         }
 
-        var userMapTarget = Target.UserMap(sourceType, destinationType);
+        var userMapTarget = new UserMapTarget(source, destination, location);
 
-        if (!method.IsExtensionMethod)
+        if (!mapMethod.IsExtensionMethod)
         {
             var diagnostic = Diagnostics.MapMethodMustBeExtension(location);
 
-            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
+            return ImmutableArray.Create<Target>(new ErrorTarget(diagnostic), userMapTarget);
         }
 
-        if (method.ReturnsVoid)
+        if (mapMethod.ReturnsVoid)
         {
             var diagnostic = Diagnostics.MapMethodMustNotReturnVoid(location);
 
-            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
+            return ImmutableArray.Create<Target>(new ErrorTarget(diagnostic), userMapTarget);
         }
 
-        if (method.DeclaredAccessibility != Accessibility.Internal)
+        if (mapMethod.DeclaredAccessibility != Accessibility.Internal)
         {
             var diagnostic = Diagnostics.MapMethodMustBeInternal(location);
 
-            return ImmutableArray.Create(Target.Error(diagnostic), userMapTarget);
+            return ImmutableArray.Create<Target>(new ErrorTarget(diagnostic), userMapTarget);
         }
 
-        return ImmutableArray.Create(userMapTarget);
+        return ImmutableArray.Create<Target>(userMapTarget);
     }
 
     public static Target GetProjectionTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        if (node is not InvocationExpressionSyntax mapMethodInvocation)
+        if (node is not InvocationExpressionSyntax projectMethodInvocation)
         {
             return Target.Empty;
         }
 
-        var location = mapMethodInvocation.GetLocation();
-
-        var (isMapMethodInvocation, sourceType, destinationType) =
-            SourceCodeAnalyzer.AnalyzeProjectionMethod(mapMethodInvocation, semanticModel, cancellationToken);
-        if (!isMapMethodInvocation || sourceType is null || destinationType is null)
+        var analyzeResult = SourceCodeAnalyzer.AnalyzeProjectionMethod(projectMethodInvocation, semanticModel, cancellationToken);
+        if (!analyzeResult.IsSuccess(out var successResult, out var failureResult))
         {
-            if (SourceCodeAnalyzer.IsProjectionWithNonGenericIQueryable(mapMethodInvocation, semanticModel, cancellationToken))
+            if (failureResult.Error is not null)
             {
-                var diagnostic = Diagnostics.NonGenericIQueryableError(location);
-
-                return Target.Error(diagnostic);
+                return new ErrorTarget(failureResult.Error);
             }
 
             return Target.Empty;
         }
+        var (source, destination, _, _, location) = successResult;
 
-        if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreEquals(source, destination))
         {
             var diagnostic = Diagnostics.ProjectedTypesEquals(location);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(source, destination, semanticModel))
         {
-            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            return Target.ProjectionMap(sourceType, destinationType, location);
+            return new ProjectionTarget(source, destination, location);
         }
 
-        var notSupportedDiagnostic = Diagnostics.ProjectionNotSupported(location, sourceType, destinationType);
-        return Target.Error(notSupportedDiagnostic);
+        var notSupportedDiagnostic = Diagnostics.ProjectionNotSupported(location, source, destination);
+        return new ErrorTarget(notSupportedDiagnostic);
     }
 
     public static Target GetConfiguredProjectionTarget(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        if (node is not InvocationExpressionSyntax configuredMapMethodInvocation)
+        if (node is not InvocationExpressionSyntax configuredProjectionMethodInvocation)
         {
             return Target.Empty;
         }
 
-        var location = configuredMapMethodInvocation.GetLocation();
-
-        var (isConfiguredMapMethodInvocation, sourceType, destinationType, isCompleteMethod)
-            = SourceCodeAnalyzer.AnalyzeConfiguredProjectionMethod(configuredMapMethodInvocation, semanticModel, cancellationToken);
-        if (!isConfiguredMapMethodInvocation || sourceType is null || destinationType is null)
+        var analyzeResult = SourceCodeAnalyzer.AnalyzeConfiguredProjectionMethod(configuredProjectionMethodInvocation, semanticModel, cancellationToken);
+        if (!analyzeResult.IsSuccess(out var successResult, out var failureResult))
         {
-            if (SourceCodeAnalyzer.IsProjectionWithNonGenericIQueryable(configuredMapMethodInvocation, semanticModel, cancellationToken))
+            if (failureResult.Error is not null)
             {
-                var diagnostic = Diagnostics.NonGenericIQueryableError(location);
-
-                return Target.Error(diagnostic);
+                return new ErrorTarget(failureResult.Error);
             }
 
             return Target.Empty;
         }
+        var (source, destination, _, isSuccessOverloadResolution, location) = successResult;
 
-        if (!SourceCodeAnalyzer.IsTypesAreClasses(sourceType, destinationType))
+        if (!SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
-            var diagnostic = Diagnostics.ConfiguredProjectionNotSupported(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ConfiguredProjectionNotSupported(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesAreEquals(sourceType, destinationType))
+        if (SourceCodeAnalyzer.IsTypesAreEquals(source, destination))
         {
             var diagnostic = Diagnostics.ProjectedTypesEquals(location);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(sourceType, destinationType, semanticModel))
+        if (SourceCodeAnalyzer.IsTypesHasImplicitConversion(source, destination, semanticModel))
         {
-            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, sourceType, destinationType);
+            var diagnostic = Diagnostics.ProjectedTypesHasImplicitConversion(location, source, destination);
 
-            return Target.Error(diagnostic);
+            return new ErrorTarget(diagnostic);
         }
 
-        var arguments = configuredMapMethodInvocation.ArgumentList.Arguments;
-        return Target.ConfiguredProjectionMap(sourceType, destinationType, arguments, isCompleteMethod, location, semanticModel);
+        var arguments = configuredProjectionMethodInvocation.ArgumentList.Arguments;
+        return new ConfiguredProjectionTarget(source, destination, location, arguments, isSuccessOverloadResolution);
     }
 }

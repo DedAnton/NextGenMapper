@@ -9,6 +9,8 @@ namespace NextGenMapper.Extensions;
 
 internal static class IncrementalValueProviderExtensions
 {
+    public static IncrementalValuesProvider<TResult> OfType<TSource, TResult>(this IncrementalValuesProvider<TSource> source) => source.SelectMany((item, _) => item is TResult result ? ImmutableArray.Create(result) : ImmutableArray<TResult>.Empty);
+
     public static IncrementalValueProvider<ImmutableArray<TSource>> Distinct<TSource>(
         this IncrementalValueProvider<ImmutableArray<TSource>> source,
         IEqualityComparer<TSource> equalityComparer)

@@ -1,10 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis.Targets.Models;
-using NextGenMapper.Extensions;
+using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.PostInitialization;
-using System.Linq;
 using System.Threading;
 
 namespace NextGenMapper.CodeAnalysis;
@@ -106,38 +104,34 @@ internal static class SourceCodeAnalyzer
                 TypeKind: not TypeKind.Error
             } destination)
         {
-            return MapMethodAnalysisResult.Success(source, destination);
+            var location = mapMethodInvocation.GetLocation();
+
+            return MapMethodAnalysisResult.Success(source, destination, method, true, location);
         }
 
-        return MapMethodAnalysisResult.Fail();
+        return MapMethodAnalysisResult.Failure();
     }
 
-    public static ConfiguredMapMethodAnalysisResult AnalyzeConfiguredMapMethod(
+    public static MapMethodAnalysisResult AnalyzeConfiguredMapMethod(
         InvocationExpressionSyntax configuredMapMethodInvocation, 
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
         if (configuredMapMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ConfiguredMapMethodAnalysisResult.Fail();
+            return MapMethodAnalysisResult.Failure();
         }
 
         var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken);
         var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
+        var isSuccessOverloadResolution = invocationMethodSymbol != null;
 
-        var isCompleteMethod = false;
         if (invocationMethodSymbol is null
             && invocationMethodSymbolInfo.CandidateSymbols.Length == 1
             && invocationMethodSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
             && configuredMapMethodInvocation.ArgumentList.Arguments.Count > 0)
         {
             invocationMethodSymbol = invocationMethodSymbolInfo.CandidateSymbols[0];
-            isCompleteMethod = true;
-        }
-
-        if (invocationMethodSymbol is null)
-        {
-            return ConfiguredMapMethodAnalysisResult.Fail();
         }
 
         if (invocationMethodSymbol is IMethodSymbol method
@@ -147,13 +141,15 @@ internal static class SourceCodeAnalyzer
             && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
-            return ConfiguredMapMethodAnalysisResult.Success(source, destination, isCompleteMethod);
+            var location = configuredMapMethodInvocation.GetLocation();
+
+            return MapMethodAnalysisResult.Success(source, destination, method, isSuccessOverloadResolution, location);
         }
 
-        return ConfiguredMapMethodAnalysisResult.Fail();
+        return MapMethodAnalysisResult.Failure();
     }
 
-    public static UserMapMethodAnalysisResult AnalyzeUserMapMethod(
+    public static MapMethodAnalysisResult AnalyzeUserMapMethod(
         MethodDeclarationSyntax userMapMethodDeclaration, 
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
@@ -171,10 +167,12 @@ internal static class SourceCodeAnalyzer
             && method.Parameters[0].Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
-            return UserMapMethodAnalysisResult.Success(source, destination, method);
+            var location = userMapMethodDeclaration.GetLocation();
+
+            return MapMethodAnalysisResult.Success(source, destination, method, true, location);
         }
 
-        return UserMapMethodAnalysisResult.Fail();
+        return MapMethodAnalysisResult.Failure();
     }
 
     public static bool IsProjectionWithNonGenericIQueryable(
@@ -206,20 +204,26 @@ internal static class SourceCodeAnalyzer
     }
 
     public static MapMethodAnalysisResult AnalyzeProjectionMethod(
-        InvocationExpressionSyntax mapMethodInvocation,
+        InvocationExpressionSyntax projectionMethodInvocation,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
+        if (projectionMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression
+            || semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is not IMethodSymbol
             {
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
-            && (method.ReducedFrom?.ToDisplayString() 
-                is StartMapperSource.ProjectionMethodFullName 
-                or StartMapperSource.NonGenericIQueryableProjectionMethodFullName)
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            || (method.ReducedFrom?.ToDisplayString() 
+                is not (StartMapperSource.ProjectionMethodFullName
+                or StartMapperSource.NonGenericIQueryableProjectionMethodFullName)))
+        {
+            return MapMethodAnalysisResult.Failure();
+        }
+
+        var location = projectionMethodInvocation.GetLocation();
+
+        if (semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
                 IsGenericType: true,
@@ -230,47 +234,63 @@ internal static class SourceCodeAnalyzer
             && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
-            return MapMethodAnalysisResult.Success(source, destination);
+            return MapMethodAnalysisResult.Success(source, destination, method, true, location);
         }
 
-        return MapMethodAnalysisResult.Fail();
+
+        if (semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            {
+                TypeKind: not TypeKind.Error,
+                IsGenericType: false,
+                MetadataName: "IQueryable"
+            } sourceNonGenericQueryable
+            && sourceNonGenericQueryable.IsNonGenericQueryable())
+        {
+            var diagnostic = Diagnostics.NonGenericIQueryableError(location);
+
+            return MapMethodAnalysisResult.Failure(diagnostic);
+        }
+
+        return MapMethodAnalysisResult.Failure();
     }
 
-    public static ConfiguredMapMethodAnalysisResult AnalyzeConfiguredProjectionMethod(
-        InvocationExpressionSyntax configuredMapMethodInvocation,
+    public static MapMethodAnalysisResult AnalyzeConfiguredProjectionMethod(
+        InvocationExpressionSyntax configuredProjectionMethodInvocation,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (configuredMapMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        if (configuredProjectionMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
         {
-            return ConfiguredMapMethodAnalysisResult.Fail();
+            return MapMethodAnalysisResult.Failure();
         }
 
         var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken);
         var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
+        var isSuccessOverloadResolution = invocationMethodSymbol != null;
 
-        var isCompleteMethod = false;
         if (invocationMethodSymbol is null
             && invocationMethodSymbolInfo.CandidateSymbols.Length > 0
             && invocationMethodSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure
-            && configuredMapMethodInvocation.ArgumentList.Arguments.Count > 0)
+            && configuredProjectionMethodInvocation.ArgumentList.Arguments.Count > 0)
         {
             invocationMethodSymbol = invocationMethodSymbolInfo.CandidateSymbols[0];
-            isCompleteMethod = true;
         }
 
-        if (invocationMethodSymbol is null)
+        if (invocationMethodSymbol is not IMethodSymbol
+            {
+                IsExtensionMethod: true,
+                MethodKind: MethodKind.ReducedExtension
+            } method
+            || (method.ReducedFrom?.ToDisplayString()
+                is not (StartMapperSource.ConfiguredProjectionMethodFullName
+                or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)))
         {
-            return ConfiguredMapMethodAnalysisResult.Fail();
+            return MapMethodAnalysisResult.Failure();
         }
 
-        if (invocationMethodSymbol is IMethodSymbol method
-            && method.IsExtensionMethod
-            && method.MethodKind == MethodKind.ReducedExtension
-            && (method.ReducedFrom?.ToDisplayString() 
-                is StartMapperSource.ConfiguredProjectionMethodFullName
-                or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+        var location = configuredProjectionMethodInvocation.GetLocation();
+
+        if (semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
                 IsGenericType: true,
@@ -281,10 +301,23 @@ internal static class SourceCodeAnalyzer
             && sourceQueryable.TypeArguments[0] is { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
-            return ConfiguredMapMethodAnalysisResult.Success(source, destination, isCompleteMethod);
+            return MapMethodAnalysisResult.Success(source, destination, method, isSuccessOverloadResolution, location);
         }
 
-        return ConfiguredMapMethodAnalysisResult.Fail();
+        if (semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            {
+                TypeKind: not TypeKind.Error,
+                IsGenericType: false,
+                MetadataName: "IQueryable"
+            } sourceNonGenericQueryable
+            && sourceNonGenericQueryable.IsNonGenericQueryable())
+        {
+            var diagnostic = Diagnostics.NonGenericIQueryableError(location);
+
+            return MapMethodAnalysisResult.Failure(diagnostic);
+        }
+
+        return MapMethodAnalysisResult.Failure();
     }
 
     public static bool IsTypesAreEquals(ITypeSymbol sourceType, ITypeSymbol destinationType)

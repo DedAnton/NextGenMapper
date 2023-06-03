@@ -28,16 +28,15 @@ public class MapperGenerator : IIncrementalGenerator
             static (context, ct) => TargetFinder.GetConfiguredMapTarget(context.Node, context.SemanticModel, ct));
 
         var configuredMapsTargetsDiagnostics = configuredMapsTargets
-            .Where(static x => x.Type is TargetType.Error)
-            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+            .OfType<Target, ErrorTarget>()
+            .Select(static (x, _) => x.Error);
         context.ReportDiagnostics(configuredMapsTargetsDiagnostics);
 
         var filteredConfiguredMapsTargets = configuredMapsTargets
-            .Where(static x => x.Type is TargetType.ConfiguredMap)
-            .Select(static (x, _) => x.ConfiguredMapTarget);
+            .OfType<Target, ConfiguredMapTarget>();
 
         var configuredMapWithoutArgumentsDiagnostics = filteredConfiguredMapsTargets
-            .Where(static x => !x.IsCompleteMethod)
+            .Where(static x => x.IsSuccessOverloadResolution)
             .Select(static (x, _) => Diagnostics.MapWithMethodWithoutArgumentsError(x.Location));
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 
@@ -147,13 +146,13 @@ public class MapperGenerator : IIncrementalGenerator
             .SelectMany(static (x, _) => x);
 
         var userMapsTargetsDiagnostics = userMapsTargets
-            .Where(static x => x.Type is TargetType.Error)
-            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+            .OfType<Target, ErrorTarget>()
+            .Select(static (x, _) => x.Error);
         context.ReportDiagnostics(userMapsTargetsDiagnostics);
 
         var userMapsHashSet = userMapsTargets
-            .Where(static x => x.Type is TargetType.UserMap)
-            .Select(static (x, _) => UserMapDesigner.DesingUserMaps(x.UserMapTarget))
+            .OfType<Target, UserMapTarget>()
+            .Select(static (x, _) => UserMapDesigner.DesingUserMaps(x))
             .Collect()
             .Select(static (x, _) => new HashSet<UserMap>(x));
 
@@ -162,13 +161,13 @@ public class MapperGenerator : IIncrementalGenerator
             static (context, ct) => TargetFinder.GetMapTarget(context.Node, context.SemanticModel, ct));
 
         var mapsTargetsDiagnostics = mapsTargets
-            .Where(static x => x.Type is TargetType.Error)
-            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+            .OfType<Target, ErrorTarget>()
+            .Select(static (x, _) => x.Error);
         context.ReportDiagnostics(mapsTargetsDiagnostics);
 
         var maps = mapsTargets
-            .Where(static x => x.Type is TargetType.Map)
-            .SelectMany(static (x, ct) => MapDesigner.DesignMaps(x.MapTarget, ct));
+            .OfType<Target, MapTarget>()
+            .SelectMany(static (x, ct) => MapDesigner.DesignMaps(x, ct));
 
         var mapsDiagnostics = maps
             .Where(static x => x.Type is MapType.Error)
@@ -367,14 +366,14 @@ public class MapperGenerator : IIncrementalGenerator
             static (context, ct) => TargetFinder.GetProjectionTarget(context.Node, context.SemanticModel, ct));
 
         var targetsDiagnostics = targets
-            .Where(static x => x.Type is TargetType.Error)
-            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+            .OfType<Target, ErrorTarget>()
+            .Select(static (x, _) => x.Error);
 
         context.ReportDiagnostics(targetsDiagnostics);
 
         var maps = targets
-            .Where(static x => x.Type is TargetType.Projection)
-            .Select(static (x, ct) => ProjectionMapDesigner.DesingProjectionMap(x.ProjectionTarget, ct));
+            .OfType<Target, ProjectionTarget>()
+            .Select(static (x, ct) => ProjectionMapDesigner.DesingProjectionMap(x, ct));
 
         var mapsDiagnostics = maps
             .Where(static x => x.Type is MapType.Error)
@@ -407,16 +406,15 @@ public class MapperGenerator : IIncrementalGenerator
             static (context, ct) => TargetFinder.GetConfiguredProjectionTarget(context.Node, context.SemanticModel, ct));
 
         var targetsDiagnostics = targets
-            .Where(static x => x.Type is TargetType.Error)
-            .Select(static (x, _) => x.ErrorMapTarget.Diagnostic);
+            .OfType<Target, ErrorTarget>()
+            .Select(static (x, _) => x.Error);
         context.ReportDiagnostics(targetsDiagnostics);
 
         var filteredTargets = targets
-            .Where(static x => x.Type is TargetType.ConfiguredProjection)
-            .Select(static (x, _) => x.ConfiguredProjectionTarget);
+            .OfType<Target, ConfiguredProjectionTarget>();
 
         var configuredMapWithoutArgumentsDiagnostics = filteredTargets
-            .Where(static x => !x.IsCompleteMethod)
+            .Where(static x => x.IsSuccessOverloadResolution)
             .Select(static (x, _) => Diagnostics.ProjectWithMethodWithoutArgumentsError(x.Location));
         context.ReportDiagnostics(configuredMapWithoutArgumentsDiagnostics);
 

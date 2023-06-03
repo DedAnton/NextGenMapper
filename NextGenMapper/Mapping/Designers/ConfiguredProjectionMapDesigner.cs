@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
@@ -36,7 +35,7 @@ internal static class ConfiguredProjectionMapDesigner
 
     private static ImmutableArray<Map> DesingConfiguredProjectionMapInternal(ConfiguredProjectionTarget target, CancellationToken cancellationToken)
     {
-        var (source, destination, arguments, isCompleteMethod, location, semanticModel) = target;
+        var (source, destination, location, arguments, isSuccessOverloadResolution) = target;
         cancellationToken.ThrowIfCancellationRequested();
 
         var userArgumentsHashSet = new HashSet<string>(StringComparer.InvariantCulture);
@@ -136,6 +135,7 @@ internal static class ConfiguredProjectionMapDesigner
             return maps.ToImmutableArray();
         }
 
+        var isCompleteMethod = !isSuccessOverloadResolution;
         var configuredMapArgumentsArray = configuredMapArguments.ToImmutableArray();
         if (configuredMapArguments.Length != arguments.Count)
         {

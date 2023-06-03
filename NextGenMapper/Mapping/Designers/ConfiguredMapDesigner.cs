@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
+using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
@@ -31,7 +30,7 @@ internal static class ConfiguredMapDesigner
             }
 
             var maps = new ValueListBuilder<Map>(8);
-            DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, target.IsCompleteMethod, target.Location, target.SemanticModel, ref maps, cancellationToken);
+            DesignConfiguredMaps(target.Source, target.Destination, userArgumentsHashSet, !target.IsSuccessOverloadResolution, target.Location, target.SemanticModel, ref maps, cancellationToken);
 
             return maps.ToImmutableArray();
         }
@@ -50,7 +49,7 @@ internal static class ConfiguredMapDesigner
         ITypeSymbol source,
         ITypeSymbol destination,
         HashSet<string> arguments,
-        bool isCompleteMethod,
+        bool isUserProvideArguments,
         Location location,
         SemanticModel semanticModel,
         ref ValueListBuilder<Map> maps,
@@ -184,6 +183,7 @@ internal static class ConfiguredMapDesigner
             return;
         }
 
+        var isCompleteMethod = isUserProvideArguments;
         var configuredMapArgumentsArray = configuredMapArguments.ToImmutableArray();
         if (configuredMapArguments.Length != arguments.Count)
         {

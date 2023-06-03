@@ -1,14 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
-using System.Collections.Immutable;
 using System;
 using System.Threading;
 using NextGenMapper.Errors;
+using NextGenMapper.CodeAnalysis.Targets;
 
 namespace NextGenMapper.Mapping.Designers;
 
