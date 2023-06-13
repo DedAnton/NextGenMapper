@@ -2,19 +2,6 @@
 {
     public static class StartMapperSource
     {
-        public const string MapMethodName = "Map";
-        public const string ConfiguredMapMethodName = "MapWith";
-        public const string MapMethodFullName = "NextGenMapper.Mapper.Map<To>(object)";
-        public const string MapWithMethodFullName = "NextGenMapper.Mapper.MapWith<To>(object)";
-
-        public const string ProjectionMethodName = "Project";
-        public const string ConfiguredProjectionMethodName = "ProjectWith";
-        public const string ProjectionMethodFullName = "NextGenMapper.Mapper.Project<To>(System.Linq.IQueryable<object>)";
-        public const string ConfiguredProjectionMethodFullName = "NextGenMapper.Mapper.ProjectWith<To>(System.Linq.IQueryable<object>)";
-
-        public const string NonGenericIQueryableProjectionMethodFullName = "NextGenMapper.Mapper.Project<To>(System.Linq.IQueryable)";
-        public const string NonGenericIQueryableConfiguredProjectionMethodFullName = "NextGenMapper.Mapper.ProjectWith<To>(System.Linq.IQueryable)";
-
         public const string StartMapper =
 @"using System;
 using System.Linq;

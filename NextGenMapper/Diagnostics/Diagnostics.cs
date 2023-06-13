@@ -71,9 +71,9 @@ namespace NextGenMapper
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        public static Diagnostic MapWithNotSupportedForMapWith(Location location, ITypeSymbol from, ITypeSymbol to)
-            => Diagnostic.Create(MapWithNotSupportedForMapWithDescriptor, location, from, to);
-        public static readonly DiagnosticDescriptor MapWithNotSupportedForMapWithDescriptor = new(
+        public static Diagnostic MapWithNotSupported(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(MapWithNotSupportedDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor MapWithNotSupportedDescriptor = new(
             id: "NGM007",
             title: "Not supported for 'MapWith' method",
             messageFormat: "Customized mapping from {0} to {1} with 'MapWith' not supported, 'MapWith' method supports only class to class mapping",

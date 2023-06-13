@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using NextGenMapper.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.Targets;
 using NextGenMapper.CodeGeneration;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Comparers;
@@ -24,7 +23,7 @@ public class MapperGenerator : IIncrementalGenerator
         PostInitialization(context);
 
         var configuredMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => SourceCodeAnalyzer.IsConfiguredMapMethodInvocationSynaxNode(node),
+            static (node, _) => SyntaxNodeFilter.IsConfiguredMapMethodInvocation(node),
             static (context, ct) => TargetFinder.GetConfiguredMapTarget(context.Node, context.SemanticModel, ct));
 
         var configuredMapsTargetsDiagnostics = configuredMapsTargets
@@ -141,7 +140,7 @@ public class MapperGenerator : IIncrementalGenerator
         });
 
         var userMapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => SourceCodeAnalyzer.IsUserMapMethodDeclarationSyntaxNode(node),
+            static (node, _) => SyntaxNodeFilter.IsUserMapMethodDeclaration(node),
             static (context, ct) => TargetFinder.GetUserMapTarget(context.Node, context.SemanticModel, ct))
             .SelectMany(static (x, _) => x);
 
@@ -157,7 +156,7 @@ public class MapperGenerator : IIncrementalGenerator
             .Select(static (x, _) => new HashSet<UserMap>(x));
 
         var mapsTargets = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => SourceCodeAnalyzer.IsMapMethodInvocationSyntaxNode(node),
+            static (node, _) => SyntaxNodeFilter.IsMapMethodInvocation(node),
             static (context, ct) => TargetFinder.GetMapTarget(context.Node, context.SemanticModel, ct));
 
         var mapsTargetsDiagnostics = mapsTargets
@@ -362,7 +361,7 @@ public class MapperGenerator : IIncrementalGenerator
     private void BuildProjectionPipeline(IncrementalGeneratorInitializationContext context)
     {
         var targets = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => SourceCodeAnalyzer.IsProjectionMethodInvocationSyntaxNode(node),
+            static (node, _) => SyntaxNodeFilter.IsProjectionMethodInvocation(node),
             static (context, ct) => TargetFinder.GetProjectionTarget(context.Node, context.SemanticModel, ct));
 
         var targetsDiagnostics = targets
@@ -402,7 +401,7 @@ public class MapperGenerator : IIncrementalGenerator
     private void BuildConfiguredProjectionPipeline(IncrementalGeneratorInitializationContext context)
     {
         var targets = context.SyntaxProvider.CreateSyntaxProvider(
-            static (node, _) => SourceCodeAnalyzer.IsConfiguredProjectionMethodInvocationSyntaxNode(node),
+            static (node, _) => SyntaxNodeFilter.IsConfiguredProjectionMethodInvocation(node),
             static (context, ct) => TargetFinder.GetConfiguredProjectionTarget(context.Node, context.SemanticModel, ct));
 
         var targetsDiagnostics = targets

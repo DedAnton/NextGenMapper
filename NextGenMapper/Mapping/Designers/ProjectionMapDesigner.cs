@@ -7,7 +7,6 @@ using NextGenMapper.Utils;
 using System;
 using System.Threading;
 using NextGenMapper.Errors;
-using NextGenMapper.CodeAnalysis.Targets;
 
 namespace NextGenMapper.Mapping.Designers;
 

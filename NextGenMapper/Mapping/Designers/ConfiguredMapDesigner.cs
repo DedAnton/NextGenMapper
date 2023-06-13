@@ -1,5 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.CodeAnalysis.Targets;
+using NextGenMapper.CodeAnalysis;
 using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
