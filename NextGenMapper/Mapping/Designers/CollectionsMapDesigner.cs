@@ -4,25 +4,14 @@ using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 
 namespace NextGenMapper.Mapping.Designers;
 
 internal static partial class MapDesigner
-{
-    private const string LIST_NAME = "List";
-    private const string LIST_FULL_NAME = "System.Collections.Generic.List<T>";
-
-    private const string IMMUTABLE_ARRAY_NAME = "ImmutableArray";
-    private const string IMMUTABLE_ARRAY_FULL_NAME = "System.Collections.Immutable.ImmutableArray<T>";
-
-    private const string IMMUTABLE_LIST_NAME = "ImmutableList";
-    private const string IMMUTABLE_LIST_FULL_NAME = "System.Collections.Immutable.ImmutableList<T>";
-
-    private const string I_IMMUTABLE_LIST_NAME = "IImmutableList";
-    private const string I_IMMUTABLE_LIST_FULL_NAME = "System.Collections.Immutable.IImmutableList<T>";
-
+{ 
     private static void DesignCollectionsMap(
         ITypeSymbol source,
         ITypeSymbol destination,
@@ -95,22 +84,22 @@ internal static partial class MapDesigner
         => collection switch
         {
             IArrayTypeSymbol array => array.ElementType,
-            INamedTypeSymbol list when list.IsGenericType && list.Arity == 1 => list.TypeArguments[0],
+            INamedTypeSymbol { TypeArguments: [var itemType] } => itemType,
             _ => null
         };
 
     private static CollectionKind GetCollectionKind(ITypeSymbol collection) => collection switch
     {
         { TypeKind: TypeKind.Array } => CollectionKind.Array,
-        { OriginalDefinition.Name: LIST_NAME } list when list.OriginalDefinition.ToString() == LIST_FULL_NAME => CollectionKind.List,
-        { OriginalDefinition.Name: IMMUTABLE_ARRAY_NAME } immutableArray when immutableArray.OriginalDefinition.ToString() == IMMUTABLE_ARRAY_FULL_NAME => CollectionKind.ImmutableArray,
-        { OriginalDefinition.Name: IMMUTABLE_LIST_NAME } immutableList when immutableList.OriginalDefinition.ToString() == IMMUTABLE_LIST_FULL_NAME => CollectionKind.ImmutableList,
-        { OriginalDefinition.Name: I_IMMUTABLE_LIST_NAME } iImmutableList when iImmutableList.OriginalDefinition.ToString() == I_IMMUTABLE_LIST_FULL_NAME => CollectionKind.IImmutableList,
-        INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T } => CollectionKind.IEnumerable,
-        INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_ICollection_T } => CollectionKind.ICollection,
-        INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IReadOnlyCollection_T } => CollectionKind.IReadOnlyCollection,
-        INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IReadOnlyList_T } => CollectionKind.IReadOnlyList,
-        INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IList_T } => CollectionKind.IList,
+        { Name: "List", ContainingNamespace: { Name: "Generic", ContainingNamespace: { Name: "Collections", ContainingNamespace.Name: "System" } } } => CollectionKind.List,
+        { Name: "ImmutableArray", ContainingNamespace: { Name: "Immutable", ContainingNamespace: { Name: "Collections", ContainingNamespace.Name: "System" } } } => CollectionKind.ImmutableArray,
+        { Name: "ImmutableList", ContainingNamespace: { Name: "Immutable", ContainingNamespace: { Name: "Collections", ContainingNamespace.Name: "System" } } } => CollectionKind.ImmutableList,
+        { Name: "IImmutableList", ContainingNamespace: { Name: "Immutable", ContainingNamespace: { Name: "Collections", ContainingNamespace.Name: "System" } } } => CollectionKind.IImmutableList,
+        { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IEnumerable_T } => CollectionKind.IEnumerable,
+        { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_ICollection_T } => CollectionKind.ICollection,
+        { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IReadOnlyCollection_T } => CollectionKind.IReadOnlyCollection,
+        { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IReadOnlyList_T } => CollectionKind.IReadOnlyList,
+        { OriginalDefinition.SpecialType: SpecialType.System_Collections_Generic_IList_T } => CollectionKind.IList,
         _ => CollectionKind.Undefined
     };
 }

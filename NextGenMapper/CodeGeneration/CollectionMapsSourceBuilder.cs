@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.Extensions;
-using NextGenMapper.Mapping.Maps;
+﻿using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Utils;
 using System;
 using System.Collections.Immutable;
