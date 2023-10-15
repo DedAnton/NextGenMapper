@@ -88,8 +88,7 @@ internal static class SourceCodeAnalyzer
     public static MapMethodAnalysisResult AnalyzeMapMethod(
         InvocationExpressionSyntax mapMethodInvocation, 
         SemanticModel semanticModel, 
-        CancellationToken cancellationToken,
-        string? test = null)
+        CancellationToken cancellationToken)
     {
         if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
             && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
