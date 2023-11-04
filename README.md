@@ -131,4 +131,4 @@ The trick is that the method signatures are identical, but the generated method 
 # Status
 At the moment, all the main functionality has been added. But the work isn't over yet.
 
-All tasks and their progress can be viewed on the [project board](https://github.com/users/DedAnton/projects/3)
+All tasks can be viewed on the [project board](https://github.com/users/DedAnton/projects/3)
