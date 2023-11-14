@@ -210,4 +210,36 @@ public class Destination
 
         return VerifyAndRun(source);
     }
+
+    [TestMethod]
+    public Task InvocateOnElvisOperator_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+namespace Test;
+
+public class Program
+{
+    public object? RunTest()
+    {
+        Source? source = new Source();
+        return source.Map<Destination>();
+    }
+}
+
+public class Source
+{
+    public int Property { get; set; } = 1;
+}
+
+public class Destination
+{
+    public int Property { get; set; }
+}
+";
+
+        return VerifyAndRun(source);
+    }
 }
