@@ -14,7 +14,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsMapMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax 
     {
-        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
+        Expression: MemberAccessExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -26,7 +26,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsConfiguredMapMethodInvocationSynaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
+        Expression: MemberAccessExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -38,7 +38,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsProjectionMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
+        Expression: MemberAccessExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -50,7 +50,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsConfiguredProjectionMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
+        Expression: MemberAccessExpressionSyntax
         {
             Name: GenericNameSyntax
             {
