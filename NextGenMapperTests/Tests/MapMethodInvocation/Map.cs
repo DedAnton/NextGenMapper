@@ -225,7 +225,7 @@ public class Program
     public object? RunTest()
     {
         Source? source = new Source();
-        return source.Map<Destination>();
+        return source?.Map<Destination>();
     }
 }
 
