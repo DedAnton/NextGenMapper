@@ -549,4 +549,43 @@ using NextGenMapper;
 
         await VerifyAndRun(source);
     }
+
+    [TestMethod]
+    public async Task NullableReferenceTypesInArgumentWithMapMethodCall_ShouldMap()
+    {
+        var source =
+@"#nullable enable
+using NextGenMapper;
+
+    namespace Test;
+
+    public class Program
+    {
+        public object RunTest() => new Source().MapWith<Destination>(PropertyThatNeedMap: new B { Property = ""good"" });
+    }
+
+    public class Source
+    {
+        public A? PropertyThatNeedMap { get; set; } = null;
+        public string Property { get; set; } = ""good"";
+    }
+
+    public class Destination
+    {
+        public B? PropertyThatNeedMap { get; set; }
+        public string Property { get; set; } = ""bad"";
+    }
+
+    public class A
+    {
+        public string Property { get; set; } = string.Empty;
+    }
+
+    public class B
+    {
+        public string Property { get; set; } = ""bad"";
+    }";
+
+        await VerifyAndRun(source);
+    }
 }
