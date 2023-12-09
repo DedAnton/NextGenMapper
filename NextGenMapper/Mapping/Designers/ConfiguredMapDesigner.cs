@@ -141,7 +141,7 @@ internal static class ConfiguredMapDesigner
                 continue;
             }
 
-            var destinationPropertyType = destinationProperty.Type.ToNotNullableString();
+            var destinationPropertyType = destinationProperty.Type.ToDisplayString();
             if (arguments.Contains(destinationProperty.Name))
             {
                 var propertyMap = CreateUserProvidedProeprtyMap(destinationProperty.Name, destinationPropertyType);
