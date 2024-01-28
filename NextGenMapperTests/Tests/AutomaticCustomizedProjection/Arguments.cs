@@ -159,29 +159,29 @@ public class Destination
         return VerifyOnly(source, ignoreSourceErrors: true);
     }
 
-//    [TestMethod]
-//    public Task ArgumentForNonExistenParameter_Diagnostic()
-//    {
-//        var source =
-//@"using NextGenMapper;
+    //    [TestMethod]
+    //    public Task ArgumentForNonExistenParameter_Diagnostic()
+    //    {
+    //        var source =
+    //@"using NextGenMapper;
 
-//namespace Test;
+    //namespace Test;
 
-//public class Program
-//{
-//    public object RunTest() => new[] { new Source() }.AsQueryable().ProjectWith<Destination>(NonExistenParameter: 123);
-//}
+    //public class Program
+    //{
+    //    public object RunTest() => new[] { new Source() }.AsQueryable().ProjectWith<Destination>(NonExistenParameter: 123);
+    //}
 
-//public class Source
-//{
-//    public int Property { get; set; }
-//}
+    //public class Source
+    //{
+    //    public int Property { get; set; }
+    //}
 
-//public class Destination
-//{
-//    public int Property { get; set; }
-//}";
+    //public class Destination
+    //{
+    //    public int Property { get; set; }
+    //}";
 
-//        return VerifyOnly(source, ignoreSourceErrors: true);
-//    }
+    //        return VerifyOnly(source, ignoreSourceErrors: true);
+    //    }
 }

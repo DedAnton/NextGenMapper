@@ -78,7 +78,7 @@ namespace NextGenMapper
                 _builder.Append(",\r\n");
             }
         }
-        
+
         _builder.Append("\r\n        )");
     }
 

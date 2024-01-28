@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using NextGenMapper.Extensions;
-using NextGenMapper.Mapping.Maps;
+﻿using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Utils;
 using System;
 using System.Collections.Immutable;
@@ -93,7 +91,7 @@ namespace NextGenMapper
 
         if (map.SourceKind.IsArray())
         {
-            
+
             _builder.Append(
                 $"            var sourceCollection = new System.Span<{map.SourceItem}{nullCheck}>(source);\r\n" +
                 $"            var length = sourceCollection.Length;\r\n");
@@ -151,7 +149,7 @@ namespace NextGenMapper
             }
         }
 
-        if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface() || map.DestinationKind.IsImmutableArray() 
+        if (map.DestinationKind.IsList() || map.DestinationKind.IsListInterface() || map.DestinationKind.IsImmutableArray()
             || map.DestinationKind.IsImmutableList() || map.DestinationKind.IsIImmutableList())
         {
             _builder.Append("                destination.Add(sourceCollection[i]");

@@ -16,8 +16,8 @@ internal readonly struct ErrorMap : IEquatable<ErrorMap>
     public string Destination { get; }
     public Diagnostic Diagnostic { get; }
 
-    public bool Equals(ErrorMap other) 
-        => Source == other.Source 
-        && Destination == other.Destination 
+    public bool Equals(ErrorMap other)
+        => Source == other.Source
+        && Destination == other.Destination
         && Diagnostic == other.Diagnostic;
 }

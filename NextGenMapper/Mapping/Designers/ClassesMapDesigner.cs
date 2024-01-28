@@ -19,7 +19,7 @@ internal static partial class MapDesigner
         Location location,
         SemanticModel semanticModel,
         ImmutableList<ITypeSymbol> referencesHistory,
-        ref ValueListBuilder<Map> maps, 
+        ref ValueListBuilder<Map> maps,
         CancellationToken cancellationToken)
     {
         referencesHistory = referencesHistory.Add(source);

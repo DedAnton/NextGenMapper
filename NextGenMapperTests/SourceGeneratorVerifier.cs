@@ -2,7 +2,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using NextGenMapper;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -26,7 +25,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
     public OutputKind OutputKind { get; set; } = OutputKind.DynamicallyLinkedLibrary;
     public abstract string TestGroup { get; }
 
-    public async Task VerifyAndRun(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
+    public async Task VerifyAndRun(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
         => await VerifyAndRun(new[] { source }, caller, ignoreSourceErrors, variant);
 
     public async Task VerifyAndRun(string[] sources, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
@@ -50,7 +49,7 @@ public abstract class SourceGeneratorVerifier : VerifyBase
             Verify(functionResult).UseMySettings(mapResultDirectory, caller, variant));
     }
 
-    public async Task VerifyOnly(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null) 
+    public async Task VerifyOnly(string source, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)
         => await VerifyOnly(new[] { source }, caller, ignoreSourceErrors, variant);
 
     public async Task VerifyOnly(string[] sources, [CallerMemberName] string caller = "test", bool ignoreSourceErrors = false, string? variant = null)

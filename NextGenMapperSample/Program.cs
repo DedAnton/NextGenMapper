@@ -28,7 +28,7 @@ public record EmployeeDTO
     public string? FullName { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
-    public Creation[] Created { get; set;} = Array.Empty<Creation>();
+    public Creation[] Created { get; set; } = Array.Empty<Creation>();
 }
 
 public record Creation(string Name);

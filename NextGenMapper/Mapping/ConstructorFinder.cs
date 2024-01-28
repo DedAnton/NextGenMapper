@@ -21,14 +21,14 @@ namespace NextGenMapper.Mapping
             Dictionary<string, IPropertySymbol> sourceProperties,
             ITypeSymbol destination,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken) 
+            CancellationToken cancellationToken)
             => GetOptimalConstructor(sourceProperties, destination, new HashSet<string>(), semanticModel, cancellationToken);
 
         public static ConstructorForMapping GetOptimalConstructor(
             Dictionary<string, IPropertySymbol> sourceProperties,
             ITypeSymbol destination,
             HashSet<string> userArguments,
-            SemanticModel semanticModel, 
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             var constructors = GetSortedPublicConstructors(destination);
@@ -65,8 +65,8 @@ namespace NextGenMapper.Mapping
         }
 
         public static ReadOnlySpan<Assignment> GetAssignments(
-            IMethodSymbol constructor, 
-            SemanticModel semanticModel, 
+            IMethodSymbol constructor,
+            SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
             if (constructor.IsImplicitlyDeclared)
@@ -92,7 +92,7 @@ namespace NextGenMapper.Mapping
             ReadOnlySpan<Assignment> constructorAssignments,
             Dictionary<string, IPropertySymbol> sourceProperties,
             HashSet<string> userArguments,
-            out MappingError?  error)
+            out MappingError? error)
         {
             error = null;
             var assignmentsByParameter = new Dictionary<string, Assignment>(StringComparer.InvariantCulture);

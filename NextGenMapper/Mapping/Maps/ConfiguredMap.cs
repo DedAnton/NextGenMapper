@@ -45,7 +45,7 @@ internal readonly struct ConfiguredMap : IMap, IEquatable<ConfiguredMap>
             return false;
         }
 
-        for(var i = 0; i < UserArguments.Length;i++)
+        for (var i = 0; i < UserArguments.Length; i++)
         {
             if (UserArguments[i].Type != other.UserArguments[i].Type)
             {

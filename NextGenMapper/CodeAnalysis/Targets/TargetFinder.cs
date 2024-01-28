@@ -14,7 +14,7 @@ internal static class TargetFinder
             return Target.Empty;
         }
 
-        var (isMapMethodInvocation, sourceType, destinationType) = 
+        var (isMapMethodInvocation, sourceType, destinationType) =
             SourceCodeAnalyzer.AnalyzeMapMethod(mapMethodInvocation, semanticModel, cancellationToken);
         if (!isMapMethodInvocation || sourceType is null || destinationType is null)
         {

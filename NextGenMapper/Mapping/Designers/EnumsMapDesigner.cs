@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
@@ -12,10 +11,10 @@ namespace NextGenMapper.Mapping.Designers;
 internal static partial class MapDesigner
 {
     private static void DesignEnumsMap(
-        ITypeSymbol source, 
-        ITypeSymbol destination, 
-        Location location, 
-        ref ValueListBuilder<Map> maps, 
+        ITypeSymbol source,
+        ITypeSymbol destination,
+        Location location,
+        ref ValueListBuilder<Map> maps,
         CancellationToken cancellationToken)
     {
         ReadOnlySpan<EnumField> sourceFields;
@@ -57,7 +56,7 @@ internal static partial class MapDesigner
     {
         var members = enumType.GetMembers().AsSpan();
         var fields = new ValueListBuilder<EnumField>(members.Length);
-        foreach(var member in members)
+        foreach (var member in members)
         {
             if (member is IFieldSymbol fieldSymbol)
             {

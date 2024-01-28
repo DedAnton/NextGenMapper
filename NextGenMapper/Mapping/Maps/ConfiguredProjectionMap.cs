@@ -17,7 +17,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
         Location location)
     {
         Source = source;
-        Destination = destination; 
+        Destination = destination;
         InitializerProperties = initializerProperties;
         UserArguments = userArguments;
         MockMethod = mockMethod;

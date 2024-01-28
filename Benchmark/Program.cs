@@ -1,8 +1,4 @@
 ﻿using Benchmark.Benchmarks;
-using Benchmark.Benchmarks.Experiments;
-using BenchmarkDotNet.Running;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Benchmark;
 

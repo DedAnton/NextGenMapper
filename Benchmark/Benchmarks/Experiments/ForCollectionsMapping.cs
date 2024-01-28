@@ -1,12 +1,8 @@
-﻿using Benchmark.Utils;
-using BenchmarkDotNet.Engines;
-using Microsoft.Diagnostics.Runtime.Utilities;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System;
+﻿using BenchmarkDotNet.Engines;
 using System.Collections;
 using System.Reflection;
-using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Benchmark.Benchmarks.Experiments;
 
@@ -75,7 +71,7 @@ public class ForCollectionsMapping
     public List<int> MapEnumerableToList()
     {
         var output = new List<int>();
-        foreach(var item in enumerable)
+        foreach (var item in enumerable)
         {
             output.Add(item);
         }
@@ -778,12 +774,12 @@ internal static class Extensions
         {
             span = Unsafe.As<TSource[]>(source);
         }
-        #if NET5_0_OR_GREATER
+#if NET5_0_OR_GREATER
         else if (source.GetType() == typeof(List<TSource>))
         {
             span = CollectionsMarshal.AsSpan(Unsafe.As<List<TSource>>(source));
         }
-        #endif
+#endif
         else
         {
             span = default;

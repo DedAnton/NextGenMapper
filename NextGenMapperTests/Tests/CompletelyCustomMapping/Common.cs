@@ -29,7 +29,7 @@ public class Destination
 }
 ";
 
-        var source2 = 
+        var source2 =
 @"using NextGenMapper;
 using Test;
 

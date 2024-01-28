@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
@@ -58,7 +57,7 @@ internal static class ConfiguredMapDesigner
     {
         var sourceProperties = source.GetPublicReadablePropertiesDictionary();
 
-        var (constructor, assignments, error) = 
+        var (constructor, assignments, error) =
             ConstructorFinder.GetOptimalConstructor(sourceProperties, destination, arguments, semanticModel, cancellationToken);
         if (error is MultipleInitializationError multipleInitializationError)
         {
@@ -200,11 +199,11 @@ internal static class ConfiguredMapDesigner
         }
 
         var mockMethods = DesignClassMapMockMethods(
-            source, 
-            destination, 
+            source,
+            destination,
             destinationProperties,
-            configuredMapArgumentsArray.AsSpan(), 
-            isCompleteMethod, 
+            configuredMapArgumentsArray.AsSpan(),
+            isCompleteMethod,
             semanticModel,
             cancellationToken);
 
@@ -245,7 +244,7 @@ internal static class ConfiguredMapDesigner
         var constructors = destination.GetConstructors();
         var mockMethods = new ValueListBuilder<ConfiguredMapMockMethod>(constructors.Length);
         var isDuplicatedMockRemoved = false;
-        foreach(var constructor in constructors)
+        foreach (var constructor in constructors)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (constructor.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal or Accessibility.ProtectedOrInternal)

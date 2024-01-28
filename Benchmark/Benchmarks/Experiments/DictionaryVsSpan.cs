@@ -46,11 +46,11 @@ public class DictionaryVsSpan
     {
         foreach (var item in array.AsSpan())
         {
-            foreach(var item2 in array.AsSpan())
-            if (item.Equals(item2, StringComparison.InvariantCulture))
-            {
-                break;
-            }
+            foreach (var item2 in array.AsSpan())
+                if (item.Equals(item2, StringComparison.InvariantCulture))
+                {
+                    break;
+                }
         }
     }
 }

@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Benchmark.Benchmarks.Experiments;
 
 [SimpleJob(RuntimeMoniker.Net60)]
@@ -24,7 +18,7 @@ public class StringComparision
     public void SetupBenchmark()
     {
         Span<char> charArray = stackalloc char[StringLength];
-        for(int i = 0; i < charArray.Length; i++)
+        for (int i = 0; i < charArray.Length; i++)
         {
             charArray[i] = 'a';
         }
@@ -61,7 +55,7 @@ public class StringComparision
     [BenchmarkCategory("CharArray"), Benchmark]
     public bool Enumeration_EqualOperator()
     {
-        for(var i = 0; i < charArrayA.Length; i++)
+        for (var i = 0; i < charArrayA.Length; i++)
         {
             if (charArrayA[i] != charArrayB[i])
             {

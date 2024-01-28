@@ -14,15 +14,15 @@ internal static class SyntaxGenerator
     private static MethodDeclarationSyntax GeneratePartialMapMethod(int propertiesCount)
     {
         var nodes = new List<SyntaxNodeOrToken>();
-        for(var i = 1; i <= propertiesCount * 2; i+=2)
+        for (var i = 1; i <= propertiesCount * 2; i += 2)
         {
             nodes.Add(SyntaxFactory.AssignmentExpression(
                             SyntaxKind.SimpleAssignmentExpression,
-                            SyntaxFactory.IdentifierName($"Property{i}{i+1}"),
+                            SyntaxFactory.IdentifierName($"Property{i}{i + 1}"),
                             SyntaxFactory.BinaryExpression(
                                 SyntaxKind.AddExpression,
                                 SyntaxFactory.IdentifierName($"Property{i}"),
-                                SyntaxFactory.IdentifierName($"Property{i+1}"))));
+                                SyntaxFactory.IdentifierName($"Property{i + 1}"))));
             nodes.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
         }
 
@@ -45,7 +45,7 @@ internal static class SyntaxGenerator
                     SyntaxFactory.IdentifierName("UserDestination"))
                 .WithInitializer(
                     SyntaxFactory.InitializerExpression(
-                        SyntaxKind.ObjectInitializerExpression, 
+                        SyntaxKind.ObjectInitializerExpression,
                         SyntaxFactory.SeparatedList<ExpressionSyntax>(nodes)))))
         .WithSemicolonToken(
             SyntaxFactory.Token(SyntaxKind.SemicolonToken))
@@ -68,7 +68,7 @@ internal static class SyntaxGenerator
                     SyntaxFactory.IdentifierName("Property0")))));
         nodes.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
 
-        for (var i = 1; i <= propertiesCount; i ++)
+        for (var i = 1; i <= propertiesCount; i++)
         {
             nodes.Add(SyntaxFactory.Argument(
                             SyntaxFactory.LiteralExpression(
@@ -103,10 +103,10 @@ internal static class SyntaxGenerator
     {
         var fromProperties = new List<string>();
         var toProperties = new List<string>();
-        for (int i = 1; i <= propertiesCount * 2; i+=2)
+        for (int i = 1; i <= propertiesCount * 2; i += 2)
         {
             fromProperties.Add($"public int Property{i} {{ get; set; }}");
-            fromProperties.Add($"public int Property{i+1} {{ get; set; }}");
+            fromProperties.Add($"public int Property{i + 1} {{ get; set; }}");
 
             toProperties.Add($"public int Property{i}{i + 1} {{ get; set; }}");
         }

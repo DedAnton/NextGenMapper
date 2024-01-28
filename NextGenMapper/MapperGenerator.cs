@@ -426,7 +426,7 @@ public class MapperGenerator : IIncrementalGenerator
         context.ReportDiagnostics(NotNamedArgumentsDiagnostics);
 
         var maps = filteredTargets
-            .SelectMany(static (x, ct) =>ConfiguredProjectionMapDesigner.DesingConfiguredProjectionMap(x, ct));
+            .SelectMany(static (x, ct) => ConfiguredProjectionMapDesigner.DesingConfiguredProjectionMap(x, ct));
 
         var mapsDiagnostics = maps
             .Where(static x => x.Type is MapType.Error)

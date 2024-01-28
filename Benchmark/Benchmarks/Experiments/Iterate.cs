@@ -38,7 +38,7 @@ public class Iterate
     public int ImmutableArrayFor()
     {
         var sum = 0;
-        for(var i = 0; i < Length; i++)
+        for (var i = 0; i < Length; i++)
         {
             sum += immutableArray[i];
         }

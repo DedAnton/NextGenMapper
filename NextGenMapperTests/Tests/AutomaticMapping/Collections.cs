@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace NextGenMapperTests.Tests.AutomaticMapping;
+﻿namespace NextGenMapperTests.Tests.AutomaticMapping;
 
 [TestClass]
 public class Collections : SourceGeneratorVerifier

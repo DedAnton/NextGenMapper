@@ -16,8 +16,8 @@ internal readonly struct Target
 
     private Target(
         TargetType type,
-        MapTarget classMapTarget = default, 
-        ConfiguredMapTarget configuredMapTarget = default, 
+        MapTarget classMapTarget = default,
+        ConfiguredMapTarget configuredMapTarget = default,
         UserMapTarget userMapTarget = default,
         ProjectionTarget projectionTarget = default,
         ConfiguredProjectionTarget configuredProjectionTarget = default,
@@ -36,17 +36,17 @@ internal readonly struct Target
         => new(TargetType.Map, classMapTarget: new MapTarget(source, destination, location, semanticModel));
 
     public static Target ConfiguredMap(
-        ITypeSymbol source, 
-        ITypeSymbol destination, 
-        SeparatedSyntaxList<ArgumentSyntax> arguments, 
-        bool isCompleteMethod, 
-        Location location, 
-        SemanticModel semanticModel) 
+        ITypeSymbol source,
+        ITypeSymbol destination,
+        SeparatedSyntaxList<ArgumentSyntax> arguments,
+        bool isCompleteMethod,
+        Location location,
+        SemanticModel semanticModel)
         => new(
-            TargetType.ConfiguredMap, 
+            TargetType.ConfiguredMap,
             configuredMapTarget: new ConfiguredMapTarget(source, destination, arguments, isCompleteMethod, location, semanticModel));
 
-    public static Target UserMap(ITypeSymbol source, ITypeSymbol destination) 
+    public static Target UserMap(ITypeSymbol source, ITypeSymbol destination)
         => new(TargetType.UserMap, userMapTarget: new UserMapTarget(source, destination));
 
     public static Target ProjectionMap(ITypeSymbol source, ITypeSymbol destination, Location location)
