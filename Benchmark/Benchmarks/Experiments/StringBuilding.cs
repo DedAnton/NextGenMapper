@@ -1,5 +1,4 @@
-﻿using NextGenMapper.CodeGeneration;
-using NextGenMapper.Utils;
+﻿using NextGenMapper.Utils;
 using System.Text;
 
 namespace Benchmark.Benchmarks.Experiments;

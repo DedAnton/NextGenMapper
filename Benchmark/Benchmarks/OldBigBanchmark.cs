@@ -1,7 +1,6 @@
 ﻿using Benchmark.Utils;
 using Microsoft.CodeAnalysis.CSharp;
 using NextGenMapper;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
 

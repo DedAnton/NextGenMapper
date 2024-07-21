@@ -132,3 +132,10 @@ The trick is that the method signatures are identical, but the generated method 
 At the moment, all the main functionality has been added. But the work isn't over yet.
 
 All tasks can be viewed on the [project board](https://github.com/users/DedAnton/projects/3)
+
+# Thanks
+Thanks JetBrains for support ([Licenses for Open Source Development](https://www.jetbrains.com/community/opensource/#support))
+
+![image](https://github.com/DedAnton/NextGenMapper/assets/36799941/11ebcaf2-016b-4044-89a6-a9d446b29056)
+
+

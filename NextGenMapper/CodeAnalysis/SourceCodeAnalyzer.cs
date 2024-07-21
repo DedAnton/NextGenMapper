@@ -10,7 +10,7 @@ namespace NextGenMapper.CodeAnalysis;
 internal static class SourceCodeAnalyzer
 {
     public static bool IsMapMethodInvocationSyntaxNode(SyntaxNode node)
-    => node is InvocationExpressionSyntax 
+    => node is InvocationExpressionSyntax
     {
         Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
         {
@@ -84,8 +84,8 @@ internal static class SourceCodeAnalyzer
     };
 
     public static MapMethodAnalysisResult AnalyzeMapMethod(
-        InvocationExpressionSyntax mapMethodInvocation, 
-        SemanticModel semanticModel, 
+        InvocationExpressionSyntax mapMethodInvocation,
+        SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
         var sourceTypeExpression = mapMethodInvocation.Expression switch
@@ -123,7 +123,7 @@ internal static class SourceCodeAnalyzer
     }
 
     public static ConfiguredMapMethodAnalysisResult AnalyzeConfiguredMapMethod(
-        InvocationExpressionSyntax configuredMapMethodInvocation, 
+        InvocationExpressionSyntax configuredMapMethodInvocation,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
@@ -171,7 +171,7 @@ internal static class SourceCodeAnalyzer
     }
 
     public static UserMapMethodAnalysisResult AnalyzeUserMapMethod(
-        MethodDeclarationSyntax userMapMethodDeclaration, 
+        MethodDeclarationSyntax userMapMethodDeclaration,
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
@@ -216,7 +216,7 @@ internal static class SourceCodeAnalyzer
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
-            && (method.ReducedFrom?.ToDisplayString() 
+            && (method.ReducedFrom?.ToDisplayString()
                 is StartMapperSource.NonGenericIQueryableProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
             && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol
@@ -255,8 +255,8 @@ internal static class SourceCodeAnalyzer
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
-            && (method.ReducedFrom?.ToDisplayString() 
-                is StartMapperSource.ProjectionMethodFullName 
+            && (method.ReducedFrom?.ToDisplayString()
+                is StartMapperSource.ProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableProjectionMethodFullName)
             && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol
             {
@@ -313,7 +313,7 @@ internal static class SourceCodeAnalyzer
         if (invocationMethodSymbol is IMethodSymbol method
             && method.IsExtensionMethod
             && method.MethodKind == MethodKind.ReducedExtension
-            && (method.ReducedFrom?.ToDisplayString() 
+            && (method.ReducedFrom?.ToDisplayString()
                 is StartMapperSource.ConfiguredProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
             && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol

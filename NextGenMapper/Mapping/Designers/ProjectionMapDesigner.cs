@@ -1,14 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
+using NextGenMapper.Errors;
 using NextGenMapper.Extensions;
 using NextGenMapper.Mapping.Maps;
 using NextGenMapper.Mapping.Maps.Models;
 using NextGenMapper.Utils;
-using System.Collections.Immutable;
 using System;
 using System.Threading;
-using NextGenMapper.Errors;
 
 namespace NextGenMapper.Mapping.Designers;
 
@@ -107,7 +106,7 @@ internal static class ProjectionMapDesigner
         if (initializerProperties.Length == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
-   
+
             return Map.Error(source, destination, diagnostic);
         }
 

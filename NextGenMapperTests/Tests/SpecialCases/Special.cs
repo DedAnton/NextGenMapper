@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using NextGenMapper;
+﻿using NextGenMapper;
 
 namespace NextGenMapperTests.Tests.SpecialCases;
 

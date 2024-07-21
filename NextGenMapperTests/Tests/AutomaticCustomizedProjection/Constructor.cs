@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace NextGenMapperTests.Tests.AutomaticCustomizedProjection;
+﻿namespace NextGenMapperTests.Tests.AutomaticCustomizedProjection;
 
 [TestClass]
 public class Constructor : SourceGeneratorVerifier

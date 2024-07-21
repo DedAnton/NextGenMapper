@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Benchmark.Benchmarks.Experiments;
+﻿namespace Benchmark.Benchmarks.Experiments;
 
 [MemoryDiagnoser]
 [SimpleJob(RuntimeMoniker.Net60)]

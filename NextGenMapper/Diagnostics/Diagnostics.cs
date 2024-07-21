@@ -100,13 +100,13 @@ namespace NextGenMapper
             string toProperty,
             string toType)
             => Diagnostic.Create(
-                MappingFunctionForPropertiesNotFoundDescriptor, 
-                location, 
-                fromContainedType, 
-                fromProperty, 
-                fromType, 
-                toContainedType, 
-                toProperty, 
+                MappingFunctionForPropertiesNotFoundDescriptor,
+                location,
+                fromContainedType,
+                fromProperty,
+                fromType,
+                toContainedType,
+                toProperty,
                 toType);
         public static readonly DiagnosticDescriptor MappingFunctionForPropertiesNotFoundDescriptor = new(
             id: "NGM009",
@@ -157,7 +157,7 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
 
-        public static Diagnostic StructNotSupported(Location location) 
+        public static Diagnostic StructNotSupported(Location location)
             => Diagnostic.Create(StructNotSupportedDescriptor, location);
         public static readonly DiagnosticDescriptor StructNotSupportedDescriptor = new(
             id: "NGM014",
@@ -168,7 +168,7 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
 
-        public static Diagnostic MappedTypesEquals(Location location) 
+        public static Diagnostic MappedTypesEquals(Location location)
             => Diagnostic.Create(MappedTypesEqualsDescriptor, location);
         public static readonly DiagnosticDescriptor MappedTypesEqualsDescriptor = new(
             id: "NGM015",
@@ -242,7 +242,7 @@ namespace NextGenMapper
 
 
         public static Diagnostic PossiblePropertyNullReference(
-            Location location, 
+            Location location,
             ITypeSymbol fromContainedType,
             string fromProperty,
             ITypeSymbol fromType,
@@ -422,10 +422,10 @@ namespace NextGenMapper
             isEnabledByDefault: true);
 
         public static Diagnostic MultipleInitializationError(
-            Location location, 
-            ITypeSymbol from, 
-            ITypeSymbol to, 
-            string parameterName, 
+            Location location,
+            ITypeSymbol from,
+            ITypeSymbol to,
+            string parameterName,
             string initializedPropertiesList)
             => Diagnostic.Create(MultipleInitializationErrorDescriptor, location, from, to, parameterName, initializedPropertiesList);
         public static readonly DiagnosticDescriptor MultipleInitializationErrorDescriptor = new(

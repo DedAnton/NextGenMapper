@@ -19,7 +19,7 @@ namespace NextGenMapper.Extensions
 
         public static SyntaxNode? GetFirstDeclarationSyntax(this ISymbol symbol)
         {
-            if (symbol.Locations.FirstOrDefault() is Location location 
+            if (symbol.Locations.FirstOrDefault() is Location location
                 && location.SourceTree is not null)
             {
                 return location.SourceTree.GetCompilationUnitRoot().FindNode(location.SourceSpan);

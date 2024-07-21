@@ -1,6 +1,6 @@
-﻿using System;
+﻿using NextGenMapper.Mapping.Maps.Models;
+using System;
 using System.Collections.Immutable;
-using NextGenMapper.Mapping.Maps.Models;
 
 namespace NextGenMapper.Mapping.Maps;
 

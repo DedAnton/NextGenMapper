@@ -24,7 +24,7 @@ internal static partial class MapDesigner
         {
             throw;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             var diagnostic = Diagnostics.MapperInternalError(target.Location, ex);
             return ImmutableArray.Create(Map.Error(target.Source, target.Destination, diagnostic));
@@ -32,10 +32,10 @@ internal static partial class MapDesigner
     }
 
     internal static void DesignMaps(
-        ITypeSymbol source, 
-        ITypeSymbol destination, 
-        Location location, 
-        SemanticModel semanticModel, 
+        ITypeSymbol source,
+        ITypeSymbol destination,
+        Location location,
+        SemanticModel semanticModel,
         ImmutableList<ITypeSymbol> referencesHistory,
         ref ValueListBuilder<Map> maps,
         CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ internal static partial class MapDesigner
         if (SourceCodeAnalyzer.IsTypesAreCollections(source, destination))
         {
             DesignCollectionsMap(source, destination, location, semanticModel, referencesHistory, ref maps, cancellationToken);
-        } 
+        }
         else if (SourceCodeAnalyzer.IsTypesAreClasses(source, destination))
         {
             DesignClassesMaps(source, destination, location, semanticModel, referencesHistory, ref maps, cancellationToken);

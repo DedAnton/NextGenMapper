@@ -40,7 +40,7 @@ public class Sorting
     public ImmutableArray<int> Sort_IComparer() => immutableArray.Sort(comparerOne);
     public class IntComparerOne : IComparer<int>
     {
-        public int Compare(int x, int y) => x > y ? 1 : y > x ? -1 : 0;  
+        public int Compare(int x, int y) => x > y ? 1 : y > x ? -1 : 0;
     }
 
     [BenchmarkCategory("Sorting"), Benchmark]

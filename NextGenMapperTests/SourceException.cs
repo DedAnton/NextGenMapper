@@ -3,8 +3,8 @@
 namespace NextGenMapperTests;
 internal class SourceException : Exception
 {
-    public SourceException(Diagnostic[] diagnostics) 
-        : base($"Source code compiled with errors ({diagnostics.Length}):\r\n\r\n" 
+    public SourceException(Diagnostic[] diagnostics)
+        : base($"Source code compiled with errors ({diagnostics.Length}):\r\n\r\n"
             + string.Join("\r\n", diagnostics.Select(x => x.GetMessage())))
     {
         Diagnostics = diagnostics;

@@ -73,7 +73,7 @@ public class SpanTests
     [BenchmarkCategory("Contains"), Benchmark]
     public bool Contains_Array()
     {
-        foreach(var item in stringArray)
+        foreach (var item in stringArray)
         {
             if (item.Equals(testString, StringComparison.InvariantCultureIgnoreCase))
             {
