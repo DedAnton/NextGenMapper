@@ -12,7 +12,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsMapMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax
+        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -24,7 +24,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsConfiguredMapMethodInvocationSynaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax
+        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -36,7 +36,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsProjectionMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax
+        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -48,7 +48,7 @@ internal static class SourceCodeAnalyzer
     public static bool IsConfiguredProjectionMethodInvocationSyntaxNode(SyntaxNode node)
     => node is InvocationExpressionSyntax
     {
-        Expression: MemberAccessExpressionSyntax
+        Expression: MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
         {
             Name: GenericNameSyntax
             {
@@ -88,14 +88,26 @@ internal static class SourceCodeAnalyzer
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
+        var sourceTypeExpression = mapMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression,
+            MemberBindingExpressionSyntax => (mapMethodInvocation.Parent as ConditionalAccessExpressionSyntax)?.Expression,
+            _ => null
+        };
+
+        if (sourceTypeExpression is null)
+        {
+            return MapMethodAnalysisResult.Fail();
+        }
+
+        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
+            && semanticModel.GetSymbolInfo(mapMethodInvocation.Expression, cancellationToken).Symbol is IMethodSymbol
             {
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
             } method
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapMethodFullName
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol
+            && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is ITypeSymbol
             {
                 TypeKind: not TypeKind.Error
             } source
@@ -115,12 +127,19 @@ internal static class SourceCodeAnalyzer
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (configuredMapMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        var sourceTypeExpression = configuredMapMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression,
+            MemberBindingExpressionSyntax => (configuredMapMethodInvocation.Parent as ConditionalAccessExpressionSyntax)?.Expression,
+            _ => null
+        };
+
+        if (sourceTypeExpression is null)
         {
             return ConfiguredMapMethodAnalysisResult.Fail();
         }
 
-        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken);
+        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(configuredMapMethodInvocation.Expression, cancellationToken);
         var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
 
         var isCompleteMethod = false;
@@ -142,7 +161,7 @@ internal static class SourceCodeAnalyzer
             && method.IsExtensionMethod
             && method.MethodKind == MethodKind.ReducedExtension
             && method.ReducedFrom?.ToDisplayString() == StartMapperSource.MapWithMethodFullName
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
+            && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is ITypeSymbol { TypeKind: not TypeKind.Error } source
             && method.ReturnType is ITypeSymbol { TypeKind: not TypeKind.Error } destination)
         {
             return ConfiguredMapMethodAnalysisResult.Success(source, destination, isCompleteMethod);
@@ -180,8 +199,19 @@ internal static class SourceCodeAnalyzer
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
+        var sourceTypeExpression = mapMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression,
+            MemberBindingExpressionSyntax => (mapMethodInvocation.Parent as ConditionalAccessExpressionSyntax)?.Expression,
+            _ => null
+        };
+
+        if (sourceTypeExpression is null)
+        {
+            return false;
+        }
+
+        if (semanticModel.GetSymbolInfo(mapMethodInvocation.Expression, cancellationToken).Symbol is IMethodSymbol
             {
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
@@ -189,7 +219,7 @@ internal static class SourceCodeAnalyzer
             && (method.ReducedFrom?.ToDisplayString()
                 is StartMapperSource.NonGenericIQueryableProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
                 IsGenericType: false,
@@ -208,8 +238,19 @@ internal static class SourceCodeAnalyzer
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (mapMethodInvocation.Expression is MemberAccessExpressionSyntax memberAccessExpression
-            && semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken).Symbol is IMethodSymbol
+        var sourceTypeExpression = mapMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression,
+            MemberBindingExpressionSyntax => (mapMethodInvocation.Parent as ConditionalAccessExpressionSyntax)?.Expression,
+            _ => null
+        };
+
+        if (sourceTypeExpression is null)
+        {
+            return MapMethodAnalysisResult.Fail();
+        }
+
+        if (semanticModel.GetSymbolInfo(mapMethodInvocation.Expression, cancellationToken).Symbol is IMethodSymbol
             {
                 IsExtensionMethod: true,
                 MethodKind: MethodKind.ReducedExtension
@@ -217,7 +258,7 @@ internal static class SourceCodeAnalyzer
             && (method.ReducedFrom?.ToDisplayString()
                 is StartMapperSource.ProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableProjectionMethodFullName)
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
                 IsGenericType: true,
@@ -239,12 +280,19 @@ internal static class SourceCodeAnalyzer
         SemanticModel semanticModel,
         CancellationToken cancellationToken)
     {
-        if (configuredMapMethodInvocation.Expression is not MemberAccessExpressionSyntax memberAccessExpression)
+        var sourceTypeExpression = configuredMapMethodInvocation.Expression switch
+        {
+            MemberAccessExpressionSyntax memberAccessExpression => memberAccessExpression.Expression,
+            MemberBindingExpressionSyntax => (configuredMapMethodInvocation.Parent as ConditionalAccessExpressionSyntax)?.Expression,
+            _ => null
+        };
+
+        if (sourceTypeExpression is null)
         {
             return ConfiguredMapMethodAnalysisResult.Fail();
         }
 
-        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(memberAccessExpression, cancellationToken);
+        var invocationMethodSymbolInfo = semanticModel.GetSymbolInfo(configuredMapMethodInvocation.Expression, cancellationToken);
         var invocationMethodSymbol = invocationMethodSymbolInfo.Symbol;
 
         var isCompleteMethod = false;
@@ -268,7 +316,7 @@ internal static class SourceCodeAnalyzer
             && (method.ReducedFrom?.ToDisplayString()
                 is StartMapperSource.ConfiguredProjectionMethodFullName
                 or StartMapperSource.NonGenericIQueryableConfiguredProjectionMethodFullName)
-            && semanticModel.GetTypeInfo(memberAccessExpression.Expression, cancellationToken).Type is INamedTypeSymbol
+            && semanticModel.GetTypeInfo(sourceTypeExpression, cancellationToken).Type is INamedTypeSymbol
             {
                 TypeKind: not TypeKind.Error,
                 IsGenericType: true,
