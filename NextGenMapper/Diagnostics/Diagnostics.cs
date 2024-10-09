@@ -445,5 +445,15 @@ namespace NextGenMapper
             category: "NextGenMapper",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static Diagnostic RegularAndLambdaArgumentsInProjection(Location location, ITypeSymbol from, ITypeSymbol to)
+            => Diagnostic.Create(RegularAndLambdaArgumentsInProjectionDescriptor, location, from, to);
+        public static readonly DiagnosticDescriptor RegularAndLambdaArgumentsInProjectionDescriptor = new(
+            id: "NGM041",
+            title: "Do not use regular arguments with lambda arguments for projection",
+            messageFormat: "Do not use regular arguments with lambda arguments for projection. Use lambda for all arguments instead. Projection from {1} to {2}",
+            category: "NextGenMapper",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

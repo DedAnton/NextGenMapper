@@ -147,9 +147,9 @@ $@"        internal static {map.Destination} MapWith<To>
 
     private void ConstructorArgument(PropertyMap propertyMap)
     {
-        if (propertyMap.UserArgumentName is not null)
+        if (propertyMap.UserArgument is not null)
         {
-            _builder.Append(propertyMap.UserArgumentName);
+            _builder.Append(propertyMap.UserArgument);
         }
         else
         {
@@ -167,9 +167,9 @@ $@"        internal static {map.Destination} MapWith<To>
 
     private void InitializerAssignment(PropertyMap propertyMap)
     {
-        if (propertyMap.UserArgumentName is not null)
+        if (propertyMap.UserArgument is not null)
         {
-            _builder.Append($"{propertyMap.DestinationName} = {propertyMap.UserArgumentName}");
+            _builder.Append($"{propertyMap.DestinationName} = {propertyMap.UserArgument}");
         }
         else
         {

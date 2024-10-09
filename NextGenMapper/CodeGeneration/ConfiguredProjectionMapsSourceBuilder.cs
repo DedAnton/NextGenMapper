@@ -14,7 +14,9 @@ internal ref struct ConfiguredProjectionMapsSourceBuilder
     {
         _builder.Append(
 @"#nullable enable
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace NextGenMapper
 {
@@ -58,7 +60,14 @@ namespace NextGenMapper
             this IQueryable<{map.Source}> source");
         foreach (var argument in map.UserArguments)
         {
-            _builder.Append($",\r\n            {argument.Type} {argument.Name}");
+            if (map.IsUsedLambdaArguments)
+            {
+                _builder.Append($",\r\n            Expression<Func<{map.Source}, {argument.Type}>> {argument.Name}");
+            }
+            else
+            {
+                _builder.Append($",\r\n            {argument.Type} {argument.Name}");
+            }
         }
         _builder.Append("\r\n        )");
     }
@@ -93,9 +102,9 @@ namespace NextGenMapper
 
     private void InitializerAssignment(PropertyMap propertyMap)
     {
-        if (propertyMap.UserArgumentName is not null)
+        if (propertyMap.UserArgument is not null)
         {
-            _builder.Append($"{propertyMap.DestinationName} = {propertyMap.UserArgumentName}");
+            _builder.Append($"{propertyMap.DestinationName} = {propertyMap.UserArgument}");
         }
         else
         {
@@ -107,7 +116,9 @@ namespace NextGenMapper
     {
         _builder.Append(
 @"#nullable enable
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace NextGenMapper
 {
@@ -117,7 +128,7 @@ namespace NextGenMapper
         var counter = 1;
         foreach (var mockMethod in mockMethods)
         {
-            GenerateClassMapWithMockMethod(mockMethod);
+            GenerateClassProjectMockMethod(mockMethod);
             if (counter < mockMethods.Length)
             {
                 _builder.Append("\r\n\r\n");
@@ -130,7 +141,7 @@ namespace NextGenMapper
         return _builder.ToString();
     }
 
-    private void GenerateClassMapWithMockMethod(ConfiguredMapMockMethod mockMethod)
+    private void GenerateClassProjectMockMethod(ConfiguredMapMockMethod mockMethod)
     {
         _builder.Append($@"        internal static IQueryable<{mockMethod.Destination}> ProjectWith<To>
         (
@@ -138,6 +149,17 @@ namespace NextGenMapper
         foreach (var parameter in mockMethod.Parameters)
         {
             _builder.Append($",\r\n            {parameter.Type} {parameter.Name} = default!");
+        }
+        _builder.Append("\r\n        )\r\n        {\r\n            ");
+        _builder.Append("throw new System.NotImplementedException(\"This method is a mock and is not intended to be called\");\r\n        }");
+
+        _builder.Append("\r\n\r\n");
+        _builder.Append($@"        internal static IQueryable<{mockMethod.Destination}> ProjectWith<To>
+        (
+            this IQueryable<{mockMethod.Source}> source");
+        foreach (var parameter in mockMethod.Parameters)
+        {
+            _builder.Append($",\r\n            Expression<Func<{mockMethod.Source}, {parameter.Type}>> {parameter.Name} = default!");
         }
         _builder.Append("\r\n        )\r\n        {\r\n            ");
         _builder.Append("throw new System.NotImplementedException(\"This method is a mock and is not intended to be called\");\r\n        }");

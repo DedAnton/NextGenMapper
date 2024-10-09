@@ -30,7 +30,7 @@ public class Destination
     public int ForMapWith { get; set; }
 }";
 
-        return VerifyOnly(source);
+        return VerifyOnly(source, ignoreSourceErrors: true);
     }
 
     [TestMethod]
@@ -157,6 +157,37 @@ public class Destination
 }";
 
         return VerifyOnly(source, ignoreSourceErrors: true);
+    }
+
+    [TestMethod]
+    public Task LambdaArgument_ShouldMap()
+    {
+        var source =
+@"using NextGenMapper;
+using System.Linq;
+
+namespace Test;
+
+public class Program
+{    
+    public object RunTest() => new[] { new Source() }.AsQueryable().ProjectWith<Destination>(ForMapWith1: x => x.Property1 + 10, ForMapWith2: x => x.Property2 * 3);
+}
+
+public class Source
+{
+    public int Property1 { get; set; } = 1;
+    public int Property2 { get; set; } = 2;
+}
+
+public class Destination
+{
+    public int Property1 { get; set; }
+    public int Property2 { get; set; }
+    public int ForMapWith1 { get; set; }
+    public int ForMapWith2 { get; set; }
+}";
+
+        return VerifyAndRun(source);
     }
 
     //    [TestMethod]

@@ -1,0 +1,8 @@
+﻿[
+  {
+    Property1: 1,
+    Property2: 2,
+    ForMapWith1: 11,
+    ForMapWith2: 6
+  }
+]
