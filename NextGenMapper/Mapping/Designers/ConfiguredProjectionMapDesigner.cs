@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using NextGenMapper.CodeAnalysis;
 using NextGenMapper.CodeAnalysis.Targets.MapTargets;
 using NextGenMapper.Errors;
@@ -79,16 +81,36 @@ internal static class ConfiguredProjectionMapDesigner
 
         var initializerProperties = new ValueListBuilder<PropertyMap>(destinationProperties.Length);
         var configuredMapArguments = new ValueListBuilder<NameTypePair>(arguments.Count);
+        var isUsedLambdaArguments = false;
+        var isUsedRegularArguments = false;
         foreach (var destinationProperty in destinationProperties)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var destinationPropertyType = destinationProperty.Type.ToNotNullableString();
             if (userArgumentsHashSet.Contains(destinationProperty.Name))
             {
-                var propertyMap = CreateUserProvidedProeprtyMap(destinationProperty.Name, destinationPropertyType);
-                initializerProperties.Append(propertyMap);
-
                 configuredMapArguments.Append(new NameTypePair(destinationProperty.Name, destinationPropertyType));
+
+                if (arguments
+                    .First(x => x?.NameColon?.Name.Identifier.ValueText == destinationProperty.Name)
+                    .Expression is SimpleLambdaExpressionSyntax lambdaArgument)
+                {
+                    isUsedLambdaArguments = true;
+                    var argumentBody = lambdaArgument.Body;
+                    if (lambdaArgument.Parameter.Identifier.Text != "x")
+                    {
+                        var rewriter = new ParameterRewriter(lambdaArgument.Parameter.Identifier.Text, "test");
+                        argumentBody = (CSharpSyntaxNode)rewriter.Visit(argumentBody);
+                    }
+                    var propertyMap = CreateUserProvidedProeprtyMap(destinationProperty.Name, argumentBody.ToString(), destinationPropertyType);
+                    initializerProperties.Append(propertyMap);
+                }
+                else
+                {
+                    isUsedRegularArguments = true;
+                    var propertyMap = CreateUserProvidedProeprtyMap(destinationProperty.Name, destinationPropertyType);
+                    initializerProperties.Append(propertyMap);
+                }
             }
             else
             {
@@ -97,14 +119,14 @@ internal static class ConfiguredProjectionMapDesigner
                     if (SourceCodeAnalyzer.IsTypesAreEquals(sourceProperty.Type, destinationProperty.Type))
                     {
                         var propertyMap = new PropertyMap(
-                        sourceProperty.Name,
-                        destinationProperty.Name,
-                        sourceProperty.Type.ToNotNullableString(),
-                        destinationPropertyType,
-                        sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                        destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
-                        isTypesEquals: true,
-                        hasImplicitConversion: true);
+                            sourceProperty.Name,
+                            destinationProperty.Name,
+                            sourceProperty.Type.ToNotNullableString(),
+                            destinationPropertyType,
+                            sourceProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
+                            destinationProperty.Type.NullableAnnotation == NullableAnnotation.Annotated,
+                            isTypesEquals: true,
+                            hasImplicitConversion: true);
 
                         if (propertyMap.IsSourceNullable && !propertyMap.IsDestinationNullable)
                         {
@@ -130,6 +152,14 @@ internal static class ConfiguredProjectionMapDesigner
         if (initializerProperties.Length == 0)
         {
             var diagnostic = Diagnostics.NoPropertyMatches(location, source, destination);
+            maps.Append(Map.Error(source, destination, diagnostic));
+
+            return maps.ToImmutableArray();
+        }
+
+        if (isUsedRegularArguments && isUsedLambdaArguments)
+        {
+            var diagnostic = Diagnostics.RegularAndLambdaArgumentsInProjection(location, source, destination);
             maps.Append(Map.Error(source, destination, diagnostic));
 
             return maps.ToImmutableArray();
@@ -162,6 +192,7 @@ internal static class ConfiguredProjectionMapDesigner
             destination.ToNotNullableString(),
             initializerProperties.ToImmutableArray(),
             configuredMapArguments.ToImmutableArray(),
+            isUsedLambdaArguments,
             mockMethod,
             isCompleteMethod,
             location);
@@ -181,6 +212,18 @@ internal static class ConfiguredProjectionMapDesigner
             true,
             true,
             userArgumentName);
+
+    private static PropertyMap CreateUserProvidedProeprtyMap(string targetPropertyName, string userArgumentExpression, string userArgumentType)
+        => new(
+            targetPropertyName,
+            targetPropertyName,
+            userArgumentType,
+            userArgumentType,
+            false,
+            false,
+            true,
+            true,
+            userArgumentExpression);
 
     private static ConfiguredMapMockMethod? DesignClassMapMockMethod(
         ITypeSymbol source,

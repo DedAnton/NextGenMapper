@@ -11,7 +11,7 @@ internal readonly struct PropertyMap : IMap
         bool isDestinationNullable,
         bool isTypesEquals,
         bool hasImplicitConversion,
-        string? userArgumentName = null)
+        string? userArgument = null)
     {
         SourceName = sourceName;
         DestinationName = destinationName;
@@ -21,7 +21,7 @@ internal readonly struct PropertyMap : IMap
         IsDestinationNullable = isDestinationNullable;
         IsTypesEquals = isTypesEquals;
         HasImplicitConversion = hasImplicitConversion;
-        UserArgumentName = userArgumentName;
+        UserArgument = userArgument;
     }
 
     public string SourceName { get; }
@@ -32,7 +32,7 @@ internal readonly struct PropertyMap : IMap
     public bool IsDestinationNullable { get; }
     public bool IsTypesEquals { get; }
     public bool HasImplicitConversion { get; }
-    public string? UserArgumentName { get; }
+    public string? UserArgument { get; }
 
     string IMap.Source => SourceType;
     string IMap.Destination => DestinationType;

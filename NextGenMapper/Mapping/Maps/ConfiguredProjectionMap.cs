@@ -12,6 +12,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
         string destination,
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> userArguments,
+        bool isUsedLambdaArguments,
         ConfiguredMapMockMethod? mockMethod,
         bool isSuccess,
         Location location)
@@ -20,6 +21,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
         Destination = destination;
         InitializerProperties = initializerProperties;
         UserArguments = userArguments;
+        IsUsedLambdaArguments = isUsedLambdaArguments;
         MockMethod = mockMethod;
         IsSuccess = isSuccess;
         Location = location;
@@ -29,6 +31,7 @@ internal readonly struct ConfiguredProjectionMap : IMap, IEquatable<ConfiguredPr
     public string Destination { get; }
     public ImmutableArray<PropertyMap> InitializerProperties { get; }
     public ImmutableArray<NameTypePair> UserArguments { get; }
+    public bool IsUsedLambdaArguments { get; }
     public ConfiguredMapMockMethod? MockMethod { get; }
     public bool IsSuccess { get; }
     public Location Location { get; }

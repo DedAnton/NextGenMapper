@@ -88,6 +88,7 @@ internal readonly struct Map : IEquatable<Map>
         string destination,
         ImmutableArray<PropertyMap> initializerProperties,
         ImmutableArray<NameTypePair> arguments,
+        bool isUsedLambdaArguments,
         ConfiguredMapMockMethod? mockMethod,
         bool isSuccess,
         Location location)
@@ -96,6 +97,7 @@ internal readonly struct Map : IEquatable<Map>
             destination,
             initializerProperties,
             arguments,
+            isUsedLambdaArguments,
             mockMethod,
             isSuccess,
             location));
