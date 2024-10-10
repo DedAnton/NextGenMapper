@@ -139,3 +139,4 @@ Thanks JetBrains for support ([Licenses for Open Source Development](https://www
 ![image](https://github.com/DedAnton/NextGenMapper/assets/36799941/11ebcaf2-016b-4044-89a6-a9d446b29056)
 
 
+
