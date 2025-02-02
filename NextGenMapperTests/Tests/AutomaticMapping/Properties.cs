@@ -104,13 +104,13 @@ public class Program
 
 public class SourceBase
 {
-    public int DerrivedPropertyA { get; set; } = -1;
+    public int DerrivedPropertyA { get; set; } = 1;
 }
 
 public class Source : SourceBase
 {
     public int PropertyName { get; set; } = 1;
-    public int DerrivedPropertyB { get; set; } = -1;
+    public int DerrivedPropertyB { get; set; } = 1;
 }
 
 public class DestinationBase
