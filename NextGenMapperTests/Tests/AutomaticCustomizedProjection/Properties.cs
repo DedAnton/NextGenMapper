@@ -115,7 +115,7 @@ public class Destination
     }
 
     [TestMethod]
-    public Task PropertyFromBaseClass_ShouldBeIgnored()
+    public Task PropertyFromBaseClass_ShouldMap()
     {
         var source =
 @"using NextGenMapper;
