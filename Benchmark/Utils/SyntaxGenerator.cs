@@ -54,8 +54,8 @@ internal static class SyntaxGenerator
 
     private static MethodDeclarationSyntax GeneratePartialConstructorMapMethod(int propertiesCount)
     {
-        var nodes = new List<SyntaxNodeOrToken>();
-        nodes.Add(
+        var nodes = new List<SyntaxNodeOrToken>
+        {
             SyntaxFactory.Argument(
             SyntaxFactory.BinaryExpression(
                 SyntaxKind.AddExpression,
@@ -65,8 +65,9 @@ internal static class SyntaxGenerator
                 SyntaxFactory.MemberAccessExpression(
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxFactory.IdentifierName("src"),
-                    SyntaxFactory.IdentifierName("Property0")))));
-        nodes.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
+                    SyntaxFactory.IdentifierName("Property0")))),
+            SyntaxFactory.Token(SyntaxKind.CommaToken)
+        };
 
         for (var i = 1; i <= propertiesCount; i++)
         {

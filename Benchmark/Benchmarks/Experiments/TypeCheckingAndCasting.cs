@@ -6,7 +6,7 @@ namespace Benchmark.Benchmarks.Experiments;
 [SimpleJob(RuntimeMoniker.Net60)]
 public class TypeCheckingAndCasting
 {
-    private object stringAsObject = "1234";
+    private readonly object stringAsObject = "1234";
 
     [Benchmark]
     public bool Is() => stringAsObject is string;

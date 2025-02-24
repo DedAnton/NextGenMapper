@@ -681,7 +681,7 @@ internal class ListProxy<T>
 #pragma warning restore 0649
 }
 
-class MyCollection<T> : IList<T>
+internal class MyCollection<T> : IList<T>
 {
     private readonly IList<T> _list = new List<T>();
 
