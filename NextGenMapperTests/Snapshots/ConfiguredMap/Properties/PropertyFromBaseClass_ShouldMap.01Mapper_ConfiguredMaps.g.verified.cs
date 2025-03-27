@@ -9,11 +9,14 @@ namespace NextGenMapper
         internal static Test.Destination MapWith<To>
         (
             this Test.Source source,
-            int ForMapWith1
+            int ForMapWith
         )
         => new Test.Destination
         {
-            ForMapWith1 = ForMapWith1
+            PropertyName = source.PropertyName,
+            DerrivedPropertyA = source.DerrivedPropertyA,
+            ForMapWith = ForMapWith,
+            DerrivedPropertyB = source.DerrivedPropertyB
         };
     }
 }

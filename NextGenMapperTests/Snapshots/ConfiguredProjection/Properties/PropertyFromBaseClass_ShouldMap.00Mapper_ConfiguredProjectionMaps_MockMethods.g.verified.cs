@@ -13,7 +13,8 @@ namespace NextGenMapper
             this IQueryable<Test.Source> source,
             int PropertyName = default!,
             int DerrivedPropertyA = default!,
-            int ForMapWith = default!
+            int ForMapWith = default!,
+            int DerrivedPropertyB = default!
         )
         {
             throw new System.NotImplementedException("This method is a mock and is not intended to be called");
@@ -24,7 +25,8 @@ namespace NextGenMapper
             this IQueryable<Test.Source> source,
             Expression<Func<Test.Source, int>> PropertyName = default!,
             Expression<Func<Test.Source, int>> DerrivedPropertyA = default!,
-            Expression<Func<Test.Source, int>> ForMapWith = default!
+            Expression<Func<Test.Source, int>> ForMapWith = default!,
+            Expression<Func<Test.Source, int>> DerrivedPropertyB = default!
         )
         {
             throw new System.NotImplementedException("This method is a mock and is not intended to be called");

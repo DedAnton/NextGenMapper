@@ -11,7 +11,8 @@ namespace NextGenMapper
             this Test.Source source,
             int PropertyName = default!,
             int DerrivedPropertyA = default!,
-            int ForMapWith = default!
+            int ForMapWith = default!,
+            int DerrivedPropertyB = default!
         )
         {
             throw new System.NotImplementedException("This method is a mock and is not intended to be called");

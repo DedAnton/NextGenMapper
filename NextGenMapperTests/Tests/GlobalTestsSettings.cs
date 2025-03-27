@@ -25,7 +25,7 @@ public static class ModuleInitializer
         });
     }
 
-    static ConversionResult Convert(GeneratorDriverRunResult target, IReadOnlyDictionary<string, object> context)
+    private static ConversionResult Convert(GeneratorDriverRunResult target, IReadOnlyDictionary<string, object> context)
     {
         var exceptions = new List<Exception>();
         var targets = new List<Target>();
@@ -65,7 +65,7 @@ public static class ModuleInitializer
         return new(null, targets);
     }
 
-    static Target SourceToTarget(GeneratedSourceResult source)
+    private static Target SourceToTarget(GeneratedSourceResult source)
     {
         var data = $@"//HintName: {source.HintName}
 {source.SourceText}";

@@ -16,7 +16,9 @@ namespace NextGenMapper
             => source.Select(x => new Test.Destination
         {
             PropertyName = x.PropertyName,
-            ForMapWith = ForMapWith
+            DerrivedPropertyA = x.DerrivedPropertyA,
+            ForMapWith = ForMapWith,
+            DerrivedPropertyB = x.DerrivedPropertyB
         });
     }
 }

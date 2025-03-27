@@ -31,7 +31,7 @@ namespace Benchmark.Utils
         private const int BlankNextIndexIndicator = int.MaxValue;
 
         // use this instead of the negate negative logic when getting hashindex - this saves an if (hashindex < 0) which can be the source of bad branch prediction
-        private const int HighBitNotSet = unchecked((int)0b0111_1111_1111_1111_1111_1111_1111_1111);
+        private const int HighBitNotSet = unchecked(0b0111_1111_1111_1111_1111_1111_1111_1111);
 
         // The Mark... constants below are for marking, unmarking, and checking if an item is marked.
         // This is usefull for some set operations.
@@ -77,7 +77,7 @@ namespace Benchmark.Utils
         // this is needed because if items are removed, they get added into the blank list starting at nextBlankIndex, but we may want to TrimExcess capacity, so this is a quick way to see what the ExcessCapacity is
         private int firstBlankAtEndIndex;
 
-        private IEqualityComparer<T> comparer;
+        private readonly IEqualityComparer<T> comparer;
 
         // make the buckets size a primary number to make the mod function less predictable
         private int[] buckets;
@@ -3565,7 +3565,7 @@ namespace Benchmark.Utils
 
         private class FastHashSetEnumerator<T2> : IEnumerator<T2>
         {
-            private FastHashSet<T2> set;
+            private readonly FastHashSet<T2> set;
             private int currentIndex = -1;
 
 #if !Exclude_Check_For_Is_Disposed_In_Enumerator
@@ -3573,7 +3573,7 @@ namespace Benchmark.Utils
 #endif
 
 #if !Exclude_Check_For_Set_Modifications_In_Enumerator
-            private int incrementForEverySetModification;
+            private readonly int incrementForEverySetModification;
 #endif
 
             /// <summary>

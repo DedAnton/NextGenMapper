@@ -1,0 +1,6 @@
+﻿{
+  PropertyName: 1,
+  DerrivedPropertyA: 1,
+  ForMapWith: 1,
+  DerrivedPropertyB: 1
+}

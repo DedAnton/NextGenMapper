@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 namespace NextGenMapperTests;
 
-static class VerifyExtensions
+internal static class VerifyExtensions
 {
     public static SettingsTask UseMySettings(this SettingsTask settingsTask, string directory, string methodName, string? variant) => settingsTask
         .UseDirectory(directory)
